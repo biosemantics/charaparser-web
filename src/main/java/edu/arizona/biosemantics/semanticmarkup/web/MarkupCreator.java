@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.cpservice;
+package edu.arizona.biosemantics.semanticmarkup.web;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -45,9 +45,9 @@ import edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.D
 import edu.arizona.biosemantics.semanticmarkup.markupelement.description.transform.SentenceChunkerRun;
 import edu.arizona.biosemantics.semanticmarkup.markupelement.description.transform.TransformationException;
 
-public class CPMarkupCreator {
+public class MarkupCreator {
 
-	private Logger logger = LoggerFactory.getLogger(CPMarkupCreator.class);
+	private Logger logger = LoggerFactory.getLogger(MarkupCreator.class);
 	private WhitespaceTokenizer tokenizer;
 	private IPOSTagger posTagger;
 	private IParser parser;
@@ -55,7 +55,7 @@ public class CPMarkupCreator {
 	private INormalizer normalizer;
 	private Injector injector;
 
-	public CPMarkupCreator() throws Exception {
+	public MarkupCreator() throws Exception {
 		PlantConfig config = new PlantConfig();
 		config.setGlossary(InMemoryGlossary.class);
 		config.setTerminologyLearner(NoTerminologyLearner.class);

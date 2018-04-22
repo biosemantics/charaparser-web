@@ -1,12 +1,12 @@
-package edu.arizona.biosemantics.cpservice;
+package edu.arizona.biosemantics.semanticmarkup.web;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class CpServiceApplication {
+public class Application {
 
 	public static void main(String[] args) {
-		SpringApplication.run(CpServiceApplication.class, args);
+		SpringApplication.run(Application.class, args);
 	}
 }

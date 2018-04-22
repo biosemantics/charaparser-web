@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.cpservice;
+package edu.arizona.biosemantics.semanticmarkup.web;
 
 import java.util.Arrays;
 import java.util.List;
@@ -21,21 +21,21 @@ import edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.D
 import edu.arizona.biosemantics.semanticmarkup.markupelement.description.transform.SentenceChunkerRun;
 
 @RestController
-public class CPController {
+public class MarkupController {
 
-	private CPMarkupCreator chunkerRunCreator;
+	private MarkupCreator markupCreator;
 
-	public CPController() throws Exception {
-		this.chunkerRunCreator = new CPMarkupCreator();
+	public MarkupController() throws Exception {
+		this.markupCreator = new MarkupCreator();
 	}
 
 	@RequestMapping(value = "/parse", produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE })
 	public String parse(@RequestParam String sentence) throws Exception {
-		SentenceChunkerRun chunkerRun = chunkerRunCreator.createChunkerRun(sentence);
+		SentenceChunkerRun chunkerRun = markupCreator.createChunkerRun(sentence);
 		ChunkCollector chunkCollector = chunkerRun.call();
 		System.out.println(chunkCollector.toString());
 
-		IDescriptionExtractor descriptionExtractor = chunkerRunCreator.createDescriptionExtractor();
+		IDescriptionExtractor descriptionExtractor = markupCreator.createDescriptionExtractor();
 		List<ChunkCollector> chunkCollectors = Arrays.asList(chunkCollector);
 		Description description = new Description();
 		descriptionExtractor.extract(description, 1, chunkCollectors);
