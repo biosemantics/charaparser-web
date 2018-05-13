@@ -6,4 +6,4 @@ Start the container with services by running [Application](https://github.com/bi
 
 Parse a sentence by using a HTTP GET http://localhost:8080/parse?sentence=this%20is%20my%20sentence
 
-A URL encoder will be useful to encode sentences to be passed as parameter.
+A [URL encoder](https://meyerweb.com/eric/tools/dencoder/) will be useful to encode sentences to be passed as parameter.
