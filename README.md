@@ -1,6 +1,6 @@
 # charaparser-web
 
-Configure as Maven project.
+Configure as Maven project. Make sure all the charaparser [dependencies](https://github.com/biosemantics/charaparser) are met.
 
 Start the container with services by running [Application](https://github.com/biosemantics/charaparser-web/blob/master/src/main/java/edu/arizona/biosemantics/semanticmarkup/web/Application.java)
 
