@@ -43,6 +43,12 @@
 		</dependency>
 		
 		<dependency>
+		  <groupId>edu.arizona.biosemantics.common.ontology</groupId>
+		  <artifactId>search</artifactId>
+		  <version>0.0.29-SNAPSHOT</version>
+		</dependency>
+		
+		<dependency>
 		    <groupId>javax.ws.rs</groupId>
 		    <artifactId>javax.ws.rs-api</artifactId>
 		    <version>2.1</version>
