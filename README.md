@@ -1,20 +1,17 @@
 # charaparser-web
 
-Configure as Maven project. Make sure all the charaparser [dependencies](https://github.com/biosemantics/charaparser) are met.
+## setup / how to run
+1. Configure as Maven project
+2. Make sure all the charaparser [dependencies](https://github.com/biosemantics/charaparser) are met
+3. Start the container with services by running the [Application](https://github.com/biosemantics/charaparser-web/blob/master/src/main/java/edu/arizona/biosemantics/semanticmarkup/web/Application.java)
 
-Start the container with services by running [Application](https://github.com/biosemantics/charaparser-web/blob/master/src/main/java/edu/arizona/biosemantics/semanticmarkup/web/Application.java)
+## service endpoints
+* /parse
+  * HTTP GET http://localhost:8080/parse?sentence={URL_encoded_sentence}
+  * {URL_encoded_sentence}: The sentence to be parsed
+  * Output format: The service will currently output a JSON representation based on charaparser's [XML output schema](https://github.com/biosemantics/schemas/blob/master/semanticMarkupOutput.xsd). An example follows.
 
-Parse a sentence by using a HTTP GET http://localhost:8080/parse?sentence=this%20is%20my%20sentence
-
-A [URL encoder](https://meyerweb.com/eric/tools/dencoder/) will be useful to encode sentences to be passed as parameter.
-
-
-# Parsed sentence output format
-
-The service will currently output a JSON representation that from the structure resembles charaparser's XML output. Charaparser's XML output is defined with [this XML schema](https://github.com/biosemantics/schemas/blob/master/semanticMarkupOutput.xsd)
-
-Below is an example output:
-
+```
 {
     "statements": [
         {
@@ -79,3 +76,81 @@ Below is an example output:
     ],
     "text": null
 }
+```
+
+* /{ontology}/search
+  * HTTP GET http://localhost:8080/{ontology}/search?=term={term}&parent={optional_parent}&relation={optional_relation}
+  * {ontology}: The ontology to search for the {term}. Ontology can currenlty be one of PO, PATO, CAREX
+  * {term}: The term to search for
+  * {optional_parent}: The optional parent the {term} is required to have
+  * {optional_relation}: The optional relation the {term} is required to have
+  * Output format:
+```
+{
+    "entries": [
+        {
+            "score": 1,
+            "term": "nucellar epidermis",
+            "parentTerm": "megasporangium exothecium",
+            "resultAnnotations": [
+                {
+                    "property": "http://www.w3.org/2000/01/rdf-schema#label",
+                    "value": "nucellar epidermis"
+                },
+                {
+                    "property": "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym",
+                    "value": "珠心 表皮 (Japanese, exact)"
+                },
+                {
+                    "property": "http://www.geneontology.org/formats/oboInOwl#hasDbXref",
+                    "value": "Gramene:Anuradha_Pujar"
+                },
+                {
+                    "property": "http://www.geneontology.org/formats/oboInOwl#hasSynonymType",
+                    "value": ""
+                },
+                {
+                    "property": "http://www.geneontology.org/formats/oboInOwl#hasDbXref",
+                    "value": "NIG:Yukiko_Yamazaki"
+                },
+                {
+                    "property": "http://www.geneontology.org/formats/oboInOwl#hasSynonymType",
+                    "value": ""
+                },
+                {
+                    "property": "http://purl.obolibrary.org/obo/IAO_0000115",
+                    "value": "A portion of plant tissue that is the morphologically distinct outer layer of the nucellus."
+                },
+                {
+                    "property": "http://www.geneontology.org/formats/oboInOwl#hasDbXref",
+                    "value": "POC:Maria_Alejandra_Gandolfo"
+                },
+                {
+                    "property": "http://www.geneontology.org/formats/oboInOwl#inSubset",
+                    "value": ""
+                },
+                {
+                    "property": "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym",
+                    "value": "epidermis nucelar (Spanish, exact)"
+                },
+                {
+                    "property": "http://www.geneontology.org/formats/oboInOwl#inSubset",
+                    "value": ""
+                },
+                {
+                    "property": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+                    "value": "plant_anatomy"
+                },
+                {
+                    "property": "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym",
+                    "value": "portion of nucellar epidermis (exact)"
+                },
+                {
+                    "property": "http://www.geneontology.org/formats/oboInOwl#id",
+                    "value": "PO:0008006"
+                }
+            ]
+        }
+    ]
+}
+```
