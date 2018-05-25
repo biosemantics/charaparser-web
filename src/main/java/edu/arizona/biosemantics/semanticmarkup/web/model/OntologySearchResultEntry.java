@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.semanticmarkup.web;
+package edu.arizona.biosemantics.semanticmarkup.web.model;
 
 public class OntologySearchResultEntry {
 

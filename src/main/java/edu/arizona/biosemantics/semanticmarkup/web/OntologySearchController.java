@@ -36,8 +36,11 @@ import edu.arizona.biosemantics.common.ontology.search.FileSearcher;
 import edu.arizona.biosemantics.common.ontology.search.Searcher;
 import edu.arizona.biosemantics.common.ontology.search.model.Ontology;
 import edu.arizona.biosemantics.common.ontology.search.model.OntologyEntry;
+import edu.arizona.biosemantics.semanticmarkup.web.model.Annotation;
+import edu.arizona.biosemantics.semanticmarkup.web.model.OntologySearchResult;
+import edu.arizona.biosemantics.semanticmarkup.web.model.OntologySearchResultEntry;
 
-@RestController
+//@RestController
 public class OntologySearchController {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(OntologySearchController.class);

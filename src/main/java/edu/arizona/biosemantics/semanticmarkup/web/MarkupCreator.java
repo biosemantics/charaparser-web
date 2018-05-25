@@ -15,6 +15,7 @@ import java.util.concurrent.Future;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -45,6 +46,7 @@ import edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.D
 import edu.arizona.biosemantics.semanticmarkup.markupelement.description.transform.SentenceChunkerRun;
 import edu.arizona.biosemantics.semanticmarkup.markupelement.description.transform.TransformationException;
 
+@Component
 public class MarkupCreator {
 
 	private Logger logger = LoggerFactory.getLogger(MarkupCreator.class);

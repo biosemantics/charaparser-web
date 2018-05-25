@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.semanticmarkup.web;
+package edu.arizona.biosemantics.semanticmarkup.web.model;
 
 import java.util.ArrayList;
 import java.util.List;
