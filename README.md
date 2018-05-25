@@ -6,6 +6,9 @@
 3. Start the container with services by running the [Application](https://github.com/biosemantics/charaparser-web/blob/master/src/main/java/edu/arizona/biosemantics/semanticmarkup/web/Application.java)
 
 ## service endpoints
+A postman collection for the endpoints can be found [![here](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/9b1918b76cb7380d8a5f)
+
+
 * /parse
   * HTTP GET http://localhost:8080/parse?sentence={URL_encoded_sentence}
   * {URL_encoded_sentence}: The sentence to be parsed
