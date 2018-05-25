@@ -160,13 +160,13 @@
   * Request body
 ```
 {
-	"term": "red",
-	"parentTerm": "parentterm",
-	"definition": "definition",
-	"sentence": "sentence",
-	"author": "author",
-	"relatedTaxon": "o1",
-	"submissionTime": 123456
+    "term": "red",
+    "parentTerm": "parentterm",
+    "definition": "definition",
+    "sentence": "sentence",
+    "author": "author",
+    "relatedTaxon": "o1",
+    "submissionTime": 123456
 }
 ```  
   * Response Body:
