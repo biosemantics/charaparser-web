@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.semanticmarkup.web;
+package edu.arizona.biosemantics.author.parse;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -6,10 +6,10 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import edu.arizona.biosemantics.semanticmarkup.web.model.BiologicalEntity;
-import edu.arizona.biosemantics.semanticmarkup.web.model.Description;
-import edu.arizona.biosemantics.semanticmarkup.web.model.Relation;
-import edu.arizona.biosemantics.semanticmarkup.web.model.Statement;
+import edu.arizona.biosemantics.author.parse.model.BiologicalEntity;
+import edu.arizona.biosemantics.author.parse.model.Description;
+import edu.arizona.biosemantics.author.parse.model.Relation;
+import edu.arizona.biosemantics.author.parse.model.Statement;
 
 @Component
 public class DescriptionResponseCreator {
@@ -47,19 +47,19 @@ public class DescriptionResponseCreator {
 				e.getType());
 	}
 
-	private List<edu.arizona.biosemantics.semanticmarkup.web.model.Character> createResponseCharacters(
+	private List<edu.arizona.biosemantics.author.parse.model.Character> createResponseCharacters(
 			LinkedHashSet<edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.Character> characters) {
-		List<edu.arizona.biosemantics.semanticmarkup.web.model.Character> result = 
-				new ArrayList<edu.arizona.biosemantics.semanticmarkup.web.model.Character>();
+		List<edu.arizona.biosemantics.author.parse.model.Character> result = 
+				new ArrayList<edu.arizona.biosemantics.author.parse.model.Character>();
 		for(edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.Character c : characters) {
 			result.add(createResponseCharacter(c));
 		}
 		return result;
 	}
 
-	private edu.arizona.biosemantics.semanticmarkup.web.model.Character createResponseCharacter(
+	private edu.arizona.biosemantics.author.parse.model.Character createResponseCharacter(
 			edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.Character c) {
-		return new edu.arizona.biosemantics.semanticmarkup.web.model.Character(
+		return new edu.arizona.biosemantics.author.parse.model.Character(
 				c.getCharType(), c.getConstraint(), c.getConstraintId(), c.getEstablishedMeans(), 
 				c.getFrom(), c.getFromInclusive(), c.getFromModifier(), c.getFromUnit(), c.getGeographicalConstraint(), 
 				c.getInBrackets(), c.getIsModifier(), c.getModifier(), c.getName(), c.getNotes(), 

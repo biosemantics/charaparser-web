@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.semanticmarkup.web.model;
+package edu.arizona.biosemantics.author.ontology.search.model;
 
 public class Annotation {
 

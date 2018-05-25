@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.semanticmarkup.web;
+package edu.arizona.biosemantics.author.parse;
 
 import java.io.File;
 import java.io.FileInputStream;

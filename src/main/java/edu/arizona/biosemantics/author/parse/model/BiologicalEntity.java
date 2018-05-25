@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.semanticmarkup.web.model;
+package edu.arizona.biosemantics.author.parse.model;
 
 import java.util.List;
 
@@ -22,7 +22,7 @@ public class BiologicalEntity {
 	private String taxonConstraint;
 	private String type;
 
-	public BiologicalEntity(String alterName, List<edu.arizona.biosemantics.semanticmarkup.web.model.Character> characters, 
+	public BiologicalEntity(String alterName, List<edu.arizona.biosemantics.author.parse.model.Character> characters, 
 			String constraint,
 			String constraintId, String constraintOriginal, String geographicalConstraint,
 			String id, String inBrackets, String name, String nameOriginal,

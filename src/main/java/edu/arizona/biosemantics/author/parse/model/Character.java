@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.semanticmarkup.web.model;
+package edu.arizona.biosemantics.author.parse.model;
 
 public class Character {
 
