@@ -85,3 +85,14 @@
   * {optional_parent}: The optional parent the {term} is required to have
   * {optional_relation}: The optional relation the {term} is required to have
   * Output format:
+```
+{
+    "entries": [
+        {
+            "score": 1,
+            "term": "leaf",
+            "parentTerm": "phyllome"
+        }
+    ]
+}
+```
