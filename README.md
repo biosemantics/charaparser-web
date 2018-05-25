@@ -14,7 +14,7 @@ A [URL encoder](https://meyerweb.com/eric/tools/dencoder/) will be useful to enc
 The service will currently output a JSON representation that from the structure resembles charaparser's XML output. Charaparser's XML output is defined with [this XML schema](https://github.com/biosemantics/schemas/blob/master/semanticMarkupOutput.xsd)
 
 Below is an example output:
-
+```
 {
     "statements": [
         {
@@ -79,3 +79,4 @@ Below is an example output:
     ],
     "text": null
 }
+```
