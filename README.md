@@ -7,7 +7,7 @@
 
 ## service endpoints
 * /parse
-  * HTTP GET http://localhost:8080/parse?sentence={URL encoded sentence}
+  * HTTP GET [http://localhost:8080/parse?sentence={URL encoded sentence}](http://localhost:8080/parse?sentence={URL encoded sentence})
   * {URL encoded sentence}: The sentence to be parsed
   * Output format: The service will currently output a JSON representation based on charaparser's [XML output schema](https://github.com/biosemantics/schemas/blob/master/semanticMarkupOutput.xsd). An example follows.
 
