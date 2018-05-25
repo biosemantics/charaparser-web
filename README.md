@@ -5,11 +5,11 @@
 2. Make sure all the charaparser [dependencies](https://github.com/biosemantics/charaparser) are met
 3. Start the container with services by running the [Application](https://github.com/biosemantics/charaparser-web/blob/master/src/main/java/edu/arizona/biosemantics/semanticmarkup/web/Application.java)
 
-## services
+## service endpoints
 * /parse
- * HTTP GET http://localhost:8080/parse?sentence={URL encoded sentence}
- * {URL encoded sentence}: The sentence to be parsed
- * Output format: The service will currently output a JSON representation based on charaparser's [XML output schema](https://github.com/biosemantics/schemas/blob/master/semanticMarkupOutput.xsd). An example follows.
+  * HTTP GET http://localhost:8080/parse?sentence={URL encoded sentence}
+  * {URL encoded sentence}: The sentence to be parsed
+  * Output format: The service will currently output a JSON representation based on charaparser's [XML output schema](https://github.com/biosemantics/schemas/blob/master/semanticMarkupOutput.xsd). An example follows.
 
 ```
 {
@@ -79,9 +79,9 @@
 ```
 
 * /{ontology}/search
- * HTTP GET http://localhost:8080/{ontology}/search?=term={term}&parent={optional parent}&relation={optional relation}
- * {ontology}: The ontology to search for the {term}. Ontology can currenlty be one of PO, PATO, CAREX
- * {term}: The term to search for
- * {optional parent}: The optional parent the {term} is required to have
- * {optional relation}: The optional relation the {term} is required to have
- * Output format:
+  * HTTP GET http://localhost:8080/{ontology}/search?=term={term}&parent={optional parent}&relation={optional relation}
+  * {ontology}: The ontology to search for the {term}. Ontology can currenlty be one of PO, PATO, CAREX
+  * {term}: The term to search for
+  * {optional parent}: The optional parent the {term} is required to have
+  * {optional relation}: The optional relation the {term} is required to have
+  * Output format:
