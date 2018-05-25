@@ -7,8 +7,8 @@
 
 ## service endpoints
 * /parse
-  * HTTP GET [http://localhost:8080/parse?sentence={URL encoded sentence}](http://localhost:8080/parse?sentence={URL encoded sentence})
-  * {URL encoded sentence}: The sentence to be parsed
+  * HTTP GET http://localhost:8080/parse?sentence={URL_encoded_sentence}
+  * {URL_encoded_sentence}: The sentence to be parsed
   * Output format: The service will currently output a JSON representation based on charaparser's [XML output schema](https://github.com/biosemantics/schemas/blob/master/semanticMarkupOutput.xsd). An example follows.
 
 ```
@@ -79,9 +79,9 @@
 ```
 
 * /{ontology}/search
-  * HTTP GET http://localhost:8080/{ontology}/search?=term={term}&parent={optional parent}&relation={optional relation}
+  * HTTP GET http://localhost:8080/{ontology}/search?=term={term}&parent={optional_parent}&relation={optional_relation}
   * {ontology}: The ontology to search for the {term}. Ontology can currenlty be one of PO, PATO, CAREX
   * {term}: The term to search for
-  * {optional parent}: The optional parent the {term} is required to have
-  * {optional relation}: The optional relation the {term} is required to have
+  * {optional_parent}: The optional parent the {term} is required to have
+  * {optional_relation}: The optional relation the {term} is required to have
   * Output format:
