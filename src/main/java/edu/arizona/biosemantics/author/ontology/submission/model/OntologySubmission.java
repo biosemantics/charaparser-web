@@ -20,7 +20,8 @@ public class OntologySubmission {
 			@JsonProperty("definition") String definition, 
 			@JsonProperty("sentence") String sentence, 
 			@JsonProperty("author") String author,
-			@JsonProperty("relatedTaxon") String relatedTaxon) {
+			@JsonProperty("relatedTaxon") String relatedTaxon,
+			@JsonProperty("submissionTime") long submissionTime) {
 		super();
 		this.term = term;
 		this.parentTerm = parentTerm;
@@ -28,6 +29,7 @@ public class OntologySubmission {
 		this.sentence = sentence;
 		this.author = author;
 		this.relatedTaxon = relatedTaxon;
+		this.submissionTime = submissionTime;
 	}
 
 	public String getTerm() {
