@@ -6,11 +6,13 @@
 3. Start the container with services by running the [Application](https://github.com/biosemantics/charaparser-web/blob/master/src/main/java/edu/arizona/biosemantics/semanticmarkup/web/Application.java)
 
 ## service endpoints
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/9b1918b76cb7380d8a5f)
+
 * /parse
   * HTTP GET http://localhost:8080/parse?sentence={URL_encoded_sentence}
   * {URL_encoded_sentence}: The sentence to be parsed
-  * Output format: The service will currently output a JSON representation based on charaparser's [XML output schema](https://github.com/biosemantics/schemas/blob/master/semanticMarkupOutput.xsd). An example follows.
-
+  * The service will currently output a JSON representation based on charaparser's [XML output schema](https://github.com/biosemantics/schemas/blob/master/semanticMarkupOutput.xsd). An example follows.
+  * Response body:
 ```
 {
     "statements": [
@@ -79,12 +81,12 @@
 ```
 
 * /{ontology}/search
-  * HTTP GET http://localhost:8080/{ontology}/search?=term={term}&parent={optional_parent}&relation={optional_relation}
+  * HTTP GET http://localhost:8080/{ontology}/search?term={term}&parent={optional_parent}&relation={optional_relation}
   * {ontology}: The ontology to search for the {term}. Ontology can currenlty be one of PO, PATO, CAREX
   * {term}: The term to search for
   * {optional_parent}: The optional parent the {term} is required to have
   * {optional_relation}: The optional relation the {term} is required to have
-  * Output format:
+  * Response body:
 ```
 {
     "entries": [
@@ -152,5 +154,26 @@
             ]
         }
     ]
+}
+```
+
+* /submit
+  * HTTP POST http://localhost:8080/submit
+  * Request body
+```
+{
+    "term": "red",
+    "parentTerm": "parentterm",
+    "definition": "definition",
+    "sentence": "sentence",
+    "author": "author",
+    "relatedTaxon": "o1",
+    "submissionTime": 123456
+}
+```  
+  * Response Body:
+```  
+{
+    "term": "red"
 }
 ```
