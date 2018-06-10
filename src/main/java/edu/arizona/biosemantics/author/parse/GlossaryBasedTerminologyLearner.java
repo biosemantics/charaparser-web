@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.assertj.core.util.Arrays;
-
 import com.google.inject.Inject;
 
 import edu.arizona.biosemantics.common.ling.know.IGlossary;
