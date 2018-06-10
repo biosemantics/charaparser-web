@@ -45,7 +45,7 @@ import edu.arizona.biosemantics.common.ontology.search.model.OntologyEntry;
 @RestController
 public class OntologySearchController {
 
-	private static Ontology[] ontologies = { Ontology.PO, Ontology.PATO/*, Ontology.CAREX*/ };
+	private static Ontology[] ontologies = { Ontology.PO, Ontology.PATO, Ontology.CAREX };
 	
 	private HashMap<Ontology, Searcher> searchersMap;
 	private OntologySearchResultCreator ontologySearchResultCreator;

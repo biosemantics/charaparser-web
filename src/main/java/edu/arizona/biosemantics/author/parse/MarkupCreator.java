@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -40,7 +41,9 @@ import edu.arizona.biosemantics.semanticmarkup.ling.know.lib.ElementRelationGrou
 import edu.arizona.biosemantics.semanticmarkup.ling.normalize.INormalizer;
 import edu.arizona.biosemantics.semanticmarkup.ling.parse.IParser;
 import edu.arizona.biosemantics.semanticmarkup.markupelement.description.ling.extract.IDescriptionExtractor;
+import edu.arizona.biosemantics.semanticmarkup.markupelement.description.ling.learn.ITerminologyLearner;
 import edu.arizona.biosemantics.semanticmarkup.markupelement.description.ling.learn.lib.NoTerminologyLearner;
+import edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.AbstractDescriptionsFile;
 import edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.Description;
 import edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.DescriptionsFile;
 import edu.arizona.biosemantics.semanticmarkup.markupelement.description.transform.SentenceChunkerRun;
@@ -60,15 +63,17 @@ public class MarkupCreator {
 	public MarkupCreator() throws Exception {
 		PlantConfig config = new PlantConfig();
 		config.setGlossary(InMemoryGlossary.class);
-		config.setTerminologyLearner(NoTerminologyLearner.class);
+		config.setTerminologyLearner(GlossaryBasedTerminologyLearner.class);
 		this.injector = Guice.createInjector(config);
 		IInflector inflector = injector.getInstance(IInflector.class);
 		this.normalizer = injector.getInstance(INormalizer.class);
-		IGlossary glossary = injector.getInstance(InMemoryGlossary.class);
+		IGlossary glossary = injector.getInstance(IGlossary.class);
 		OTOClient otoClient = injector.getInstance(OTOClient.class);
 
 		GlossaryDownload glossaryDownload = this.getGlossaryDownload(glossary, otoClient, TaxonGroup.PLANT);
 		this.initGlossary(glossaryDownload, new Collection(), glossary, inflector);
+		ITerminologyLearner terminologyLearner= injector.getInstance(ITerminologyLearner.class);
+		terminologyLearner.readResults(new ArrayList<AbstractDescriptionsFile>());
 
 		normalizer.init();
 
