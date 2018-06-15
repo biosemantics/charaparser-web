@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 
+import org.jdom2.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,10 +33,15 @@ public class ParseController {
 
 	private MarkupCreator markupCreator;
 	private DescriptionResponseCreator descriptionResponseCreator;
+	private DocumentCreator documentCreator;
+	private EnhanceRun enhanceRun;
 
 	@Autowired
-	public ParseController(MarkupCreator markupCreator, DescriptionResponseCreator descriptionResponseCreator) throws Exception {
+	public ParseController(MarkupCreator markupCreator, DocumentCreator documentCreator,
+			EnhanceRun enhanceRun, DescriptionResponseCreator descriptionResponseCreator) throws Exception {
 		this.markupCreator = markupCreator;
+		this.documentCreator = documentCreator;
+		this.enhanceRun = enhanceRun;
 		this.descriptionResponseCreator = descriptionResponseCreator;
 	}
 
@@ -51,7 +57,10 @@ public class ParseController {
 				new edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.Description();
 		descriptionExtractor.extract(description, 1, chunkCollectors);
 
-		return descriptionResponseCreator.create(description);
+		Document document = documentCreator.create(description);
+		enhanceRun.run(document);
+		
+		return descriptionResponseCreator.create(document);
 		// return description;
 		/*ObjectMapper mapper = new ObjectMapper();
 		AnnotationIntrospector introspector = new JaxbAnnotationIntrospector(TypeFactory.defaultInstance());

@@ -47,6 +47,12 @@
 		</dependency>
 		
 		<dependency>
+		  <groupId>edu.arizona.biosemantics.semanticmarkup</groupId>
+		  <artifactId>enhance</artifactId>
+		  <version>0.0.27-SNAPSHOT</version>
+		</dependency>
+		
+		<dependency>
 		  <groupId>edu.arizona.biosemantics.common.ontology</groupId>
 		  <artifactId>search</artifactId>
 		  <version>0.0.29-SNAPSHOT</version>
