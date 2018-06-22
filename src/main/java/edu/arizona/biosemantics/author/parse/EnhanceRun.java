@@ -92,8 +92,10 @@ public class EnhanceRun {
 	//private String termReviewSynonyms;
 	private WordNetPOSKnowledgeBase wordNetPOSKnowledgeBase;
 	private SomeInflector inflector;
+	private MapOntologyIds mapOntologyIds;
 	
-	public EnhanceRun() throws IOException, InterruptedException, ExecutionException {
+	public EnhanceRun(MapOntologyIds mapOntologyIds) throws IOException, InterruptedException, ExecutionException {
+		this.mapOntologyIds = mapOntologyIds;
 		/*this.filePath2KnowsPartOf = filePath2KnowsPartOf;
 		this.termReviewTermCategorization = termReviewTermCategorization;
 		this.termReviewSynonyms = termReviewSynonyms;*/
@@ -154,7 +156,7 @@ public class EnhanceRun {
 		}catch(Exception e){
 			e.printStackTrace();
 			System.out.println("Reduced enhancement due to unavailability of knowledge entities for advanced enhancements");
-		}	
+		}
 
 		transformers.add(new SplitCompoundBiologicalEntity(inflector));
 		transformers.add(new SplitCompoundBiologicalEntitiesCharacters(inflector));
@@ -179,6 +181,7 @@ public class EnhanceRun {
 		transformers.add(new CollapseCharacterToValue());
 		transformers.add(new CollapseBiologicalEntities());
 		transformers.add(new CollapseCharacters());
+		transformers.add(mapOntologyIds);
 		
 		for(AbstractTransformer transformer : transformers) 
 			try {
