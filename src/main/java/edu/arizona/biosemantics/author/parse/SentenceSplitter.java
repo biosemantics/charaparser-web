@@ -31,8 +31,8 @@ public class SentenceSplitter {
 	}
 
 	public List<String> split(String text) throws IOException {
-		String command = "perl -I perl " + "perl/charaparserWebSentenceSplitter.pl \"" + text + "\"";
-		return runCommand(command);
+		String[] cmdArray = { "perl", "-I", "perl", "perl/charaparserWebSentenceSplitter.pl", text };
+		return runCommand(cmdArray);
 	}
 
 	private class TerminatePerlHook extends Thread {
@@ -66,12 +66,12 @@ public class SentenceSplitter {
 		}
 	}
 
-	private List<String> runCommand(String command) throws IOException {
+	private List<String> runCommand(String[] cmdArray) throws IOException {
 		List<String> result = new ArrayList<String>();
-		System.out.println("running command: " + command);
+		System.out.println("running command: " + cmdArray);
 		long time = System.currentTimeMillis();
 
-		Process process = Runtime.getRuntime().exec(command);
+		Process process = Runtime.getRuntime().exec(cmdArray);
 
 		// add shutdown hook to clean up in case of failure
 		TerminatePerlHook terminatePerlHook = new TerminatePerlHook(process);
