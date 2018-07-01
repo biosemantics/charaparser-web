@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 
 import org.jdom2.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,25 +51,26 @@ public class ParseController {
 	}
 
 	@GetMapping(value = "/parse", produces = { MediaType.APPLICATION_JSON_VALUE })
-	public Description parse(@RequestParam String sentence) throws Exception {
-		SentenceChunkerRun chunkerRun = markupCreator.createChunkerRun(sentence);
-		ChunkCollector chunkCollector = chunkerRun.call();
-		System.out.println(chunkCollector.toString());
-		List<ChunkCollector> chunkCollectors = Arrays.asList(chunkCollector);
-		return createDescription(chunkCollectors);
-	}
-
-	@GetMapping(value = "/parseText", produces = { MediaType.APPLICATION_JSON_VALUE })
-	public Description parseText(@RequestParam String text) throws Exception {
-		List<String> sentences = sentenceSplitter.split(text);	
+	public Description parse(@RequestParam Optional<String> sentence, @RequestParam Optional<String> description) throws Exception {
 		List<ChunkCollector> chunkCollectors = new ArrayList<ChunkCollector>();
-		for(String sentence : sentences) {
-			SentenceChunkerRun chunkerRun = markupCreator.createChunkerRun(sentence);
+		if(description.isPresent()) {
+			List<String> sentences = sentenceSplitter.split(description.get());	
+			for(String s : sentences) {
+				SentenceChunkerRun chunkerRun = markupCreator.createChunkerRun(s);
+				ChunkCollector chunkCollector = chunkerRun.call();
+				System.out.println(chunkCollector.toString());
+				chunkCollectors.add(chunkCollector);
+			}
+		} else if(sentence.isPresent()) {
+			SentenceChunkerRun chunkerRun = markupCreator.createChunkerRun(sentence.get());
 			ChunkCollector chunkCollector = chunkerRun.call();
 			System.out.println(chunkCollector.toString());
 			chunkCollectors.add(chunkCollector);
 		}
-		return this.createDescription(chunkCollectors);
+		if(chunkCollectors.isEmpty())
+			throw new IllegalArgumentException();
+		
+		return createDescription(chunkCollectors);
 	}
 	
 	private Description createDescription(List<ChunkCollector> chunkCollectors) throws IOException {
