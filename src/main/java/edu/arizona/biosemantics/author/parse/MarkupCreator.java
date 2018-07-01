@@ -57,7 +57,7 @@ import edu.arizona.biosemantics.semanticmarkup.markupelement.description.transfo
 public class MarkupCreator {
 
 	private Logger logger = LoggerFactory.getLogger(MarkupCreator.class);
-	private static final String SOURCE = "source";
+	private static final String SOURCE = "1";
 	private WhitespaceTokenizer tokenizer;
 	private IPOSTagger posTagger;
 	private IParser parser;
@@ -101,7 +101,7 @@ public class MarkupCreator {
 
 	public SentenceChunkerRun createChunkerRun(String sentence) {
 		Hashtable<String, String> prevMissingOrgan = new Hashtable<String, String>();
-		prevMissingOrgan.put(SOURCE, SOURCE);
+		prevMissingOrgan.put("source", SOURCE);
 		CountDownLatch sentencesLatch = new CountDownLatch(1);
 
 		DescriptionsFile descriptionsFile = new DescriptionsFile();
