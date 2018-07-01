@@ -55,7 +55,7 @@
 		<dependency>
 		  <groupId>edu.arizona.biosemantics.common.ontology</groupId>
 		  <artifactId>search</artifactId>
-		  <version>0.0.29-SNAPSHOT</version>
+		  <version>0.0.30-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>

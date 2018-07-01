@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -20,6 +21,8 @@ import org.springframework.stereotype.Component;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.name.Names;
 
 import edu.arizona.biosemantics.common.biology.TaxonGroup;
 import edu.arizona.biosemantics.common.ling.know.IGlossary;
@@ -40,6 +43,7 @@ import edu.arizona.biosemantics.semanticmarkup.ling.chunk.lib.CharaparserChunker
 import edu.arizona.biosemantics.semanticmarkup.ling.know.lib.ElementRelationGroup;
 import edu.arizona.biosemantics.semanticmarkup.ling.normalize.INormalizer;
 import edu.arizona.biosemantics.semanticmarkup.ling.parse.IParser;
+import edu.arizona.biosemantics.semanticmarkup.markupelement.description.io.ParentTagProvider;
 import edu.arizona.biosemantics.semanticmarkup.markupelement.description.ling.extract.IDescriptionExtractor;
 import edu.arizona.biosemantics.semanticmarkup.markupelement.description.ling.learn.ITerminologyLearner;
 import edu.arizona.biosemantics.semanticmarkup.markupelement.description.ling.learn.lib.NoTerminologyLearner;
@@ -53,6 +57,7 @@ import edu.arizona.biosemantics.semanticmarkup.markupelement.description.transfo
 public class MarkupCreator {
 
 	private Logger logger = LoggerFactory.getLogger(MarkupCreator.class);
+	private static final String SOURCE = "source";
 	private WhitespaceTokenizer tokenizer;
 	private IPOSTagger posTagger;
 	private IParser parser;
@@ -67,6 +72,7 @@ public class MarkupCreator {
 		this.injector = Guice.createInjector(config);
 		IInflector inflector = injector.getInstance(IInflector.class);
 		this.normalizer = injector.getInstance(INormalizer.class);
+		ParentTagProvider parentTagProvider = injector.getInstance(Key.get(ParentTagProvider.class, Names.named("ParentTagProvider")));
 		IGlossary glossary = injector.getInstance(IGlossary.class);
 		OTOClient otoClient = injector.getInstance(OTOClient.class);
 
@@ -75,6 +81,11 @@ public class MarkupCreator {
 		ITerminologyLearner terminologyLearner= injector.getInstance(ITerminologyLearner.class);
 		terminologyLearner.readResults(new ArrayList<AbstractDescriptionsFile>());
 
+		HashMap<String, String> grandParentTags = new HashMap<String, String>();
+		HashMap<String, String> parentTags = new HashMap<String, String>();
+		parentTags.put(SOURCE, "");
+		grandParentTags.put(SOURCE, "");
+		parentTagProvider.init(parentTags, grandParentTags);
 		normalizer.init();
 
 		this.tokenizer = new WhitespaceTokenizer();
@@ -90,6 +101,7 @@ public class MarkupCreator {
 
 	public SentenceChunkerRun createChunkerRun(String sentence) {
 		Hashtable<String, String> prevMissingOrgan = new Hashtable<String, String>();
+		prevMissingOrgan.put(SOURCE, SOURCE);
 		CountDownLatch sentencesLatch = new CountDownLatch(1);
 
 		DescriptionsFile descriptionsFile = new DescriptionsFile();
@@ -104,7 +116,7 @@ public class MarkupCreator {
 		 * sentenceArray[1]; //TODO: Hong stop using subjectTag and modifier. Pause.
 		 * Still used in fixInner. String modifier = sentenceArray[0];
 		 */
-		return new SentenceChunkerRun("source", sentenceArgument, description, descriptionsFile, normalizer, tokenizer,
+		return new SentenceChunkerRun(SOURCE, sentenceArgument, description, descriptionsFile, normalizer, tokenizer,
 				posTagger, parser, chunkerChain, prevMissingOrgan, sentencesLatch);
 	}
 

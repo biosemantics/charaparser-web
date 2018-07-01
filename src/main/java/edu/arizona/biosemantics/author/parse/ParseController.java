@@ -1,5 +1,6 @@
 package edu.arizona.biosemantics.author.parse;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -35,14 +36,17 @@ public class ParseController {
 	private DescriptionResponseCreator descriptionResponseCreator;
 	private DocumentCreator documentCreator;
 	private EnhanceRun enhanceRun;
+	private SentenceSplitter sentenceSplitter;
 
 	@Autowired
 	public ParseController(MarkupCreator markupCreator, DocumentCreator documentCreator,
-			EnhanceRun enhanceRun, DescriptionResponseCreator descriptionResponseCreator) throws Exception {
+			EnhanceRun enhanceRun, DescriptionResponseCreator descriptionResponseCreator, 
+			SentenceSplitter sentenceSplitter) throws Exception {
 		this.markupCreator = markupCreator;
 		this.documentCreator = documentCreator;
 		this.enhanceRun = enhanceRun;
 		this.descriptionResponseCreator = descriptionResponseCreator;
+		this.sentenceSplitter = sentenceSplitter;
 	}
 
 	@GetMapping(value = "/parse", produces = { MediaType.APPLICATION_JSON_VALUE })
@@ -50,9 +54,25 @@ public class ParseController {
 		SentenceChunkerRun chunkerRun = markupCreator.createChunkerRun(sentence);
 		ChunkCollector chunkCollector = chunkerRun.call();
 		System.out.println(chunkCollector.toString());
-
-		IDescriptionExtractor descriptionExtractor = markupCreator.createDescriptionExtractor();
 		List<ChunkCollector> chunkCollectors = Arrays.asList(chunkCollector);
+		return createDescription(chunkCollectors);
+	}
+
+	@GetMapping(value = "/parseText", produces = { MediaType.APPLICATION_JSON_VALUE })
+	public Description parseText(@RequestParam String text) throws Exception {
+		List<String> sentences = sentenceSplitter.split(text);	
+		List<ChunkCollector> chunkCollectors = new ArrayList<ChunkCollector>();
+		for(String sentence : sentences) {
+			SentenceChunkerRun chunkerRun = markupCreator.createChunkerRun(sentence);
+			ChunkCollector chunkCollector = chunkerRun.call();
+			System.out.println(chunkCollector.toString());
+			chunkCollectors.add(chunkCollector);
+		}
+		return this.createDescription(chunkCollectors);
+	}
+	
+	private Description createDescription(List<ChunkCollector> chunkCollectors) throws IOException {
+		IDescriptionExtractor descriptionExtractor = markupCreator.createDescriptionExtractor();
 		edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.Description description = 
 				new edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.Description();
 		descriptionExtractor.extract(description, 1, chunkCollectors);
@@ -61,11 +81,5 @@ public class ParseController {
 		enhanceRun.run(document);
 		
 		return descriptionResponseCreator.create(document);
-		// return description;
-		/*ObjectMapper mapper = new ObjectMapper();
-		AnnotationIntrospector introspector = new JaxbAnnotationIntrospector(TypeFactory.defaultInstance());
-		AnnotationIntrospector secondary = new JacksonAnnotationIntrospector();
-		mapper.setAnnotationIntrospector(new AnnotationIntrospectorPair(introspector, secondary));
-		return mapper.writeValueAsString(description);*/
 	}
 }
