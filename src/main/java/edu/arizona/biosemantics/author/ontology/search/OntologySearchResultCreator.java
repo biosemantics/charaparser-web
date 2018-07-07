@@ -12,6 +12,7 @@ import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
@@ -30,6 +31,7 @@ import com.google.common.collect.Multimap;
 import edu.arizona.biosemantics.author.ontology.search.model.Annotation;
 import edu.arizona.biosemantics.author.ontology.search.model.OntologySearchResult;
 import edu.arizona.biosemantics.author.ontology.search.model.OntologySearchResultEntry;
+import edu.arizona.biosemantics.common.ontology.search.OntologyAccess;
 import edu.arizona.biosemantics.common.ontology.search.model.Ontology;
 import edu.arizona.biosemantics.common.ontology.search.model.OntologyEntry;
 
@@ -37,38 +39,25 @@ import edu.arizona.biosemantics.common.ontology.search.model.OntologyEntry;
 public class OntologySearchResultCreator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(OntologySearchResultCreator.class);
-	private static Ontology[] ontologies = { Ontology.PO, Ontology.PATO/*, Ontology.CAREX*/ };
+	private static Ontology[] entityOntologies = { Ontology.PO, Ontology.CAREX };
 	
-	private OWLOntologyManager owlOntologyManager;
-	private HashMap<Ontology, OWLOntology> owlOntologyMap;
-
-	@Autowired
-	public OntologySearchResultCreator(@Value("${ontologySearch.ontologyDir}") String ontologyDir,
-			@Value("${ontologySearch.wordNetDir}") String wordNetDir) throws OWLOntologyCreationException {
-		this.owlOntologyMap = new HashMap<Ontology, OWLOntology>();
-		
-		LOGGER.info("Loading ontologies");
-		this.owlOntologyManager = OWLManager.createOWLOntologyManager();
-		for(Ontology o : ontologies) {
-			this.owlOntologyMap.put(o, owlOntologyManager.loadOntologyFromOntologyDocument(new File(ontologyDir + "/" + 
-					o.name().toLowerCase() + ".owl")));
-		}
-		LOGGER.info("Completed loading ontologies");
-	}
-	
-	public OntologySearchResult create(Ontology o, List<OntologyEntry> entries) {
+	public OntologySearchResult create(Ontology o, List<OntologyEntry> entries, 
+			OntologyAccess ontologyAccess, OWLOntology owlOntology, OWLOntologyManager owlOntologyManager) {
 		OntologySearchResult result = new OntologySearchResult();
-		OWLOntology owlOntology = this.owlOntologyMap.get(o);
 		for(OntologyEntry e : entries) {
 			String iri = e.getClassIRI();
 			OWLClass owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(iri));
+			
 			Set<OWLAnnotation> annotations = EntitySearcher.getAnnotations(owlClass, owlOntology).collect(Collectors.toSet());
+			
+			/*
 			Set<OWLIndividual> indivduals = EntitySearcher.getIndividuals(owlClass, owlOntology).collect(Collectors.toSet());
 			for(OWLIndividual i : indivduals) {
 				Multimap<OWLObjectPropertyExpression, OWLIndividual> properties = 
 					EntitySearcher.getObjectPropertyValues(i, owlOntology);
 				System.out.println(properties);
 			}
+			*/
 			
 			List<Annotation> resultAnnotations = new ArrayList<Annotation>();
 			for(OWLAnnotation a : annotations) {
@@ -79,6 +68,14 @@ public class OntologySearchResultCreator {
 					resultAnnotations.add(new Annotation(a.getProperty().getIRI().getIRIString(), ""));
 				}
 			}
+			
+			Set<OWLClass> bearers = ontologyAccess.getBearers(owlClass);
+			Set<OWLClass> parts = ontologyAccess.getParts(owlClass);
+			for(OWLClass bearer : bearers)
+				resultAnnotations.add(new Annotation("has part", bearer.getIRI().getIRIString()));
+			for(OWLClass part : parts)
+				resultAnnotations.add(new Annotation("part of", part.getIRI().getIRIString()));
+			
 			result.getEntries().add(new OntologySearchResultEntry(e.getLabel(), e.getScore(), e.getParentLabel(), resultAnnotations));
 		}
 		return result;
