@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import edu.arizona.biosemantics.author.ontology.search.model.Class;
 import edu.arizona.biosemantics.author.ontology.search.model.HasPart;
+import edu.arizona.biosemantics.author.ontology.search.model.OntologyIRI;
 import edu.arizona.biosemantics.author.ontology.search.model.OntologySearchResult;
 import edu.arizona.biosemantics.author.ontology.search.model.PartOf;
 import edu.arizona.biosemantics.author.ontology.search.model.Synonym;
@@ -47,14 +48,17 @@ import edu.arizona.biosemantics.semanticmarkup.enhance.know.AnnotationProperty;
 @RestController
 public class OntologySearchController {
 	
-	private static String HAS_PART = "http://purl.obolibrary.org/obo/BFO_0000051"; 
-	private static String PO_IRI = "http://purl.obolibrary.org/obo/po.owl"; 
-	private static String PATO_IRI = "http://purl.obolibrary.org/obo/pato.owl"; 
-	private static String CAREX_IRI = "http://purl.obolibrary.org/obo/carex.owl"; 
+	private static OntologyIRI CAREX = new OntologyIRI(Ontology.CAREX, 
+			"http://purl.obolibrary.org/obo/carex.owl");
+	private static OntologyIRI PO = new OntologyIRI(Ontology.PO,
+			"http://purl.obolibrary.org/obo/po.owl");
+	private static OntologyIRI PATO = new OntologyIRI(Ontology.PATO,
+			"http://purl.obolibrary.org/obo/pato.owl");
 	
-	private static Ontology[] entityOntologies = { Ontology.PO, /*Ontology.CAREX*/ };
-	private static Ontology[] qualityOntologies = { Ontology.PATO, /*Ontology.CAREX*/ };
-	private HashMap<Ontology, OWLOntology> owlOntologyMap = new HashMap<Ontology, OWLOntology>();
+	private static String HAS_PART = "http://purl.obolibrary.org/obo/BFO_0000051"; 
+	private static OntologyIRI[] entityOntologies = { PO, /*CAREX*/ };
+	private static OntologyIRI[] qualityOntologies = { PATO, /*CAREX*/ };
+	
 	private HashMap<Ontology, OntologyAccess> ontologyAccessMap = new HashMap<Ontology, OntologyAccess>();
 	private HashMap<Ontology, FileSearcher> searchersMap;
 	private HashMap<Ontology, OWLOntologyManager> owlOntologyManagerMap = new HashMap<Ontology, OWLOntologyManager>();
@@ -75,49 +79,36 @@ public class OntologySearchController {
 		searcher.getOntologyLookupClient().getTermOutputterUtilities().OWLentityOntoAPIs;
 		List<OWLAccessorImpl> list2 = 
 		searcher.getOntologyLookupClient().getTermOutputterUtilities().OWLqualityOntoAPIs;*/
-		for(Ontology o : entityOntologies) {
-			String ontologyIRI = "";
-			if(o.equals(Ontology.PO))
-				ontologyIRI = PO_IRI;
-			if(o.equals(Ontology.CAREX))
-				ontologyIRI = CAREX_IRI;
-			
+		for(OntologyIRI o : entityOntologies) {
 			HashSet<String> entityOntologyNames = new HashSet<String>();
-			entityOntologyNames.add(o.name());
+			entityOntologyNames.add(o.getOntology().name());
 			FileSearcher searcher = new FileSearcher(entityOntologyNames, new HashSet<String>(), 
 					ontologyDir, wordNetDir);
 			OWLOntologyManager owlOntologyManager = searcher.getOwlOntologyManager();
-			OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(ontologyIRI));
+			OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(o.getIri()));
 			Set<OWLOntology> ontologies = new HashSet<OWLOntology>();
 			ontologies.add(owlOntology);
 			OntologyAccess ontologyAccess  = new OntologyAccess(ontologies);
 			
-			this.searchersMap.put(o, searcher);
-			this.ontologyAccessMap.put(o, ontologyAccess);
-			this.owlOntologyMap.put(o, owlOntology);
-			this.owlOntologyManagerMap.put(o, owlOntologyManager);
+			this.searchersMap.put(o.getOntology(), searcher);
+			this.ontologyAccessMap.put(o.getOntology(), ontologyAccess);
+			this.owlOntologyManagerMap.put(o.getOntology(), owlOntologyManager);
 		}
 		
-		for(Ontology o : qualityOntologies) {
-			String ontologyIRI = "";
-			if(o.equals(Ontology.PATO))
-				ontologyIRI = PATO_IRI;
-			if(o.equals(Ontology.CAREX))
-				ontologyIRI = CAREX_IRI;
-			
+		for(OntologyIRI o : qualityOntologies) {
 			HashSet<String> qualityOntologyNames = new HashSet<String>();
-			qualityOntologyNames.add(o.name());
+			qualityOntologyNames.add(o.getOntology().name());
 			FileSearcher searcher = new FileSearcher(new HashSet<String>(), qualityOntologyNames, 
 					ontologyDir, wordNetDir);
 			OWLOntologyManager owlOntologyManager = searcher.getOwlOntologyManager();
-			OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(ontologyIRI));
+			OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(o.getIri()));
 			Set<OWLOntology> ontologies = new HashSet<OWLOntology>();
 			ontologies.add(owlOntology);
 			OntologyAccess ontologyAccess  = new OntologyAccess(ontologies);
 			
-			this.searchersMap.put(o, searcher);
-			this.ontologyAccessMap.put(o, ontologyAccess);
-			this.owlOntologyMap.put(o, owlOntology);
+			this.searchersMap.put(o.getOntology(), searcher);
+			this.ontologyAccessMap.put(o.getOntology(), ontologyAccess);
+			this.owlOntologyManagerMap.put(o.getOntology(), owlOntologyManager);
 		}
 	}
 	
@@ -125,6 +116,7 @@ public class OntologySearchController {
 	public OntologySearchResult search(@PathVariable String ontology, @RequestParam String term, 
 			@RequestParam Optional<String> parent, @RequestParam Optional<String> relation) throws Exception {
 		Ontology o = Ontology.valueOf(ontology.toUpperCase());
+		OntologyIRI oIRI = getOntologyIRI(o);
 		if(!searchersMap.containsKey(o)) 
 			throw new IllegalArgumentException();
 
@@ -140,14 +132,14 @@ public class OntologySearchController {
 		
 		return ontologySearchResultCreator.create(o, entries, 
 				this.ontologyAccessMap.get(o), 
-				this.owlOntologyMap.get(o),
+				this.owlOntologyManagerMap.get(o).getOntology(IRI.create(oIRI.getIri())),
 				this.owlOntologyManagerMap.get(o));
 	}
 
 	@PostMapping(value = "/synonym", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
 	public ChangeApplied createSynonym(@RequestBody Synonym synonym) {
-		OWLOntology owlOntology = this.owlOntologyMap.get(Ontology.CAREX);
 		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(Ontology.CAREX);
+		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(CAREX.getIri()));
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 		
 		String synonymTerm = synonym.getTerm();
@@ -162,8 +154,8 @@ public class OntologySearchController {
 	
 	@PostMapping(value = "/class", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
 	public ChangeApplied createClass(@RequestBody Class c) {
-		OWLOntology owlOntology = this.owlOntologyMap.get(Ontology.CAREX);
 		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(Ontology.CAREX);
+		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(CAREX.getIri()));
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 		
 		String subclassIRI = this.carexOntologyBaseIRI + "#" + c.getTerm();
@@ -185,8 +177,8 @@ public class OntologySearchController {
 	
 	@PostMapping(value = "/partOf", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
 	public ChangeApplied createPartOf(@RequestBody PartOf partOf) {
-		OWLOntology owlOntology = this.owlOntologyMap.get(Ontology.CAREX);
 		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(Ontology.CAREX);
+		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(CAREX.getIri()));
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 		
 		OWLClass bearer = owlDataFactory.getOWLClass(partOf.getBearerIRI());
@@ -202,8 +194,8 @@ public class OntologySearchController {
 	
 	@PostMapping(value = "/hasPart", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
 	public ChangeApplied createHasPart(@RequestBody HasPart hasPart) {
-		OWLOntology owlOntology = this.owlOntologyMap.get(Ontology.CAREX);
 		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(Ontology.CAREX);
+		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(CAREX.getIri()));
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 		
 		OWLClass bearer = owlDataFactory.getOWLClass(hasPart.getBearerIRI());
@@ -218,19 +210,31 @@ public class OntologySearchController {
 	}
 	
 	private boolean isEntityOntology(Ontology o) {
-		for(Ontology on : entityOntologies) {
-			if(on.equals(o))
+		for(OntologyIRI on : entityOntologies) {
+			if(on.getOntology().equals(o))
 				return true;
 		}
 		return false;
 	}
 
 	private boolean isQualityOntology(Ontology o) {
-		for(Ontology on : qualityOntologies) {
-			if(on.equals(o))
+		for(OntologyIRI on : qualityOntologies) {
+			if(on.getOntology().equals(o))
 				return true;
 		}
 		return false;
+	}
+	
+	private OntologyIRI getOntologyIRI(Ontology o) {
+		for(OntologyIRI oIRI : entityOntologies) {
+			if(oIRI.getOntology().equals(o))
+				return oIRI;
+		}
+		for(OntologyIRI oIRI : qualityOntologies) {
+			if(oIRI.getOntology().equals(o))
+				return oIRI;
+		}
+		return null;
 	}
 	
 	@PreDestroy
@@ -238,7 +242,7 @@ public class OntologySearchController {
 		for(Ontology o : this.owlOntologyManagerMap.keySet()) {
 			OWLOntologyManager manager = this.owlOntologyManagerMap.get(o);
 			try(FileOutputStream fos = new FileOutputStream(ontologyDir + File.separator + o.name().toLowerCase() + ".owl")) {
-				manager.saveOntology(this.owlOntologyMap.get(o), fos);
+				manager.saveOntology(manager.getOntology(IRI.create(this.getOntologyIRI(o).getIri())), fos);
 			}
 		}
 	}
