@@ -39,8 +39,9 @@ public class DescriptionResponseCreator {
 	}
 
 	private Statement createResponseStatement(Element s) {
+		String text = s.getChildText("text").intern();
 		return new Statement(s.getAttributeValue("id"), s.getAttributeValue("notes"), 
-				s.getAttributeValue("provenance"), s.getAttributeValue("text"), 
+				s.getAttributeValue("provenance"), text, 
 				createResponseBiologicalEntities(s.getChildren("biological_entity")), 
 				createResponseRelations(s.getChildren("relation")));
 	}

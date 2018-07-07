@@ -34,7 +34,10 @@ public class DocumentCreator {
 
 	private Element createStatementElement(Statement s) {
 		Element statement = new Element("statement");
-		statement.setAttribute("id", "d0_s0");
+		statement.setAttribute("id", s.getId());
+		Element text = new Element("text");
+		text.setText(s.getText());
+		statement.addContent(text);
 		for(BiologicalEntity b : s.getBiologicalEntities()) {
 			Element entity = new Element("biological_entity");
 			

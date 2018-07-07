@@ -57,13 +57,13 @@ import edu.arizona.biosemantics.semanticmarkup.markupelement.description.transfo
 public class MarkupCreator {
 
 	private Logger logger = LoggerFactory.getLogger(MarkupCreator.class);
-	private static final String SOURCE = "1";
 	private WhitespaceTokenizer tokenizer;
 	private IPOSTagger posTagger;
 	private IParser parser;
 	private CharaparserChunkerChain chunkerChain;
 	private INormalizer normalizer;
 	private Injector injector;
+	private ParentTagProvider parentTagProvider;
 
 	public MarkupCreator() throws Exception {
 		PlantConfig config = new PlantConfig();
@@ -72,7 +72,7 @@ public class MarkupCreator {
 		this.injector = Guice.createInjector(config);
 		IInflector inflector = injector.getInstance(IInflector.class);
 		this.normalizer = injector.getInstance(INormalizer.class);
-		ParentTagProvider parentTagProvider = injector.getInstance(Key.get(ParentTagProvider.class, Names.named("ParentTagProvider")));
+		this.parentTagProvider = injector.getInstance(Key.get(ParentTagProvider.class, Names.named("ParentTagProvider")));
 		IGlossary glossary = injector.getInstance(IGlossary.class);
 		OTOClient otoClient = injector.getInstance(OTOClient.class);
 
@@ -80,13 +80,6 @@ public class MarkupCreator {
 		this.initGlossary(glossaryDownload, new Collection(), glossary, inflector);
 		ITerminologyLearner terminologyLearner= injector.getInstance(ITerminologyLearner.class);
 		terminologyLearner.readResults(new ArrayList<AbstractDescriptionsFile>());
-
-		HashMap<String, String> grandParentTags = new HashMap<String, String>();
-		HashMap<String, String> parentTags = new HashMap<String, String>();
-		parentTags.put(SOURCE, "");
-		grandParentTags.put(SOURCE, "");
-		parentTagProvider.init(parentTags, grandParentTags);
-		normalizer.init();
 
 		this.tokenizer = new WhitespaceTokenizer();
 		this.posTagger = injector.getInstance(IPOSTagger.class);
@@ -99,9 +92,15 @@ public class MarkupCreator {
 		return injector.getInstance(IDescriptionExtractor.class);
 	}
 
-	public SentenceChunkerRun createChunkerRun(String sentence) {
+	public SentenceChunkerRun createChunkerRun(String sentence, String source) {
+		HashMap<String, String> grandParentTags = new HashMap<String, String>();
+		HashMap<String, String> parentTags = new HashMap<String, String>();
+		parentTags.put(source, "");
+		grandParentTags.put(source, "");
+		parentTagProvider.init(parentTags, grandParentTags);
+		normalizer.init();
 		Hashtable<String, String> prevMissingOrgan = new Hashtable<String, String>();
-		prevMissingOrgan.put("source", SOURCE);
+		prevMissingOrgan.put("source", source);
 		CountDownLatch sentencesLatch = new CountDownLatch(1);
 
 		DescriptionsFile descriptionsFile = new DescriptionsFile();
@@ -116,7 +115,7 @@ public class MarkupCreator {
 		 * sentenceArray[1]; //TODO: Hong stop using subjectTag and modifier. Pause.
 		 * Still used in fixInner. String modifier = sentenceArray[0];
 		 */
-		return new SentenceChunkerRun(SOURCE, sentenceArgument, description, descriptionsFile, normalizer, tokenizer,
+		return new SentenceChunkerRun(source, sentenceArgument, description, descriptionsFile, normalizer, tokenizer,
 				posTagger, parser, chunkerChain, prevMissingOrgan, sentencesLatch);
 	}
 

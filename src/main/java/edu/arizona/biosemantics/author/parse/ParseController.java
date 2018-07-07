@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.jdom2.Document;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,16 +55,19 @@ public class ParseController {
 	@GetMapping(value = "/parse", produces = { MediaType.APPLICATION_JSON_VALUE })
 	public Description parse(@RequestParam Optional<String> sentence, @RequestParam Optional<String> description) throws Exception {
 		List<ChunkCollector> chunkCollectors = new ArrayList<ChunkCollector>();
+		String descriptionText = "";
 		if(description.isPresent()) {
-			List<String> sentences = sentenceSplitter.split(description.get());	
-			for(String s : sentences) {
-				SentenceChunkerRun chunkerRun = markupCreator.createChunkerRun(s);
+			descriptionText = description.get();
+			List<String> sentences = sentenceSplitter.split(descriptionText);	
+			for(int source = 0; source < sentences.size(); source++) {
+				SentenceChunkerRun chunkerRun = markupCreator.createChunkerRun(sentences.get(source), String.valueOf(source));
 				ChunkCollector chunkCollector = chunkerRun.call();
 				System.out.println(chunkCollector.toString());
 				chunkCollectors.add(chunkCollector);
 			}
 		} else if(sentence.isPresent()) {
-			SentenceChunkerRun chunkerRun = markupCreator.createChunkerRun(sentence.get());
+			descriptionText = sentence.get();
+			SentenceChunkerRun chunkerRun = markupCreator.createChunkerRun(descriptionText, String.valueOf(1));
 			ChunkCollector chunkCollector = chunkerRun.call();
 			System.out.println(chunkCollector.toString());
 			chunkCollectors.add(chunkCollector);
@@ -70,17 +75,21 @@ public class ParseController {
 		if(chunkCollectors.isEmpty())
 			throw new IllegalArgumentException();
 		
-		return createDescription(chunkCollectors);
+		return createDescription(chunkCollectors, descriptionText);
 	}
 	
-	private Description createDescription(List<ChunkCollector> chunkCollectors) throws IOException {
+	private Description createDescription(List<ChunkCollector> chunkCollectors, String descriptionText) throws IOException {
 		IDescriptionExtractor descriptionExtractor = markupCreator.createDescriptionExtractor();
 		edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.Description description = 
 				new edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.Description();
 		descriptionExtractor.extract(description, 1, chunkCollectors);
+		description.setText(descriptionText);
 
 		Document document = documentCreator.create(description);
+		//XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
+        //System.out.println(outputter.outputString(document));
 		enhanceRun.run(document);
+        //System.out.println(outputter.outputString(document));
 		
 		return descriptionResponseCreator.create(document);
 	}
