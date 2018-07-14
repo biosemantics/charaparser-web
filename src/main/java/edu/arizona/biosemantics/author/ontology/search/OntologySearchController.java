@@ -49,15 +49,15 @@ import edu.arizona.biosemantics.semanticmarkup.enhance.know.AnnotationProperty;
 public class OntologySearchController {
 	
 	private static OntologyIRI CAREX = new OntologyIRI(Ontology.CAREX, 
-			"http://purl.obolibrary.org/obo/carex.owl");
+			"http://biosemantics.arizona.edu/ontologies/carex");
 	private static OntologyIRI PO = new OntologyIRI(Ontology.PO,
 			"http://purl.obolibrary.org/obo/po.owl");
 	private static OntologyIRI PATO = new OntologyIRI(Ontology.PATO,
 			"http://purl.obolibrary.org/obo/pato.owl");
 	
 	private static String HAS_PART = "http://purl.obolibrary.org/obo/BFO_0000051"; 
-	private static OntologyIRI[] entityOntologies = { PO, /*CAREX*/ };
-	private static OntologyIRI[] qualityOntologies = { PATO, /*CAREX*/ };
+	private static OntologyIRI[] entityOntologies = { PO, CAREX };
+	private static OntologyIRI[] qualityOntologies = { PATO, CAREX };
 	
 	private HashMap<Ontology, OntologyAccess> ontologyAccessMap = new HashMap<Ontology, OntologyAccess>();
 	private HashMap<Ontology, FileSearcher> searchersMap;
@@ -75,10 +75,6 @@ public class OntologySearchController {
 		this.searchersMap = new HashMap<Ontology, FileSearcher>();
 		this.ontologySearchResultCreator = ontologySearchResultCreator;
 		
-		/*List<OWLAccessorImpl> list = 
-		searcher.getOntologyLookupClient().getTermOutputterUtilities().OWLentityOntoAPIs;
-		List<OWLAccessorImpl> list2 = 
-		searcher.getOntologyLookupClient().getTermOutputterUtilities().OWLqualityOntoAPIs;*/
 		for(OntologyIRI o : entityOntologies) {
 			HashSet<String> entityOntologyNames = new HashSet<String>();
 			entityOntologyNames.add(o.getOntology().name());
