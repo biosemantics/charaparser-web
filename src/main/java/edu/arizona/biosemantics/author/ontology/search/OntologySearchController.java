@@ -235,6 +235,11 @@ public class OntologySearchController {
 	
 	@PreDestroy
 	public void destroy() throws Exception {
+		this.save();
+	}
+	
+	@PostMapping(value = "/save", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
+	public void save() throws Exception {
 		for(Ontology o : this.owlOntologyManagerMap.keySet()) {
 			OWLOntologyManager manager = this.owlOntologyManagerMap.get(o);
 			try(FileOutputStream fos = new FileOutputStream(ontologyDir + File.separator + o.name().toLowerCase() + ".owl")) {
