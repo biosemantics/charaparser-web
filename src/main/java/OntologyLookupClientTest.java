@@ -6,6 +6,7 @@ public class OntologyLookupClientTest {
 
 	public static void main(String[] args) {
 		HashSet<String> entityOntologies = new HashSet<String>();
+		entityOntologies.add("PO");
 		HashSet<String> qualityOntologies = new HashSet<String>();
 		OntologyLookupClient client = new OntologyLookupClient(entityOntologies, qualityOntologies, "ontologies", "wordnet/wn31/dict");
 		client.searchStructure("leaf", "", "");
