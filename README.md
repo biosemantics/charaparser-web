@@ -158,9 +158,9 @@
 ```
 {
   "term": "root-apex",
-	 "superclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex",
-	 "definition": "the apex of the root",
-	 "elucidation": "http://some.illustration.of/the/apex-root.jpg"
+  "superclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex",
+  "definition": "the apex of the root",
+  "elucidation": "http://some.illustration.of/the/apex-root.jpg"
 }
 ```  
   * The response body will bei either 
@@ -178,7 +178,7 @@
 ```
 {
   "term": "root-tip",
-	 "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex"
+  "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex"
 }
 ```  
   * The response body will bei either 
@@ -195,8 +195,8 @@
   * Request body:
 ```
 {
-	 "bearerIRI": "http://biosemantics.arizona.edu/ontologies/carex#root",
-	 "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex"
+  "bearerIRI": "http://biosemantics.arizona.edu/ontologies/carex#root",
+  "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex"
 }
 ```  
   * The response body will bei either 
@@ -213,8 +213,8 @@
   * Request body:
 ```
 {
-	 "bearerIRI": "http://biosemantics.arizona.edu/ontologies/carex#root",
-	 "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex"
+  "bearerIRI": "http://biosemantics.arizona.edu/ontologies/carex#root",
+  "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex"
 }
 ```  
   * The response body will bei either 
