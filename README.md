@@ -15,7 +15,7 @@
     * HTTP GET http://localhost:8080/parse?description={URL_encoded_description}
     * {URL_encoded_description}: The description to be parsed. A description can contain of multiple sentences.
     * Example: GET http://shark.sbs.arizona.edu:8080/parse?description=Herbs%2C%20perennial%2C%20cespitose%20or%20not%2C%20rhizomatous%2C%20rarely%20stoloniferous.%20Culms%20usually%20trigonous%2C%20sometimes%20round.%20Leaves%20basal%20and%20cauline%2C%20sometimes%20all%20basal%3B
-  * The service will outputs a JSON representation based on charaparser's [XML output schema](https://github.com/biosemantics/schemas/blob/master/semanticMarkupOutput.xsd). An example follows.
+  * The service will respond with a JSON body based on charaparser's [XML output schema](https://github.com/biosemantics/schemas/blob/master/semanticMarkupOutput.xsd). An example follows.
 ```
 {
   "statements": [
@@ -64,74 +64,91 @@
   * {term}: The term to search for
   * {optional_parent}: The optional parent the {term} is required to have
   * {optional_relation}: The optional relation the {term} is required to have
+  * Example: GET http://shark.sbs.arizona.edu:8080/PO/search?term=quaternary%20leaf%20vein
   * Response body:
 ```
 {
-    "entries": [
+  "entries": [
+    {
+      "score": 1,
+      "term": "quaternary leaf vein",
+      "parentTerm": "leaf lamina vein",
+      "resultAnnotations": [
         {
-            "score": 1,
-            "term": "nucellar epidermis",
-            "parentTerm": "megasporangium exothecium",
-            "resultAnnotations": [
-                {
-                    "property": "http://www.w3.org/2000/01/rdf-schema#label",
-                    "value": "nucellar epidermis"
-                },
-                {
-                    "property": "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym",
-                    "value": "珠心 表皮 (Japanese, exact)"
-                },
-                {
-                    "property": "http://www.geneontology.org/formats/oboInOwl#hasDbXref",
-                    "value": "Gramene:Anuradha_Pujar"
-                },
-                {
-                    "property": "http://www.geneontology.org/formats/oboInOwl#hasSynonymType",
-                    "value": ""
-                },
-                {
-                    "property": "http://www.geneontology.org/formats/oboInOwl#hasDbXref",
-                    "value": "NIG:Yukiko_Yamazaki"
-                },
-                {
-                    "property": "http://www.geneontology.org/formats/oboInOwl#hasSynonymType",
-                    "value": ""
-                },
-                {
-                    "property": "http://purl.obolibrary.org/obo/IAO_0000115",
-                    "value": "A portion of plant tissue that is the morphologically distinct outer layer of the nucellus."
-                },
-                {
-                    "property": "http://www.geneontology.org/formats/oboInOwl#hasDbXref",
-                    "value": "POC:Maria_Alejandra_Gandolfo"
-                },
-                {
-                    "property": "http://www.geneontology.org/formats/oboInOwl#inSubset",
-                    "value": ""
-                },
-                {
-                    "property": "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym",
-                    "value": "epidermis nucelar (Spanish, exact)"
-                },
-                {
-                    "property": "http://www.geneontology.org/formats/oboInOwl#inSubset",
-                    "value": ""
-                },
-                {
-                    "property": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
-                    "value": "plant_anatomy"
-                },
-                {
-                    "property": "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym",
-                    "value": "portion of nucellar epidermis (exact)"
-                },
-                {
-                    "property": "http://www.geneontology.org/formats/oboInOwl#id",
-                    "value": "PO:0008006"
-                }
-            ]
+          "property": "http://www.geneontology.org/formats/oboInOwl#hasDbXref",
+          "value": "FNA:dba43715-e71f-4192-87a2-489f5b9b4c82"
+        },
+        {
+          "property": "http://www.geneontology.org/formats/oboInOwl#hasDbXref",
+          "value": "Gramene:Chih-Wei_Tung"
+        },
+        {
+          "property": "http://www.geneontology.org/formats/oboInOwl#id",
+          "value": "PO:0008022"
+        },
+        {
+          "property": "http://www.geneontology.org/formats/oboInOwl#hasDbXref",
+          "value": "PO_GIT:435"
+        },
+        {
+          "property": "http://purl.obolibrary.org/obo/IAO_0000115",
+          "value": "A leaf lamina vein (PO:0020138) arising from a tertiary leaf vein (PO:0008021)."
+        },
+        {
+          "property": "http://www.geneontology.org/formats/oboInOwl#hasSynonymType",
+          "value": ""
+        },
+        {
+          "property": "http://www.geneontology.org/formats/oboInOwl#hasDbXref",
+          "value": "NIG:Yukiko_Yamazaki"
+        },
+        {
+          "property": "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym",
+          "value": "vena cuaternaria (Spanish, exact)"
+        },
+        {
+          "property": "http://www.geneontology.org/formats/oboInOwl#hasSynonymType",
+          "value": ""
+        },
+        {
+          "property": "http://www.w3.org/2000/01/rdf-schema#label",
+          "value": "quaternary leaf vein"
+        },
+        {
+          "property": "http://www.geneontology.org/formats/oboInOwl#hasDbXref",
+          "value": "FNA:e3ab3fff-3015-4b76-af51-fc69ee9396d8"
+        },
+        {
+          "property": "http://www.w3.org/2000/01/rdf-schema#comment",
+          "value": "Vein orders only apply to hierarchically branching vein patterns, not to dichotomously branching vein patterns, as found in some ferns and gymnosperms."
+        },
+        {
+          "property": "http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym",
+          "value": "veinlet (narrow)"
+        },
+        {
+          "property": "http://www.geneontology.org/formats/oboInOwl#hasDbXref",
+          "value": "POC:Maria_Alejandra_Gandolfo"
+        },
+        {
+          "property": "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace",
+          "value": "plant_anatomy"
+        },
+        {
+          "property": "http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym",
+          "value": "cross-vein (narrow)"
+        },
+        {
+          "property": "http://www.geneontology.org/formats/oboInOwl#hasRelatedSynonym",
+          "value": "fourth order leaf vein (related)"
+        },
+        {
+          "property": "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym",
+          "value": "四次葉脈 (Japanese, exact)"
         }
-    ]
+      ]
+    }
+  ]
 }
 ```
 
