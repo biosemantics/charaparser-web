@@ -16,7 +16,7 @@
     * {URL_encoded_description}: The description to be parsed. A description can contain of multiple sentences.
     * Example: GET http://shark.sbs.arizona.edu:8080/parse?description=Herbs%2C%20perennial%2C%20cespitose%20or%20not%2C%20rhizomatous%2C%20rarely%20stoloniferous.%20Culms%20usually%20trigonous%2C%20sometimes%20round.%20Leaves%20basal%20and%20cauline%2C%20sometimes%20all%20basal%3B
   * The service will respond with a JSON body based on charaparser's [XML output schema](https://github.com/biosemantics/schemas/blob/master/semanticMarkupOutput.xsd). An example follows.
-```
+```json
 {
   "statements": [
     {
@@ -66,7 +66,7 @@
   * {optional_relation}: The optional relation the {term} is required to have
   * Example: GET http://shark.sbs.arizona.edu:8080/PO/search?term=quaternary%20leaf%20vein
   * Response body:
-```
+```json
 {
   "entries": [
     {
@@ -155,59 +155,59 @@
 * /class
   * HTTP POST http://{host}/class
   * Request body:
-```
+```json
 {
   "term": "root-apex",
   "superclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex",
   "definition": "the apex of the root",
   "elucidation": "http://some.illustration.of/the/apex-root.jpg"
 }
-```  
+```
 
   * The response body will bei either 
     * IRI of the newly created clas
     * UNSUCCESSFULLY
     * NO_OPERATION
   * Response Body:
-```  
+```json
 {IRI}|UNSUCCESSFULLY|NO_OPERATION
 ```
 
 * /synonym
   * HTTP POST http://{host}/synonym
   * Request body:
-```
+```json
 {
   "term": "root-tip",
   "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex"
 }
-```  
+```
 
   * The response body will bei either 
     * IRI of the newly created clas
     * UNSUCCESSFULLY
     * NO_OPERATION
   * Response Body:
-```  
+```json
 {IRI}|UNSUCCESSFULLY|NO_OPERATION
 ```
 
 * /partOf
   * HTTP POST http://{host}/partOf
   * Request body:
-```
+```json
 {
   "bearerIRI": "http://biosemantics.arizona.edu/ontologies/carex#root",
   "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex"
 }
-```  
+```
 
   * The response body will bei either 
     * IRI of the newly created clas
     * UNSUCCESSFULLY
     * NO_OPERATION
   * Response Body:
-```  
+```json
 {IRI}|UNSUCCESSFULLY|NO_OPERATION
 ```
 
@@ -215,18 +215,18 @@
   * HTTP POST <host>/hasPart
   * Request body:
  
-```
+```json
 {
   "bearerIRI": "http://biosemantics.arizona.edu/ontologies/carex#root",
   "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex"
 }
-```  
+```
  
   * The response body will bei either 
     * IRI of the newly created clas
     * UNSUCCESSFULLY
     * NO_OPERATION
   * Response Body:
-```  
+```json
 {IRI}|UNSUCCESSFULLY|NO_OPERATION
 ```
