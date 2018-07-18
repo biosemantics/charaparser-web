@@ -10,15 +10,18 @@ public class Class {
 	private String term;
 	private String superclassIRI;
 	private String definition;
+	private String elucidation;
 	
 	@JsonCreator
 	public Class(@JsonProperty("term") String term, 
 			@JsonProperty("superclassIRI")String superclassIRI, 
-			@JsonProperty("definition")String definition) {
+			@JsonProperty("definition")String definition,
+			@JsonProperty("elucidation") String elucidation) {
 		super();
 		this.term = term;
 		this.superclassIRI = superclassIRI;
 		this.definition = definition;
+		this.elucidation = elucidation;
 	}
 
 	public String getTerm() {
@@ -31,5 +34,9 @@ public class Class {
 
 	public String getDefinition() {
 		return definition;
+	}
+
+	public String getElucidation() {
+		return elucidation;
 	}
 }

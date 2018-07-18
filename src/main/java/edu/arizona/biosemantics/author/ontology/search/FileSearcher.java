@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.arizona.biosemantics.common.ontology.search.model.OntologyEntry;
 import edu.arizona.biosemantics.common.ontology.search.model.OntologyEntry.Type;
@@ -17,12 +19,15 @@ import edu.arizona.biosemantics.oto.common.ontologylookup.search.search.TermSear
 
 public class FileSearcher {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(FileSearcher.class);
+	
 	private OntologyLookupClient ontologyLookupClient;
 	private HashSet<String> entityOntologyNames;
 	private HashSet<String> qualityOntologyNames;
 
 	public FileSearcher(HashSet<String> entityOntologyNames, HashSet<String> qualityOntologyNames,
 			String ontologyDir, String dictDir) {
+		LOGGER.info("Init filesearcher: " + entityOntologyNames + "; " + qualityOntologyNames + "; " + ontologyDir + "; " + dictDir);
 		this.entityOntologyNames = entityOntologyNames;
 		this.qualityOntologyNames = qualityOntologyNames;
 		try {
@@ -32,7 +37,8 @@ public class FileSearcher {
 					ontologyDir,
 					dictDir);
 		} catch(Throwable t) {
-			t.printStackTrace();
+			LOGGER.error("Could not instantiate OLC", t);
+			
 		}
 	}
 	

@@ -18,12 +18,16 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.parameters.ChangeApplied;
+import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -48,6 +52,8 @@ import edu.arizona.biosemantics.semanticmarkup.enhance.know.AnnotationProperty;
 @RestController
 public class OntologySearchController {
 	
+	private static final Logger LOGGER = LoggerFactory.getLogger(OntologySearchController.class);
+	
 	private static OntologyIRI CAREX = new OntologyIRI(Ontology.CAREX, 
 			"http://biosemantics.arizona.edu/ontologies/carex");
 	private static OntologyIRI PO = new OntologyIRI(Ontology.PO,
@@ -56,15 +62,15 @@ public class OntologySearchController {
 			"http://purl.obolibrary.org/obo/pato.owl");
 	
 	private static String HAS_PART = "http://purl.obolibrary.org/obo/BFO_0000051"; 
+	private static String ELUCIDATION = "http://purl.oblibrary.org/obo/IAO_0000600";
 	private static OntologyIRI[] entityOntologies = { PO, CAREX };
 	private static OntologyIRI[] qualityOntologies = { PATO, CAREX };
 	
 	private HashMap<Ontology, OntologyAccess> ontologyAccessMap = new HashMap<Ontology, OntologyAccess>();
-	private HashMap<Ontology, FileSearcher> searchersMap;
+	private HashMap<Ontology, FileSearcher> searchersMap = new HashMap<Ontology, FileSearcher>();
 	private HashMap<Ontology, OWLOntologyManager> owlOntologyManagerMap = new HashMap<Ontology, OWLOntologyManager>();
 	
 	private OntologySearchResultCreator ontologySearchResultCreator;
-	private String carexOntologyBaseIRI;
 	private String ontologyDir;
 
 	@Autowired
@@ -80,6 +86,7 @@ public class OntologySearchController {
 			entityOntologyNames.add(o.getOntology().name());
 			FileSearcher searcher = new FileSearcher(entityOntologyNames, new HashSet<String>(), 
 					ontologyDir, wordNetDir);
+			LOGGER.info("created searcher for " + entityOntologyNames);
 			OWLOntologyManager owlOntologyManager = searcher.getOwlOntologyManager();
 			OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(o.getIri()));
 			Set<OWLOntology> ontologies = new HashSet<OWLOntology>();
@@ -149,18 +156,28 @@ public class OntologySearchController {
 	}
 	
 	@PostMapping(value = "/class", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
-	public ChangeApplied createClass(@RequestBody Class c) {
+	public String createClass(@RequestBody Class c) {
 		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(Ontology.CAREX);
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(CAREX.getIri()));
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 		
-		String subclassIRI = this.carexOntologyBaseIRI + "#" + c.getTerm();
+		String subclassIRI = CAREX.getIri() + "#" + c.getTerm();
 		OWLClass subclass = owlDataFactory.getOWLClass(subclassIRI);
+		
+		OWLAnnotationProperty labelProperty =
+				owlDataFactory.getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI());
+		OWLLiteral labelLiteral = owlDataFactory.getOWLLiteral(c.getTerm(), "en");
+		OWLAnnotation labelAnnotation = owlDataFactory.getOWLAnnotation(labelProperty, labelLiteral);
+		OWLAxiom labelAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(subclass.getIRI(), labelAnnotation);
+		ChangeApplied change = owlOntologyManager.addAxiom(owlOntology, labelAxiom);
+		if(change != ChangeApplied.SUCCESSFULLY)
+			return change.name();
+		
 		OWLClass superclass = owlDataFactory.getOWLClass(c.getSuperclassIRI());
 		OWLAxiom subclassAxiom = owlDataFactory.getOWLSubClassOfAxiom(subclass, superclass);
-		ChangeApplied change = owlOntologyManager.addAxiom(owlOntology, subclassAxiom);
+		change = owlOntologyManager.addAxiom(owlOntology, subclassAxiom);
 		if(change != ChangeApplied.SUCCESSFULLY)
-			return change;
+			return change.name();
 		
 		OWLAnnotationProperty definitionProperty = 
 				owlDataFactory.getOWLAnnotationProperty(IRI.create(AnnotationProperty.DEFINITION.getIRI()));
@@ -168,7 +185,23 @@ public class OntologySearchController {
 				(definitionProperty, owlDataFactory.getOWLLiteral(c.getDefinition(), "en")); 
 		OWLAxiom definitionAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(
 				subclass.getIRI(), definitionAnnotation); 
-		return owlOntologyManager.addAxiom(owlOntology, definitionAxiom);
+		change = owlOntologyManager.addAxiom(owlOntology, definitionAxiom);
+		
+		if(change != ChangeApplied.SUCCESSFULLY)
+			return change.name();
+		
+		if(c.getElucidation() != null && !c.getElucidation().isEmpty()) {
+			OWLAnnotationProperty elucidationProperty = 
+					owlDataFactory.getOWLAnnotationProperty(IRI.create(ELUCIDATION));
+			OWLAnnotation elucidationAnnotation = owlDataFactory.getOWLAnnotation
+					(elucidationProperty, owlDataFactory.getOWLLiteral(c.getElucidation())); 
+			OWLAxiom elucidationAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(
+					subclass.getIRI(), elucidationAnnotation); 
+			change = owlOntologyManager.addAxiom(owlOntology, elucidationAxiom);
+			if(change != ChangeApplied.SUCCESSFULLY)
+				return change.name();
+		}
+		return subclass.getIRI().getIRIString();
 	}
 	
 	@PostMapping(value = "/partOf", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
