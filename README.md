@@ -152,23 +152,76 @@
 }
 ```
 
-* /submit
-  * HTTP POST http://localhost:8080/submit
-  * Request body
+* /class
+  * HTTP POST http://localhost:8080/class
+  * Request body:
 ```
 {
-    "term": "red",
-    "parentTerm": "parentterm",
-    "definition": "definition",
-    "sentence": "sentence",
-    "author": "author",
-    "relatedTaxon": "o1",
-    "submissionTime": 123456
+  "term": "root-apex",
+	 "superclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex",
+	 "definition": "the apex of the root",
+	 "elucidation": "http://some.illustration.of/the/apex-root.jpg"
 }
 ```  
+  * The response body will bei either 
+    * IRI of the newly created clas
+    * UNSUCCESSFULLY
+    * NO_OPERATION
   * Response Body:
 ```  
+{IRI}|UNSUCCESSFULLY|NO_OPERATION
+```
+
+* /synonym
+  * HTTP POST http://localhost:8080/synonym
+  * Request body:
+```
 {
-    "term": "red"
+  "term": "root-tip",
+	 "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex"
 }
+```  
+  * The response body will bei either 
+    * IRI of the newly created clas
+    * UNSUCCESSFULLY
+    * NO_OPERATION
+  * Response Body:
+```  
+{IRI}|UNSUCCESSFULLY|NO_OPERATION
+```
+
+* /partOf
+  * HTTP POST http://localhost:8080/partOf
+  * Request body:
+```
+{
+	 "bearerIRI": "http://biosemantics.arizona.edu/ontologies/carex#root",
+	 "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex"
+}
+```  
+  * The response body will bei either 
+    * IRI of the newly created clas
+    * UNSUCCESSFULLY
+    * NO_OPERATION
+  * Response Body:
+```  
+{IRI}|UNSUCCESSFULLY|NO_OPERATION
+```
+
+* /hasPart
+  * HTTP POST http://localhost:8080/hasPart
+  * Request body:
+```
+{
+	 "bearerIRI": "http://biosemantics.arizona.edu/ontologies/carex#root",
+	 "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex"
+}
+```  
+  * The response body will bei either 
+    * IRI of the newly created clas
+    * UNSUCCESSFULLY
+    * NO_OPERATION
+  * Response Body:
+```  
+{IRI}|UNSUCCESSFULLY|NO_OPERATION
 ```
