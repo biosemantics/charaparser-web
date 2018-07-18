@@ -8,11 +8,11 @@
 ## service endpoints
 * /parse
   * Single sentence
-    * HTTP GET http://localhost:8080/parse?sentence={URL_encoded_sentence}
+    * HTTP GET http://{host}/parse?sentence={URL_encoded_sentence}
     * {URL_encoded_sentence}: The sentence to be parsed
     * Example: GET http://shark.sbs.arizona.edu:8080/parse?sentence=leaf-blade%20orbicular,%206%E2%80%9310%20%C3%97%206%E2%80%9310%20cm
   * Multi sentence
-    * HTTP GET http://localhost:8080/parse?description={URL_encoded_description}
+    * HTTP GET http://{host}/parse?description={URL_encoded_description}
     * {URL_encoded_description}: The description to be parsed. A description can contain of multiple sentences.
     * Example: GET http://shark.sbs.arizona.edu:8080/parse?description=Herbs%2C%20perennial%2C%20cespitose%20or%20not%2C%20rhizomatous%2C%20rarely%20stoloniferous.%20Culms%20usually%20trigonous%2C%20sometimes%20round.%20Leaves%20basal%20and%20cauline%2C%20sometimes%20all%20basal%3B
   * The service will respond with a JSON body based on charaparser's [XML output schema](https://github.com/biosemantics/schemas/blob/master/semanticMarkupOutput.xsd). An example follows.
@@ -59,7 +59,7 @@
 ```
 
 * /{ontology}/search
-  * HTTP GET http://localhost:8080/{ontology}/search?term={term}&parent={optional_parent}&relation={optional_relation}
+  * HTTP GET http://{host}/{ontology}/search?term={term}&parent={optional_parent}&relation={optional_relation}
   * {ontology}: The ontology to search for the {term}. Ontology can currenlty be one of PO, PATO, CAREX
   * {term}: The term to search for
   * {optional_parent}: The optional parent the {term} is required to have
@@ -153,7 +153,7 @@
 ```
 
 * /class
-  * HTTP POST http://localhost:8080/class
+  * HTTP POST http://{host}/class
   * Request body:
 ```
 {
@@ -173,7 +173,7 @@
 ```
 
 * /synonym
-  * HTTP POST http://localhost:8080/synonym
+  * HTTP POST http://{host}/synonym
   * Request body:
 ```
 {
@@ -191,7 +191,7 @@
 ```
 
 * /partOf
-  * HTTP POST http://localhost:8080/partOf
+  * HTTP POST http://{host}/partOf
   * Request body:
 ```
 {
@@ -209,7 +209,7 @@
 ```
 
 * /hasPart
-  * HTTP POST http://localhost:8080/hasPart
+  * HTTP POST <host>/hasPart
   * Request body:
 ```
 {
