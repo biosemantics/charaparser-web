@@ -6,77 +6,55 @@
 3. Start the container with services by running the [Application](https://github.com/biosemantics/charaparser-web/blob/master/src/main/java/edu/arizona/biosemantics/semanticmarkup/web/Application.java)
 
 ## service endpoints
-[![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/9b1918b76cb7380d8a5f)
-
 * /parse
-  * HTTP GET http://localhost:8080/parse?sentence={URL_encoded_sentence}
-  * {URL_encoded_sentence}: The sentence to be parsed
-  * The service will currently output a JSON representation based on charaparser's [XML output schema](https://github.com/biosemantics/schemas/blob/master/semanticMarkupOutput.xsd). An example follows.
-  * Response body:
+  * Single sentence
+    * HTTP GET http://localhost:8080/parse?sentence={URL_encoded_sentence}
+    * {URL_encoded_sentence}: The sentence to be parsed
+    * Example: GET http://shark.sbs.arizona.edu:8080/parse?sentence=leaf-blade%20orbicular,%206%E2%80%9310%20%C3%97%206%E2%80%9310%20cm
+  * Multi sentence
+    * HTTP GET http://localhost:8080/parse?description={URL_encoded_description}
+    * {URL_encoded_description}: The description to be parsed. A description can contain of multiple sentences.
+    * Example: GET http://shark.sbs.arizona.edu:8080/parse?description=Herbs%2C%20perennial%2C%20cespitose%20or%20not%2C%20rhizomatous%2C%20rarely%20stoloniferous.%20Culms%20usually%20trigonous%2C%20sometimes%20round.%20Leaves%20basal%20and%20cauline%2C%20sometimes%20all%20basal%3B
+  * The service will outputs a JSON representation based on charaparser's [XML output schema](https://github.com/biosemantics/schemas/blob/master/semanticMarkupOutput.xsd). An example follows.
 ```
 {
-    "statements": [
+  "statements": [
+    {
+      "id": "d1_s0",
+      "text": "leaf-blade orbicular, 6–10 × 6–10 cm",
+      "biologicalEntities": [
         {
-            "id": "d1_s0",
-            "notes": null,
-            "provenance": null,
-            "text": " Petals mostly 5, deciduous.",
-            "biologicalEntities": [
-                {
-                    "alterName": null,
-                    "characters": [
-                        {
-                            "charType": null,
-                            "constraint": null,
-                            "constraintId": null,
-                            "establishedMeans": null,
-                            "from": null,
-                            "fromInclusive": null,
-                            "fromModifier": null,
-                            "geographicalConstraint": null,
-                            "inBrackets": null,
-                            "isModifier": null,
-                            "modifier": "mostly",
-                            "name": "count",
-                            "notes": null,
-                            "ontologyId": null,
-                            "organConstraint": null,
-                            "otherConstraint": null,
-                            "parallelismConstraint": null,
-                            "provenance": null,
-                            "taxonConstraint": null,
-                            "to": null,
-                            "toInclusive": null,
-                            "toModifier": null,
-                            "toUnit": null,
-                            "type": null,
-                            "src": "d1_s0",
-                            "unit": null,
-                            "upperRestricted": null,
-                            "value": "5"
-                        }
-                    ],
-                    "constraint": null,
-                    "constraintId": null,
-                    "constraintOriginal": null,
-                    "geographicalConstraint": null,
-                    "id": "o4",
-                    "inBrackets": null,
-                    "name": "whole_organism",
-                    "nameOriginal": "",
-                    "notes": null,
-                    "ontologyId": null,
-                    "paralellismConstraint": null,
-                    "provenance": null,
-                    "src": "d1_s0",
-                    "taxonConstraint": null,
-                    "type": "structure"
-                }
-            ],
-            "relations": []
+          "characters": [
+            {
+              "isModifier": "false",
+              "name": "shape",
+              "ontologyId": "http://purl.obolibrary.org/obo/PATO_0001934[orbicular:circular/orbicular:1.0]",
+              "src": "d1_s0",
+              "value": "orbicular"
+            },
+            {
+              "charType": "range_value",
+              "name": "length",
+              "src": "d1_s0",
+              "value": "6 cm - 10 cm"
+            },
+            {
+              "charType": "range_value",
+              "name": "width",
+              "src": "d1_s0",
+              "value": "6 cm - 10 cm"
+            }
+          ],
+          "id": "o154",
+          "name": "leaf-blade",
+          "nameOriginal": "leaf-blade",
+          "src": "d1_s0",
+          "type": "structure"
         }
-    ],
-    "text": null
+      ],
+      "relations": []
+    }
+  ]
 }
 ```
 
