@@ -163,6 +163,7 @@
   "elucidation": "http://some.illustration.of/the/apex-root.jpg"
 }
 ```  
+
   * The response body will bei either 
     * IRI of the newly created clas
     * UNSUCCESSFULLY
@@ -181,6 +182,7 @@
   "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex"
 }
 ```  
+
   * The response body will bei either 
     * IRI of the newly created clas
     * UNSUCCESSFULLY
@@ -199,6 +201,7 @@
   "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex"
 }
 ```  
+
   * The response body will bei either 
     * IRI of the newly created clas
     * UNSUCCESSFULLY
@@ -211,12 +214,14 @@
 * /hasPart
   * HTTP POST <host>/hasPart
   * Request body:
+ 
 ```
 {
   "bearerIRI": "http://biosemantics.arizona.edu/ontologies/carex#root",
   "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex"
 }
 ```  
+ 
   * The response body will bei either 
     * IRI of the newly created clas
     * UNSUCCESSFULLY
