@@ -6,7 +6,7 @@
 3. Start the container with services by running the [Application](https://github.com/biosemantics/charaparser-web/blob/master/src/main/java/edu/arizona/biosemantics/semanticmarkup/web/Application.java)
 
 ## service endpoints
-* /parse
+* /parse: *Parses morphological descriptive text*
   * Single sentence
     * HTTP GET http://{host}/parse?sentence={URL_encoded_sentence}
     * {URL_encoded_sentence}: The sentence to be parsed
@@ -58,7 +58,7 @@
     }
     ```
 
-* /{ontology}/search
+* /{ontology}/search: *Searches an ontology for a term*
   * HTTP GET http://{host}/{ontology}/search?term={term}&parent={optional_parent}&relation={optional_relation}
   * {ontology}: The ontology to search for the {term}. Ontology can currenlty be one of PO, PATO, CAREX
   * {term}: The term to search for
@@ -152,7 +152,7 @@
     }
     ```
 
-* /class
+* /class: *Creates a class in the carex ontology*
   * HTTP POST http://{host}/class
   * Request body:
     ```json
@@ -173,7 +173,7 @@
     {IRI}|UNSUCCESSFULLY|NO_OPERATION
     ```
 
-* /synonym
+* /synonym: *Creates a synonym in the carex ontology*
   * HTTP POST http://{host}/synonym
   * Request body:
     ```json
@@ -192,7 +192,7 @@
     SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
     ```
 
-* /partOf
+* /partOf: *Creates a part-of relation in the carex ontology*
   * HTTP POST http://{host}/partOf
   * Request body:
     ```json
@@ -211,7 +211,7 @@
     SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
     ```
 
-* /hasPart
+* /hasPart: *Creates a has-part relation in the carex ontology*
   * HTTP POST <host>/hasPart
   * Request body:
  
@@ -229,4 +229,6 @@
   * Response Body:
     ```json
     SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
-    ```
+    ``` 
+* /save: *Persists the current state of the carex ontology to the file system*
+  * HTTP POST <host>/save
