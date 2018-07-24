@@ -189,7 +189,7 @@
     * NO_OPERATION
   * Response Body:
     ```json
-    {IRI}|UNSUCCESSFULLY|NO_OPERATION
+    SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
     ```
 
 * /partOf
@@ -208,7 +208,7 @@
     * NO_OPERATION
   * Response Body:
     ```json
-    {IRI}|UNSUCCESSFULLY|NO_OPERATION
+    SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
     ```
 
 * /hasPart
@@ -228,5 +228,5 @@
     * NO_OPERATION
   * Response Body:
     ```json
-    {IRI}|UNSUCCESSFULLY|NO_OPERATION
+    SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
     ```
