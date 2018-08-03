@@ -213,7 +213,7 @@
     }
     ```
 
-  * The response body will bei either 
+  * The response body will be either 
     * IRI of the newly created clas
     * UNSUCCESSFULLY
     * NO_OPERATION
@@ -233,7 +233,7 @@
     }
     ```
  
-  * The response body will bei either 
+  * The response body will be either 
     * IRI of the newly created clas
     * UNSUCCESSFULLY
     * NO_OPERATION
