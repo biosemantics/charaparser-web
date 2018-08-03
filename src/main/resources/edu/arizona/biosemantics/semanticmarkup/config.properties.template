@@ -1,8 +1,8 @@
 databaseHost=localhost
 databasePort=3306
-databaseName=charaparser
-databaseUser=termsuser
-databasePassword=termspassword
+databaseName=
+databaseUser=
+databasePassword=
 workspaceDirectory=workspace
 perlSourceDirectory=src/main/perl/edu/arizona/biosemantics/semanticmarkup/markupelement/description/ling/learn/lib/perl
 wordNetSourceDirectory=wordnet/wn31/dict
