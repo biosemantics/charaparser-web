@@ -164,7 +164,7 @@
     }
     ```
 
-  * The response body will bei either 
+  * The response body will be either 
     * IRI of the newly created clas
     * UNSUCCESSFULLY
     * NO_OPERATION
@@ -173,8 +173,8 @@
     {IRI}|UNSUCCESSFULLY|NO_OPERATION
     ```
 
-* /synonym: *Creates a synonym in the carex ontology*
-  * HTTP POST http://{host}/synonym
+* /esynonym: *Creates an exact synonym in the carex ontology*
+  * HTTP POST http://{host}/esynonym
   * Request body:
     ```json
     {
@@ -183,10 +183,21 @@
     }
     ```
 
-  * The response body will bei either 
-    * IRI of the newly created clas
-    * UNSUCCESSFULLY
-    * NO_OPERATION
+  * Response Body:
+    ```json
+    SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
+    ```
+
+* /bsynonym: *Creates a broader synonym in the carex ontology*
+  * HTTP POST http://{host}/bsynonym
+  * Request body:
+    ```json
+    {
+      "term": "root-tip",
+      "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex"
+    }
+    ```
+
   * Response Body:
     ```json
     SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
