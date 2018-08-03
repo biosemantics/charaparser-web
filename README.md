@@ -167,7 +167,7 @@
   * The response body will be either 
     * IRI of the newly created clas
     * UNSUCCESSFULLY
-    * NO_OPERATION
+    * NO_OPERATION (NO_OPERATION means nothing to be done by OWLAPI)
   * Response Body:
     ```json
     {IRI}|UNSUCCESSFULLY|NO_OPERATION
@@ -213,10 +213,6 @@
     }
     ```
 
-  * The response body will be either 
-    * IRI of the newly created clas
-    * UNSUCCESSFULLY
-    * NO_OPERATION
   * Response Body:
     ```json
     SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
@@ -233,10 +229,6 @@
     }
     ```
  
-  * The response body will be either 
-    * IRI of the newly created clas
-    * UNSUCCESSFULLY
-    * NO_OPERATION
   * Response Body:
     ```json
     SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
