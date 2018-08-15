@@ -75,6 +75,15 @@
           "parentTerm": "leaf lamina vein",
           "resultAnnotations": [
             {
+              "property": "elucidation",
+              "value": "http://googledrive.com/image.jpg"
+            },
+            {
+              "property": "part of",
+              "value": "PO:0025034"
+            },
+            
+            {
               "property": "http://www.geneontology.org/formats/oboInOwl#hasDbXref",
               "value": "FNA:dba43715-e71f-4192-87a2-489f5b9b4c82"
             },
