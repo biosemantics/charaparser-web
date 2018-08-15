@@ -154,13 +154,18 @@
 
 * /class: *Creates a class in the carex ontology*
   * HTTP POST http://{host}/class
-  * Request body:
+  * Request body: term, superclassIRI, and definition are required.
     ```json
     {
       "term": "root-apex",
       "superclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex",
       "definition": "the apex of the root",
       "elucidation": "http://some.illustration.of/the/apex-root.jpg"
+      "createdBy": "hongcui"
+      "creationDate": "09-18-2017"
+      "definitionSrc": "hongcui"
+      "examples": "root apex blah blah blah, used in taxon xyz"
+      "logicDefinition": "apex and 'part of' some root"
     }
     ```
 
