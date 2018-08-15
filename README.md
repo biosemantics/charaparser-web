@@ -75,6 +75,15 @@
           "parentTerm": "leaf lamina vein",
           "resultAnnotations": [
             {
+              "property": "elucidation",
+              "value": "http://googledrive.com/image.jpg"
+            },
+            {
+              "property": "part of",
+              "value": "PO:0025034"
+            },
+            
+            {
               "property": "http://www.geneontology.org/formats/oboInOwl#hasDbXref",
               "value": "FNA:dba43715-e71f-4192-87a2-489f5b9b4c82"
             },
@@ -154,27 +163,34 @@
 
 * /class: *Creates a class in the carex ontology*
   * HTTP POST http://{host}/class
-  * Request body:
+  * Request body: elucidation and logicDefintion are optional.
     ```json
     {
       "term": "root-apex",
       "superclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex",
       "definition": "the apex of the root",
       "elucidation": "http://some.illustration.of/the/apex-root.jpg"
+      "createdBy": "hongcui"
+      "creationDate": "09-18-2017"
+      "definitionSrc": "hongcui"
+      "examples": "root apex blah blah blah, used in taxon xyz"
+      "logicDefinition": "apex and 'part of' some root"
     }
     ```
 
-  * The response body will bei either 
+  * The response body will be either 
     * IRI of the newly created clas
     * UNSUCCESSFULLY
-    * NO_OPERATION
+    * NO_OPERATION (NO_OPERATION means nothing to be done by OWLAPI)
+    * Error message in case of logic definition parsing failure.
+
   * Response Body:
     ```json
     {IRI}|UNSUCCESSFULLY|NO_OPERATION
     ```
 
-* /synonym: *Creates a synonym in the carex ontology*
-  * HTTP POST http://{host}/synonym
+* /esynonym: *Creates an exact synonym in the carex ontology*
+  * HTTP POST http://{host}/esynonym
   * Request body:
     ```json
     {
@@ -183,10 +199,21 @@
     }
     ```
 
-  * The response body will bei either 
-    * IRI of the newly created clas
-    * UNSUCCESSFULLY
-    * NO_OPERATION
+  * Response Body:
+    ```json
+    SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
+    ```
+
+* /bsynonym: *Creates a broader synonym in the carex ontology*
+  * HTTP POST http://{host}/bsynonym
+  * Request body:
+    ```json
+    {
+      "term": "root-tip",
+      "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex"
+    }
+    ```
+
   * Response Body:
     ```json
     SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
@@ -202,10 +229,6 @@
     }
     ```
 
-  * The response body will bei either 
-    * IRI of the newly created clas
-    * UNSUCCESSFULLY
-    * NO_OPERATION
   * Response Body:
     ```json
     SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
@@ -222,10 +245,6 @@
     }
     ```
  
-  * The response body will bei either 
-    * IRI of the newly created clas
-    * UNSUCCESSFULLY
-    * NO_OPERATION
   * Response Body:
     ```json
     SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
