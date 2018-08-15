@@ -182,6 +182,8 @@
     * IRI of the newly created clas
     * UNSUCCESSFULLY
     * NO_OPERATION (NO_OPERATION means nothing to be done by OWLAPI)
+    * Error message in case of logic definition parsing failure.
+
   * Response Body:
     ```json
     {IRI}|UNSUCCESSFULLY|NO_OPERATION
