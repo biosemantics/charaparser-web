@@ -163,7 +163,7 @@
 
 * /class: *Creates a class in the carex ontology*
   * HTTP POST http://{host}/class
-  * Request body: term, superclassIRI, and definition are required.
+  * Request body: elucidation and logicDefintion are optional.
     ```json
     {
       "term": "root-apex",
