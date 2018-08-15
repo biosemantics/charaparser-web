@@ -127,6 +127,17 @@
 	</distributionManagement>
 	
 	<repositories>
+	<repository>
+			<!-- the repository for snapshot dependencies for elk-owl5.0 -->
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+		</repository>
 		<repository>
 			<id>playground-releases</id>
 			<url>http://128.196.105.149:8081/nexus/content/repositories/releases/</url>

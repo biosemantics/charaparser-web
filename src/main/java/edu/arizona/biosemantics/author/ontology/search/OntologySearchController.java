@@ -11,6 +11,7 @@ import java.util.Set;
 
 import javax.annotation.PreDestroy;
 
+import org.obolibrary.macro.ManchesterSyntaxTool;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
@@ -18,6 +19,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -63,6 +65,9 @@ public class OntologySearchController {
 	
 	private static String HAS_PART = "http://purl.obolibrary.org/obo/BFO_0000051"; 
 	private static String ELUCIDATION = "http://purl.oblibrary.org/obo/IAO_0000600";
+	private static String createdBy = "http://www.geneontology.org/formats/oboInOwl#created_by";
+	private static String creationDate = "http://www.geneontology.org/formats/oboInOwl#creation_date";
+	private static String definitionSrc = "http://purl.obolibrary.org/obo/IAO_0000119";
 	private static OntologyIRI[] entityOntologies = { PO, CAREX };
 	private static OntologyIRI[] qualityOntologies = { PATO, CAREX };
 	
@@ -139,8 +144,8 @@ public class OntologySearchController {
 				this.owlOntologyManagerMap.get(o));
 	}
 
-	@PostMapping(value = "/synonym", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
-	public ChangeApplied createSynonym(@RequestBody Synonym synonym) {
+	@PostMapping(value = "/esynonym", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
+	public ChangeApplied createESynonym(@RequestBody Synonym synonym) {
 		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(Ontology.CAREX);
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(CAREX.getIri()));
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
@@ -149,6 +154,22 @@ public class OntologySearchController {
 		OWLClass clazz = owlDataFactory.getOWLClass(synonym.getClassIRI());
 		OWLAnnotationProperty exactSynonymProperty = 
 				owlDataFactory.getOWLAnnotationProperty(IRI.create(AnnotationProperty.EXACT_SYNONYM.getIRI()));
+		OWLAnnotation synonymAnnotation = owlDataFactory.getOWLAnnotation(
+						exactSynonymProperty, owlDataFactory.getOWLLiteral(synonymTerm, "en"));
+		OWLAxiom synonymAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clazz.getIRI(), synonymAnnotation);
+		return owlOntologyManager.addAxiom(owlOntology, synonymAxiom);
+	}
+	
+	@PostMapping(value = "/bsynonym", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
+	public ChangeApplied createBSynonym(@RequestBody Synonym synonym) {
+		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(Ontology.CAREX);
+		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(CAREX.getIri()));
+		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
+		
+		String synonymTerm = synonym.getTerm();
+		OWLClass clazz = owlDataFactory.getOWLClass(synonym.getClassIRI());
+		OWLAnnotationProperty exactSynonymProperty = 
+				owlDataFactory.getOWLAnnotationProperty(IRI.create(AnnotationProperty.BROAD_SYNONYM.getIRI()));
 		OWLAnnotation synonymAnnotation = owlDataFactory.getOWLAnnotation(
 						exactSynonymProperty, owlDataFactory.getOWLLiteral(synonymTerm, "en"));
 		OWLAxiom synonymAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clazz.getIRI(), synonymAnnotation);
@@ -200,6 +221,78 @@ public class OntologySearchController {
 			change = owlOntologyManager.addAxiom(owlOntology, elucidationAxiom);
 			if(change != ChangeApplied.SUCCESSFULLY)
 				return change.name();
+		}
+		
+		
+		if(c.getCreatedBy() != null && !c.getCreatedBy().isEmpty()) {
+			OWLAnnotationProperty createdByProperty = 
+					owlDataFactory.getOWLAnnotationProperty(IRI.create(createdBy));
+			OWLAnnotation createdByAnnotation = owlDataFactory.getOWLAnnotation
+					(createdByProperty, owlDataFactory.getOWLLiteral(c.getCreatedBy())); 
+			OWLAxiom createdByAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(
+					subclass.getIRI(), createdByAnnotation); 
+			change = owlOntologyManager.addAxiom(owlOntology, createdByAxiom);
+			if(change != ChangeApplied.SUCCESSFULLY)
+				return change.name();
+		}
+		
+		if(c.getCreationDate() != null && !c.getCreationDate().isEmpty()) {
+			OWLAnnotationProperty CreationDateProperty = 
+					owlDataFactory.getOWLAnnotationProperty(IRI.create(creationDate));
+			OWLAnnotation CreationDateAnnotation = owlDataFactory.getOWLAnnotation
+					(CreationDateProperty, owlDataFactory.getOWLLiteral(c.getCreationDate())); 
+			OWLAxiom CreationDateAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(
+					subclass.getIRI(), CreationDateAnnotation); 
+			change = owlOntologyManager.addAxiom(owlOntology, CreationDateAxiom);
+			if(change != ChangeApplied.SUCCESSFULLY)
+				return change.name();
+		}
+		
+		if(c.getDefinitionSrc() != null && !c.getDefinitionSrc().isEmpty()) {
+			OWLAnnotationProperty DefinitionSrcProperty = 
+					owlDataFactory.getOWLAnnotationProperty(IRI.create(definitionSrc));
+			OWLAnnotation DefinitionSrcAnnotation = owlDataFactory.getOWLAnnotation
+					(DefinitionSrcProperty, owlDataFactory.getOWLLiteral(c.getDefinitionSrc())); 
+			OWLAxiom DefinitionSrcAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(
+					subclass.getIRI(), DefinitionSrcAnnotation); 
+			change = owlOntologyManager.addAxiom(owlOntology, DefinitionSrcAxiom);
+			if(change != ChangeApplied.SUCCESSFULLY)
+				return change.name();
+		}
+
+		//logic definition: 
+		/*
+		 *         <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://purl.obolibrary.org/obo/BFO_0000051"/>
+                <owl:someValuesFrom rdf:resource="http://purl.obolibrary.org/obo/PO_0025377"/>
+            </owl:Restriction>
+            </rdfs:subClassOf>
+		 */
+		if(c.getLogicDefinition() != null && !c.getLogicDefinition().isEmpty()) {
+			OWLClassExpression clsB = null;
+			try{
+				ManchesterSyntaxTool parser = new ManchesterSyntaxTool(owlOntology, null);
+				clsB = parser.parseManchesterExpression(c.getLogicDefinition());
+			}catch(Exception e){
+				String msg = e.getMessage();
+				//System.out.println(msg);
+				return msg;
+			}
+			OWLAxiom def = owlDataFactory.getOWLEquivalentClassesAxiom(subclass, clsB);
+			change = owlOntologyManager.addAxiom(owlOntology, def);
+			if(change != ChangeApplied.SUCCESSFULLY)
+				return change.name();
+			
+			/*write out ontology for test
+			File file = new File("C:/Users/hongcui/Documents/research/AuthorOntology/Data/CarexOntology/carex_tiny.owl");            
+			OWLDocumentFormat format = manager.getOntologyFormat(carex);    
+			try{
+				manager.saveOntology(carex, format, IRI.create(file.toURI()));
+			}catch(Exception e){
+				System.out.println(e.getStackTrace());
+			}*/
+
 		}
 		return subclass.getIRI().getIRIString();
 	}

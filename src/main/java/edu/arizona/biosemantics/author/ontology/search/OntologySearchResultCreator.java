@@ -66,9 +66,9 @@ public class OntologySearchResultCreator {
 				Optional<OWLLiteral> literal = a.getValue().annotationValue().asLiteral();
 				if(literal.isPresent()) {
 					resultAnnotations.add(new Annotation(a.getProperty().getIRI().getIRIString(), literal.get().getLiteral()));
-				} else {
+				} /*else {
 					resultAnnotations.add(new Annotation(a.getProperty().getIRI().getIRIString(), ""));
-				}
+				}*/
 			}
 			
 			String elucidation = this.getElucidation(owlClass, owlOntology);

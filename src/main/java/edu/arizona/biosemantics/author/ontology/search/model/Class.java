@@ -11,22 +11,47 @@ public class Class {
 	private String superclassIRI;
 	private String definition;
 	private String elucidation;
+	private String createdBy;
+	private String exampleOfUsage;
+	private String creationDate;
+	private String definitionSrc;
+	private String logicDefinition;
 	
 	@JsonCreator
 	public Class(@JsonProperty("term") String term, 
 			@JsonProperty("superclassIRI")String superclassIRI, 
 			@JsonProperty("definition")String definition,
-			@JsonProperty("elucidation") String elucidation) {
+			@JsonProperty("elucidation") String elucidation, 
+			@JsonProperty("createdBy") String creator,
+			@JsonProperty("examples") String exampleOfUsage, 
+			@JsonProperty("creationDate") String creationDate, 
+			@JsonProperty("definitionSrc") String definitionSrc, 
+			@JsonProperty("logicDefinition") String logicDefinition) {
 		super();
 		this.term = term;
 		this.superclassIRI = superclassIRI;
 		this.definition = definition;
 		this.elucidation = elucidation;
+		this.createdBy = creator;
+		this.exampleOfUsage = exampleOfUsage;
+		this.creationDate = creationDate;
+		this.definitionSrc = definitionSrc;
+		this.logicDefinition = logicDefinition; // leaf blade = blade and part_of some leaf
 	}
 
 	public String getTerm() {
 		return term;
 	}
+
+	public String getCreatedBy() {
+		return createdBy;
+	}
+
+
+	public String getExampleOfUsage() {
+		return exampleOfUsage;
+	}
+
 
 	public String getSuperclassIRI() {
 		return superclassIRI;
@@ -39,4 +64,20 @@ public class Class {
 	public String getElucidation() {
 		return elucidation;
 	}
+
+	public String getCreationDate() {
+		return creationDate;
+	}
+
+
+	public String getDefinitionSrc() {
+		return definitionSrc;
+	}
+
+
+	public String getLogicDefinition() {
+		return logicDefinition;
+	}
+
+
 }
