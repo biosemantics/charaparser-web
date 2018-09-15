@@ -49,11 +49,11 @@ import edu.arizona.biosemantics.common.ontology.search.model.OntologyEntry;
 @Component
 public class OntologySearchResultCreator {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(OntologySearchResultCreator.class);
-	private static Ontology[] entityOntologies = { Ontology.PO, Ontology.CAREX };
+	//private static final Logger LOGGER = LoggerFactory.getLogger(OntologySearchResultCreator.class);
+	//private static Ontology[] entityOntologies = { Ontology.PO, Ontology.CAREX };
 	private static String ELUCIDATION = "http://purl.oblibrary.org/obo/IAO_0000600";
 	
-	public OntologySearchResult create(Ontology o, List<OntologyEntry> entries, 
+	public OntologySearchResult create(String o, List<OntologyEntry> entries, 
 			OntologyAccess ontologyAccess, OWLOntology owlOntology, OWLOntologyManager owlOntologyManager) {
 		OntologySearchResult result = new OntologySearchResult();
 		for(OntologyEntry e : entries) {

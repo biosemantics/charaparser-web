@@ -6,7 +6,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Class {
-
+	private String user;
+	private String ontology;
 	private String term;
 	private String superclassIRI;
 	private String definition;
@@ -18,7 +19,9 @@ public class Class {
 	private String logicDefinition;
 	
 	@JsonCreator
-	public Class(@JsonProperty("term") String term, 
+	public Class(@JsonProperty("user") String user, 
+			@JsonProperty("ontology") String ontology, 
+			@JsonProperty("term") String term, 
 			@JsonProperty("superclassIRI")String superclassIRI, 
 			@JsonProperty("definition")String definition,
 			@JsonProperty("elucidation") String elucidation, 
@@ -28,6 +31,8 @@ public class Class {
 			@JsonProperty("definitionSrc") String definitionSrc, 
 			@JsonProperty("logicDefinition") String logicDefinition) {
 		super();
+		this.user = user;
+		this.ontology = ontology;
 		this.term = term;
 		this.superclassIRI = superclassIRI;
 		this.definition = definition;
@@ -37,6 +42,14 @@ public class Class {
 		this.creationDate = creationDate;
 		this.definitionSrc = definitionSrc;
 		this.logicDefinition = logicDefinition; // leaf blade = blade and part_of some leaf
+	}
+
+	public String getUser() {
+		return user==null? "" : user;
+	}
+
+	public String getOntology() {
+		return ontology == null? "":ontology;
 	}
 
 	public String getTerm() {
