@@ -50,7 +50,6 @@ import edu.arizona.biosemantics.author.ontology.search.model.OntologySearchResul
 import edu.arizona.biosemantics.author.ontology.search.model.PartOf;
 import edu.arizona.biosemantics.author.ontology.search.model.Synonym;
 import edu.arizona.biosemantics.common.ontology.search.OntologyAccess;
-import edu.arizona.biosemantics.common.ontology.search.model.Ontology;
 import edu.arizona.biosemantics.common.ontology.search.model.OntologyEntry;
 import edu.arizona.biosemantics.semanticmarkup.enhance.know.AnnotationProperty;
 

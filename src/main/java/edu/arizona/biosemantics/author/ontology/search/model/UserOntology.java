@@ -13,7 +13,7 @@ public class UserOntology {
 	public UserOntology(@JsonProperty("userId") String userId, 
 			@JsonProperty("onto") String ontos){
 		this.userId = userId;		
-		this.ontos = (ArrayList<String>) Arrays.asList(ontos.split(","));
+		this.ontos = new ArrayList<String>(Arrays.asList(ontos.split(",")));
 	}
 	
 	public String getUserId(){
