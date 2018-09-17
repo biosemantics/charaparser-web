@@ -41,7 +41,7 @@ public class Test {
 		/** Setting up ontology access (search, modify) facilitators; same as in controller initialization **/
 		//individual
 		String userId = "1";
-		String[] userOntologies ={"CAREX"};
+		String[] userOntologies ={"EXP"};
 		//copy base ontologies to user ontologies
 		HashSet<String> entityOntologyNames = new HashSet<String>();
 		OntologyIRI o;
@@ -78,7 +78,7 @@ public class Test {
 		
 		/** Try sample addition of synonym; same as in controller upon incoming request **/
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
-		Synonym synonym = new Synonym("", "test", "", "http://biosemantics.arizona.edu/ontologies/carex#abaxial");
+		Synonym synonym = new Synonym("", "test", "", "http://biosemantics.arizona.edu/ontologies/exp#apex");
 		String synonymTerm = synonym.getTerm();
 		OWLClass clazz = owlDataFactory.getOWLClass(synonym.getClassIRI());
 		OWLAnnotationProperty exactSynonymProperty = 

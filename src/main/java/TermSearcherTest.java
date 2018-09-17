@@ -8,7 +8,7 @@ public class TermSearcherTest {
 
 	public static void main(String[] args) {
 		HashSet<String> qualityOntologies = new HashSet<String>();
-		qualityOntologies.add("CAREX");
+		qualityOntologies.add("exp_1");
 		OntologyLookupClient olc = new OntologyLookupClient(
 				new HashSet<String>(), 
 				qualityOntologies, 
