@@ -172,7 +172,7 @@ public class OntologySearchController {
 		File ontoD = new File(ontologyDir, onto.toLowerCase()+".owl");
 	
 		OntologyIRI EXP = new OntologyIRI(ontoD.getAbsolutePath(), 
-				ontologyIRIs.get(onto.toUpperCase()), onto.toUpperCase()); //for experiments
+				ontologyIRIs.get(onto.toUpperCase()), onto.toLowerCase()); //for experiments
 		entityOntologies.add(EXP); //EXP
 		System.out.println("####################entityOntolgies.added:"+EXP.getName());
 		qualityOntologies.add(EXP);
@@ -200,7 +200,7 @@ public class OntologySearchController {
 				}
 				
 				OntologyIRI EXP = new OntologyIRI(ontoD.getAbsolutePath(), 
-						ontologyIRIs.get(onto.toUpperCase()), onto+"_"+userId.toUpperCase()); //for experiments
+						ontologyIRIs.get(onto.toUpperCase()), (onto+"_"+userId).toLowerCase()); //for experiments
 				entityOntologies.add(EXP); //EXP_1
 				System.out.println("####################entityOntolgies.added:"+EXP.getName());
 				qualityOntologies.add(EXP);
@@ -593,7 +593,7 @@ public class OntologySearchController {
 	public boolean save(@RequestBody SaveOntology saveOntology) throws Exception {
 		//which ontology to use
 		String usrid = "";
-		String ontoName = saveOntology.getOntology();
+		String ontoName = saveOntology.getOntology().toUpperCase();
 		if(!saveOntology.getUser().isEmpty()){
 			usrid = saveOntology.getUser();
 			ontoName = (ontoName+"_"+usrid).toUpperCase();
