@@ -63,10 +63,10 @@ public class OntologySearchController {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OntologySearchController.class);
 	static Hashtable<String, String> ontologyIRIs = new Hashtable<String, String>();
 	static{
-		ontologyIRIs.put("CAREX", "http://biosemantics.arizona.edu/ontologies/carex");
-		ontologyIRIs.put("EXP", "http://biosemantics.arizona.edu/ontologies/exp");
-		ontologyIRIs.put("PO", "http://purl.obolibrary.org/obo/po");
-		ontologyIRIs.put("PATO", "http://purl.obolibrary.org/obo/pato");
+		ontologyIRIs.put("carex", "http://biosemantics.arizona.edu/ontologies/carex");
+		ontologyIRIs.put("exp", "http://biosemantics.arizona.edu/ontologies/exp");
+		ontologyIRIs.put("po", "http://purl.obolibrary.org/obo/po");
+		ontologyIRIs.put("pato", "http://purl.obolibrary.org/obo/pato");
 	}
 
 	
@@ -169,10 +169,10 @@ public class OntologySearchController {
 		
 		String onto = "exp"; //both entity and quality
 		
-		File ontoD = new File(ontologyDir, onto.toLowerCase()+".owl");
+		File ontoD = new File(ontologyDir, onto+".owl");
 	
 		OntologyIRI EXP = new OntologyIRI(ontoD.getAbsolutePath(), 
-				ontologyIRIs.get(onto.toUpperCase()), onto.toLowerCase()); //for experiments
+				ontologyIRIs.get(onto), onto); //for experiments
 		entityOntologies.add(EXP); //EXP
 		System.out.println("####################entityOntolgies.added:"+EXP.getName());
 		qualityOntologies.add(EXP);
@@ -189,8 +189,8 @@ public class OntologySearchController {
 			//copy base ontologies to user ontologies
 			for(String onto: userOntologies){
 				System.out.println("####################user ontology:"+onto);
-				File ontoS = new File(ontologyDir, onto.toLowerCase()+".owl");
-				File ontoD = new File(ontologyDir, onto.toLowerCase()+"_"+userId+".owl"); //ontology indexed as EXP_1.owl, EXP_2.owl, 1 and 2 are user ids.
+				File ontoS = new File(ontologyDir, onto+".owl");
+				File ontoD = new File(ontologyDir, onto+"_"+userId+".owl"); //ontology indexed as EXP_1.owl, EXP_2.owl, 1 and 2 are user ids.
 				try{
 					if(!ontoD.exists())
 						Files.copy(ontoS.toPath(), ontoD.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -200,7 +200,7 @@ public class OntologySearchController {
 				}
 				
 				OntologyIRI EXP = new OntologyIRI(ontoD.getAbsolutePath(), 
-						ontologyIRIs.get(onto.toUpperCase()), (onto+"_"+userId).toLowerCase()); //for experiments
+						ontologyIRIs.get(onto), onto+"_"+userId); //for experiments
 				entityOntologies.add(EXP); //EXP_1
 				System.out.println("####################entityOntolgies.added:"+EXP.getName());
 				qualityOntologies.add(EXP);
@@ -227,9 +227,9 @@ public class OntologySearchController {
 			System.out.println("####################owlOntology="+owlOntology);
 			OntologyAccess ontologyAccess  = new OntologyAccess(ontologies);
 			
-			this.searchersMap.put(o.getName().toUpperCase(), searcher);
-			this.ontologyAccessMap.put(o.getName().toUpperCase(), ontologyAccess);
-			this.owlOntologyManagerMap.put(o.getName().toUpperCase(), owlOntologyManager);
+			this.searchersMap.put(o.getName(), searcher);
+			this.ontologyAccessMap.put(o.getName(), ontologyAccess);
+			this.owlOntologyManagerMap.put(o.getName(), owlOntologyManager);
 		}
 		
 		for(OntologyIRI o : qualityOntologies) {
@@ -243,9 +243,9 @@ public class OntologySearchController {
 			ontologies.add(owlOntology);
 			OntologyAccess ontologyAccess  = new OntologyAccess(ontologies);
 			
-			this.searchersMap.put(o.getName().toUpperCase(), searcher);
-			this.ontologyAccessMap.put(o.getName().toUpperCase(), ontologyAccess);
-			this.owlOntologyManagerMap.put(o.getName().toUpperCase(), owlOntologyManager);
+			this.searchersMap.put(o.getName(), searcher);
+			this.ontologyAccessMap.put(o.getName(), ontologyAccess);
+			this.owlOntologyManagerMap.put(o.getName(), owlOntologyManager);
 		}
 	}
 
@@ -256,10 +256,10 @@ public class OntologySearchController {
 	public OntologySearchResult search(@PathVariable String ontology, @RequestParam String term, 
 			@RequestParam Optional<String> parent, @RequestParam Optional<String> relation, @RequestParam Optional<String> user) throws Exception {
 		String usrid = "";
-		String ontoName = ontology.toUpperCase();
+		String ontoName = ontology;
 		if(user.isPresent()){
 			usrid = user.get();
-			ontoName = (ontology+"_"+usrid).toUpperCase();
+			ontoName = ontology+"_"+usrid;
 		}
 		OntologyIRI oIRI = getOntologyIRI(ontoName);
 		System.out.println("####################search ontoName="+ontoName);
@@ -291,10 +291,10 @@ public class OntologySearchController {
 	public ChangeApplied createESynonym(@RequestBody Synonym synonym) {
 		//which ontology to use
 		String usrid = "";
-		String ontoName = synonym.getOntology().toUpperCase();
+		String ontoName = synonym.getOntology();
 		if(!synonym.getUser().isEmpty()){
 			usrid = synonym.getUser();
-			ontoName = (ontoName+"_"+usrid).toUpperCase();
+			ontoName = ontoName+"_"+usrid;
 		}
 		OntologyIRI oIRI = getOntologyIRI(ontoName);
 		System.out.println("####################createESynonym ontoName="+ontoName);
@@ -319,10 +319,10 @@ public class OntologySearchController {
 	public ChangeApplied createBSynonym(@RequestBody Synonym synonym) {
 		//which ontology to use
 		String usrid = "";
-		String ontoName = synonym.getOntology().toUpperCase();
+		String ontoName = synonym.getOntology();
 		if(!synonym.getUser().isEmpty()){
 			usrid = synonym.getUser();
-			ontoName = (ontoName+"_"+usrid).toUpperCase();
+			ontoName = ontoName+"_"+usrid;
 		}
 		OntologyIRI oIRI = getOntologyIRI(ontoName);
 		System.out.println("####################createBSynonym ontoName="+ontoName);
@@ -347,10 +347,10 @@ public class OntologySearchController {
 	public String createClass(@RequestBody Class c) {
 		//which ontology to use
 		String usrid = "";
-		String ontoName = c.getOntology().toUpperCase();
+		String ontoName = c.getOntology();
 		if(!c.getUser().isEmpty()){
 			usrid = c.getUser();
-			ontoName = (ontoName+"_"+usrid).toUpperCase();
+			ontoName = ontoName+"_"+usrid;
 		}
 		OntologyIRI oIRI = getOntologyIRI(ontoName);
 		System.out.println("####################class ontoName="+ontoName);
@@ -494,10 +494,10 @@ public class OntologySearchController {
 	public ChangeApplied createPartOf(@RequestBody PartOf partOf) {
 		//which ontology to use
 		String usrid = "";
-		String ontoName = partOf.getOntology().toUpperCase();
+		String ontoName = partOf.getOntology();
 		if(!partOf.getUser().isEmpty()){
 			usrid = partOf.getUser();
-			ontoName = (ontoName+"_"+usrid).toUpperCase();
+			ontoName = ontoName+"_"+usrid;
 		}
 		OntologyIRI oIRI = getOntologyIRI(ontoName);
 		
@@ -522,10 +522,10 @@ public class OntologySearchController {
 	public ChangeApplied createHasPart(@RequestBody HasPart hasPart) {
 		//which ontology to use
 		String usrid = "";
-		String ontoName = hasPart.getOntology().toUpperCase();
+		String ontoName = hasPart.getOntology();
 		if(!hasPart.getUser().isEmpty()){
 			usrid = hasPart.getUser();
-			ontoName = (ontoName+"_"+usrid).toUpperCase();
+			ontoName = ontoName+"_"+usrid;
 		}
 		OntologyIRI oIRI = getOntologyIRI(ontoName);
 		
@@ -582,7 +582,7 @@ public class OntologySearchController {
 	private void saveAll() throws Exception {
 		for(String o : this.owlOntologyManagerMap.keySet()) {
 			OWLOntologyManager manager = this.owlOntologyManagerMap.get(o);
-			try(FileOutputStream fos = new FileOutputStream(ontologyDir + File.separator + o.toLowerCase() + ".owl")) {
+			try(FileOutputStream fos = new FileOutputStream(ontologyDir + File.separator + o + ".owl")) {
 				manager.saveOntology(manager.getOntology(IRI.create(this.getOntologyIRI(o).getIri())), fos);
 			}
 		}
@@ -593,10 +593,10 @@ public class OntologySearchController {
 	public boolean save(@RequestBody SaveOntology saveOntology) throws Exception {
 		//which ontology to use
 		String usrid = "";
-		String ontoName = saveOntology.getOntology().toUpperCase();
+		String ontoName = saveOntology.getOntology();
 		if(!saveOntology.getUser().isEmpty()){
 			usrid = saveOntology.getUser();
-			ontoName = (ontoName+"_"+usrid).toUpperCase();
+			ontoName = ontoName+"_"+usrid;
 		}
 		OntologyIRI oIRI = getOntologyIRI(ontoName);
 		
