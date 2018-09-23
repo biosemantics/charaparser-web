@@ -12,7 +12,7 @@ public class PartOf {
 	
 
 	@JsonCreator
-	public PartOf(@JsonProperty("user") String user,
+	public PartOf(@JsonProperty(value="user", required=false) String user,
 			@JsonProperty("ontology") String ontology,
 			@JsonProperty("bearerIRI") String bearerIRI, 
 			@JsonProperty("partIRI") String partIRI) {

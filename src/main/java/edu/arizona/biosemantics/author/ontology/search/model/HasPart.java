@@ -10,7 +10,7 @@ public class HasPart {
 	private String partIRI;
 	
 	@JsonCreator
-	public HasPart(@JsonProperty("user") String user, 
+	public HasPart(@JsonProperty(value="user", required=false) String user, 
 			@JsonProperty("ontology") String ontology, 
 			@JsonProperty("bearerIRI") String bearerIRI, 
 			@JsonProperty("partIRI") String partIRI) {

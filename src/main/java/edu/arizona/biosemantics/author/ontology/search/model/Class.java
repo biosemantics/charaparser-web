@@ -19,7 +19,7 @@ public class Class {
 	private String logicDefinition;
 	
 	@JsonCreator
-	public Class(@JsonProperty("user") String user, 
+	public Class(@JsonProperty(value="user", required=false) String user, 
 			@JsonProperty("ontology") String ontology, 
 			@JsonProperty("term") String term, 
 			@JsonProperty("superclassIRI")String superclassIRI, 

@@ -166,9 +166,9 @@ public class OntologySearchController {
 		this.qualityOntologies.add(CAREX);
 		setUpWorkbench(entityOntologies, qualityOntologies);*/
 		//copy base ontologies to user ontologies
-		int i = 0;
+		
 		String onto = "exp"; //both entity and quality
-		System.out.println("####################shared ontology:"+onto);
+		
 		File ontoD = new File(ontologyDir, onto.toLowerCase()+".owl");
 	
 		OntologyIRI EXP = new OntologyIRI(ontoD.getAbsolutePath(), 
@@ -187,7 +187,6 @@ public class OntologySearchController {
 
 		
 			//copy base ontologies to user ontologies
-			int i = 0;
 			for(String onto: userOntologies){
 				System.out.println("####################user ontology:"+onto);
 				File ontoS = new File(ontologyDir, onto.toLowerCase()+".owl");
@@ -215,18 +214,13 @@ public class OntologySearchController {
 		for(OntologyIRI o : entityOntologies) {
 			HashSet<String> entityOntologyNames = new HashSet<String>();
 			entityOntologyNames.add(o.getName());
-			System.out.println("####################entityOntologyNames.add("+o.getName()+")");
-			System.out.println("####################ontologyDir="+ontologyDir);
-			System.out.println("####################wordNetDir="+wordNetDir);
-			System.out.println("####################o.getIri()="+o.getIri());
+
 			FileSearcher searcher = new FileSearcher(entityOntologyNames, new HashSet<String>(), 
 					ontologyDir, wordNetDir);
-			System.out.println("####################searcher="+searcher);
+
 			LOGGER.info("created searcher for " + entityOntologyNames);
 			OWLOntologyManager owlOntologyManager = searcher.getOwlOntologyManager();
 			
-				
-			Set<OWLOntology> ontos = owlOntologyManager.getOntologies();
 			OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(o.getIri()));
 			Set<OWLOntology> ontologies = new HashSet<OWLOntology>();
 			ontologies.add(owlOntology);

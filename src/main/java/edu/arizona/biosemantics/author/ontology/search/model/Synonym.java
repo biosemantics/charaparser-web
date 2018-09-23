@@ -11,7 +11,7 @@ public class Synonym {
 	private String ontology;
 	
 	@JsonCreator
-	public Synonym(@JsonProperty("user") String user, @JsonProperty("term")String term, @JsonProperty("ontology") String ontology, 
+	public Synonym(@JsonProperty(value="user", required=false) String user, @JsonProperty("term")String term, @JsonProperty("ontology") String ontology, 
 			@JsonProperty("classIRI") String classIRI) {
 		this.synonym = term;
 		this.classIRI = classIRI;
