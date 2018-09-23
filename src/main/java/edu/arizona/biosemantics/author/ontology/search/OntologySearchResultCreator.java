@@ -31,6 +31,7 @@ import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.search.EntitySearcher;
+import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,16 +52,21 @@ public class OntologySearchResultCreator {
 
 	//private static final Logger LOGGER = LoggerFactory.getLogger(OntologySearchResultCreator.class);
 	//private static Ontology[] entityOntologies = { Ontology.PO, Ontology.CAREX };
-	private static String ELUCIDATION = "http://purl.oblibrary.org/obo/IAO_0000600";
+	//private static String ELUCIDATION = "http://purl.oblibrary.org/obo/IAO_0000600";
+	private static String oboInOwlId = "http://www.geneontology.org/formats/oboInOwl#id";
 	
 	public OntologySearchResult create(String o, List<OntologyEntry> entries, 
 			OntologyAccess ontologyAccess, OWLOntology owlOntology, OWLOntologyManager owlOntologyManager) {
 		OntologySearchResult result = new OntologySearchResult();
+		
+		
 		for(OntologyEntry e : entries) {
 			String iri = e.getClassIRI();
 			OWLClass owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(iri));
-			List<Annotation> resultAnnotations = new ArrayList<Annotation>();
 			
+			List<Annotation> resultAnnotations = new ArrayList<Annotation>();
+			//add oboInOwl:id property
+			resultAnnotations.add(new Annotation(oboInOwlId, iri));
 			Set<OWLAnnotation> annotations = EntitySearcher.getAnnotations(owlClass, owlOntology).collect(Collectors.toSet());
 			for(OWLAnnotation a : annotations) {
 				Optional<OWLLiteral> literal = a.getValue().annotationValue().asLiteral();
@@ -71,22 +77,24 @@ public class OntologySearchResultCreator {
 				}*/
 			}
 			
-			String elucidation = this.getElucidation(owlClass, owlOntology);
+
+			
+			/*String elucidation = this.getElucidation(owlClass, owlOntology);
 			if(elucidation != null)
-				resultAnnotations.add(new Annotation("elucidation", elucidation));
+				resultAnnotations.add(new Annotation("elucidation", elucidation));*/
 			Set<OWLClass> bearers = ontologyAccess.getBearers(owlClass);
 			Set<OWLClass> parts = ontologyAccess.getParts(owlClass);
 			for(OWLClass bearer : bearers)
-				resultAnnotations.add(new Annotation("has part", bearer.getIRI().getIRIString()));
+				resultAnnotations.add(new Annotation("part of", bearer.getIRI().getIRIString()));
 			for(OWLClass part : parts)
-				resultAnnotations.add(new Annotation("part of", part.getIRI().getIRIString()));
+				resultAnnotations.add(new Annotation("has part", part.getIRI().getIRIString()));
 			
 			result.getEntries().add(new OntologySearchResultEntry(e.getLabel(), e.getScore(), e.getParentLabel(), resultAnnotations));
 		}
 		return result;
 	}
 	
-	public String getElucidation(OWLClass owlClass, OWLOntology owlOntology) {
+	/*public String getElucidation(OWLClass owlClass, OWLOntology owlOntology) {
 		String elucidation = null;
 		Optional<OWLAnnotationAssertionAxiom> firstElucidation = EntitySearcher.getAnnotationAssertionAxioms(owlClass, owlOntology).filter(a -> {
 			return a.getProperty().getIRI().equals(IRI.create(ELUCIDATION));
@@ -98,6 +106,6 @@ public class OntologySearchResultCreator {
 				elucidation = literal.get().getLiteral();
 		}
 		return elucidation;
-	}
+	}*/
 	
 }

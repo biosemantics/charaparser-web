@@ -12,6 +12,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.PreDestroy;
 
@@ -42,12 +43,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import edu.arizona.biosemantics.author.ontology.search.model.Class;
 import edu.arizona.biosemantics.author.ontology.search.model.UserOntology;
 import edu.arizona.biosemantics.author.ontology.search.model.HasPart;
 import edu.arizona.biosemantics.author.ontology.search.model.OntologyIRI;
 import edu.arizona.biosemantics.author.ontology.search.model.OntologySearchResult;
 import edu.arizona.biosemantics.author.ontology.search.model.PartOf;
+import edu.arizona.biosemantics.author.ontology.search.model.SaveOntology;
 import edu.arizona.biosemantics.author.ontology.search.model.Synonym;
 import edu.arizona.biosemantics.common.ontology.search.OntologyAccess;
 import edu.arizona.biosemantics.common.ontology.search.model.OntologyEntry;
@@ -71,6 +75,7 @@ public class OntologySearchController {
 	private static String createdBy = "http://www.geneontology.org/formats/oboInOwl#created_by";
 	private static String creationDate = "http://www.geneontology.org/formats/oboInOwl#creation_date";
 	private static String definitionSrc = "http://purl.obolibrary.org/obo/IAO_0000119";
+	private static String exampleOfUsage = "http://purl.obolibrary.org/obo/IAO_0000112";
 	
 	private HashMap<String, OntologyAccess> ontologyAccessMap = new HashMap<String, OntologyAccess>();
 	private HashMap<String, FileSearcher> searchersMap = new HashMap<String, FileSearcher>();
@@ -147,18 +152,33 @@ public class OntologySearchController {
 	
 	private boolean createSharedOntology(OntologySearchResultCreator ontologySearchResultCreator) throws OWLOntologyCreationException {
 		//this.ontologySearchResultCreator = ontologySearchResultCreator;
-		OntologyIRI CAREX = new OntologyIRI(new File(ontologyDir, "CAREX.owl").getAbsolutePath(), 
+		
+		/*OntologyIRI CAREX = new OntologyIRI(new File(ontologyDir, "carex.owl").getAbsolutePath(), 
 				"http://biosemantics.arizona.edu/ontologies/carex", "CAREX");
-		OntologyIRI PO = new OntologyIRI(new File(ontologyDir, "PO.owl").getAbsolutePath(),
+		OntologyIRI PO = new OntologyIRI(new File(ontologyDir, "po.owl").getAbsolutePath(),
 				"http://purl.obolibrary.org/obo/po", "PO");
-		 OntologyIRI PATO = new OntologyIRI(new File(ontologyDir, "PATO.owl").getAbsolutePath(),
+		 OntologyIRI PATO = new OntologyIRI(new File(ontologyDir, "pato.owl").getAbsolutePath(),
 				"http://purl.obolibrary.org/obo/pato", "PATO");
 		
 		this.entityOntologies.add(PO);
 		this.entityOntologies.add(CAREX);
 		this.qualityOntologies.add(PATO);
 		this.qualityOntologies.add(CAREX);
+		setUpWorkbench(entityOntologies, qualityOntologies);*/
+		//copy base ontologies to user ontologies
+		int i = 0;
+		String onto = "exp"; //both entity and quality
+		System.out.println("####################shared ontology:"+onto);
+		File ontoD = new File(ontologyDir, onto.toLowerCase()+".owl");
+	
+		OntologyIRI EXP = new OntologyIRI(ontoD.getAbsolutePath(), 
+				ontologyIRIs.get(onto.toUpperCase()), onto.toUpperCase()); //for experiments
+		entityOntologies.add(EXP); //EXP
+		System.out.println("####################entityOntolgies.added:"+EXP.getName());
+		qualityOntologies.add(EXP);
+		
 		setUpWorkbench(entityOntologies, qualityOntologies);
+		
 		return true;
 	}
 	
@@ -204,6 +224,9 @@ public class OntologySearchController {
 			System.out.println("####################searcher="+searcher);
 			LOGGER.info("created searcher for " + entityOntologyNames);
 			OWLOntologyManager owlOntologyManager = searcher.getOwlOntologyManager();
+			
+				
+			Set<OWLOntology> ontos = owlOntologyManager.getOntologies();
 			OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(o.getIri()));
 			Set<OWLOntology> ontologies = new HashSet<OWLOntology>();
 			ontologies.add(owlOntology);
@@ -263,7 +286,7 @@ public class OntologySearchController {
 			entries.addAll(
 					searcher.getEntityEntries(term, parent.orElse(""), relation.orElse("")));
 		}
-		
+
 		return ontologySearchResultCreator.create(ontoName, entries, 
 				this.ontologyAccessMap.get(ontoName), 
 				this.owlOntologyManagerMap.get(ontoName).getOntology(IRI.create(oIRI.getIri())),
@@ -284,7 +307,7 @@ public class OntologySearchController {
 		System.out.println("####################Iri="+oIRI.getIri());
 		
 		//use the selected ontology		
-		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(oIRI);
+		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName);// this.owlOntologyManagerMap.get(oIRI);
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 		
@@ -312,7 +335,7 @@ public class OntologySearchController {
 		System.out.println("####################Iri="+oIRI.getIri());
 		
 		//use the selected ontology		
-		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(oIRI);
+		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName); //this.owlOntologyManagerMap.get(oIRI);
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 		
@@ -340,11 +363,11 @@ public class OntologySearchController {
 		System.out.println("####################Iri="+oIRI.getIri());
 		
 		//use the selected ontology		
-		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(oIRI);
+		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName);//this.owlOntologyManagerMap.get(oIRI);
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 		
-		String subclassIRI = oIRI.getIri() + "#" + c.getTerm();
+		String subclassIRI = oIRI.getIri() + "#" + c.getTerm().replaceAll("\\s+", " ").replaceAll("\\s", "_");
 		OWLClass subclass = owlDataFactory.getOWLClass(subclassIRI);
 		
 		OWLAnnotationProperty labelProperty =
@@ -353,13 +376,13 @@ public class OntologySearchController {
 		OWLAnnotation labelAnnotation = owlDataFactory.getOWLAnnotation(labelProperty, labelLiteral);
 		OWLAxiom labelAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(subclass.getIRI(), labelAnnotation);
 		ChangeApplied change = owlOntologyManager.addAxiom(owlOntology, labelAxiom);
-		if(change != ChangeApplied.SUCCESSFULLY)
+		if(change != ChangeApplied.SUCCESSFULLY && change !=ChangeApplied.NO_OPERATION )
 			return change.name();
 		
 		OWLClass superclass = owlDataFactory.getOWLClass(c.getSuperclassIRI());
 		OWLAxiom subclassAxiom = owlDataFactory.getOWLSubClassOfAxiom(subclass, superclass);
 		change = owlOntologyManager.addAxiom(owlOntology, subclassAxiom);
-		if(change != ChangeApplied.SUCCESSFULLY)
+		if(change != ChangeApplied.SUCCESSFULLY && change !=ChangeApplied.NO_OPERATION)
 			return change.name();
 		
 		OWLAnnotationProperty definitionProperty = 
@@ -370,7 +393,7 @@ public class OntologySearchController {
 				subclass.getIRI(), definitionAnnotation); 
 		change = owlOntologyManager.addAxiom(owlOntology, definitionAxiom);
 		
-		if(change != ChangeApplied.SUCCESSFULLY)
+		if(change != ChangeApplied.SUCCESSFULLY && change !=ChangeApplied.NO_OPERATION)
 			return change.name();
 		
 		if(c.getElucidation() != null && !c.getElucidation().isEmpty()) {
@@ -381,7 +404,7 @@ public class OntologySearchController {
 			OWLAxiom elucidationAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(
 					subclass.getIRI(), elucidationAnnotation); 
 			change = owlOntologyManager.addAxiom(owlOntology, elucidationAxiom);
-			if(change != ChangeApplied.SUCCESSFULLY)
+			if(change != ChangeApplied.SUCCESSFULLY && change !=ChangeApplied.NO_OPERATION)
 				return change.name();
 		}
 		
@@ -394,7 +417,7 @@ public class OntologySearchController {
 			OWLAxiom createdByAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(
 					subclass.getIRI(), createdByAnnotation); 
 			change = owlOntologyManager.addAxiom(owlOntology, createdByAxiom);
-			if(change != ChangeApplied.SUCCESSFULLY)
+			if(change != ChangeApplied.SUCCESSFULLY && change !=ChangeApplied.NO_OPERATION)
 				return change.name();
 		}
 		
@@ -406,7 +429,7 @@ public class OntologySearchController {
 			OWLAxiom CreationDateAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(
 					subclass.getIRI(), CreationDateAnnotation); 
 			change = owlOntologyManager.addAxiom(owlOntology, CreationDateAxiom);
-			if(change != ChangeApplied.SUCCESSFULLY)
+			if(change != ChangeApplied.SUCCESSFULLY&& change !=ChangeApplied.NO_OPERATION)
 				return change.name();
 		}
 		
@@ -418,10 +441,24 @@ public class OntologySearchController {
 			OWLAxiom DefinitionSrcAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(
 					subclass.getIRI(), DefinitionSrcAnnotation); 
 			change = owlOntologyManager.addAxiom(owlOntology, DefinitionSrcAxiom);
-			if(change != ChangeApplied.SUCCESSFULLY)
+			if(change != ChangeApplied.SUCCESSFULLY&& change !=ChangeApplied.NO_OPERATION)
 				return change.name();
 		}
 
+		if(c.getExampleOfUsage() != null && !c.getExampleOfUsage().isEmpty()) {
+			String[] exps = c.getExampleOfUsage().split("#");
+			for(String example: exps){
+				OWLAnnotationProperty DefinitionSrcProperty = 
+						owlDataFactory.getOWLAnnotationProperty(IRI.create(exampleOfUsage));
+				OWLAnnotation DefinitionSrcAnnotation = owlDataFactory.getOWLAnnotation
+						(DefinitionSrcProperty, owlDataFactory.getOWLLiteral(example)); 
+				OWLAxiom DefinitionSrcAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(
+						subclass.getIRI(), DefinitionSrcAnnotation); 
+				change = owlOntologyManager.addAxiom(owlOntology, DefinitionSrcAxiom);
+				if(change != ChangeApplied.SUCCESSFULLY&& change !=ChangeApplied.NO_OPERATION)
+					return change.name();
+			}
+		}
 		//logic definition: 
 		/*
 		 *         <rdfs:subClassOf>
@@ -435,7 +472,7 @@ public class OntologySearchController {
 			OWLClassExpression clsB = null;
 			try{
 				ManchesterSyntaxTool parser = new ManchesterSyntaxTool(owlOntology, null);
-				clsB = parser.parseManchesterExpression(c.getLogicDefinition());
+				clsB = parser.parseManchesterExpression(c.getLogicDefinition()); //"'part of' some 'physical entity'"
 			}catch(Exception e){
 				String msg = e.getMessage();
 				//System.out.println(msg);
@@ -443,7 +480,7 @@ public class OntologySearchController {
 			}
 			OWLAxiom def = owlDataFactory.getOWLEquivalentClassesAxiom(subclass, clsB);
 			change = owlOntologyManager.addAxiom(owlOntology, def);
-			if(change != ChangeApplied.SUCCESSFULLY)
+			if(change != ChangeApplied.SUCCESSFULLY && change !=ChangeApplied.NO_OPERATION)
 				return change.name();
 			
 			/*write out ontology for test
@@ -472,7 +509,7 @@ public class OntologySearchController {
 		
 		//use the selected ontology		
 		
-		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(oIRI);
+		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName); //this.owlOntologyManagerMap.get(oIRI);
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 		
@@ -482,8 +519,8 @@ public class OntologySearchController {
 		OWLObjectProperty partOfProperty = 
 				owlDataFactory.getOWLObjectProperty(IRI.create(AnnotationProperty.PART_OF.getIRI()));
 		OWLClassExpression partOfExpression = 
-				owlDataFactory.getOWLObjectSomeValuesFrom(partOfProperty, part);
-		OWLAxiom partOfAxiom = owlDataFactory.getOWLSubClassOfAxiom(bearer, partOfExpression);
+				owlDataFactory.getOWLObjectSomeValuesFrom(partOfProperty, bearer);
+		OWLAxiom partOfAxiom = owlDataFactory.getOWLSubClassOfAxiom(part, partOfExpression);
 		return owlOntologyManager.addAxiom(owlOntology, partOfAxiom);
 	}
 	
@@ -500,7 +537,7 @@ public class OntologySearchController {
 		
 		//use the selected ontology		
 		
-		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(oIRI);
+		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName); //this.owlOntologyManagerMap.get(oIRI);
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 		
@@ -517,7 +554,7 @@ public class OntologySearchController {
 	
 	private boolean isEntityOntology(String o) {
 		for(OntologyIRI on : entityOntologies) {
-			if(on.getName().equals(o))
+			if(on.getName().equalsIgnoreCase(o))
 				return true;
 		}
 		return false;
@@ -525,7 +562,7 @@ public class OntologySearchController {
 
 	private boolean isQualityOntology(String o) {
 		for(OntologyIRI on : qualityOntologies) {
-			if(on.getName().equals(o))
+			if(on.getName().equalsIgnoreCase(o))
 				return true;
 		}
 		return false;
@@ -533,11 +570,11 @@ public class OntologySearchController {
 	
 	private OntologyIRI getOntologyIRI(String o) {
 		for(OntologyIRI oIRI : entityOntologies) {
-			if(oIRI.getName().equals(o))
+			if(oIRI.getName().equalsIgnoreCase(o))
 				return oIRI;
 		}
 		for(OntologyIRI oIRI : qualityOntologies) {
-			if(oIRI.getName().equals(o))
+			if(oIRI.getName().equalsIgnoreCase(o))
 				return oIRI;
 		}
 		return null;
@@ -545,16 +582,62 @@ public class OntologySearchController {
 	
 	@PreDestroy
 	public void destroy() throws Exception {
-		this.save();
+		this.saveAll();
 	}
 	
-	@PostMapping(value = "/save", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
-	public void save() throws Exception {
+	private void saveAll() throws Exception {
 		for(String o : this.owlOntologyManagerMap.keySet()) {
 			OWLOntologyManager manager = this.owlOntologyManagerMap.get(o);
 			try(FileOutputStream fos = new FileOutputStream(ontologyDir + File.separator + o.toLowerCase() + ".owl")) {
 				manager.saveOntology(manager.getOntology(IRI.create(this.getOntologyIRI(o).getIri())), fos);
 			}
 		}
+
 	}
+
+	@PostMapping(value = "/save", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
+	public boolean save(@RequestBody SaveOntology saveOntology) throws Exception {
+		//which ontology to use
+		String usrid = "";
+		String ontoName = saveOntology.getOntology();
+		if(!saveOntology.getUser().isEmpty()){
+			usrid = saveOntology.getUser();
+			ontoName = (ontoName+"_"+usrid).toUpperCase();
+		}
+		OntologyIRI oIRI = getOntologyIRI(ontoName);
+		
+		
+		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName); //this.owlOntologyManagerMap.get(oIRI);
+		try(FileOutputStream fos = new FileOutputStream(oIRI.getOntologyFP())) {
+			owlOntologyManager.saveOntology(
+					owlOntologyManager.getOntology(
+							IRI.create(oIRI.getIri())
+							), 
+					fos);
+			}
+		return true;
+	}
+	
+
+	/*
+	 * 
+	 * 
+	 * shared Test:
+	 * POST /createUserOntology
+	 * POST /class term=apex hair ontology=exp user=1 superclassIRI="http://biosemantics.arizona.edu/ontology/exp#physical_entity" 
+	               defintion=def elucidation=http://iri.org/image.jpg  createdBy=hongcui  examples=example1, example2
+	               creationDate=2009/11/11 definitionSrc=me logicDefinition=partOf some physical entity
+	 * 
+	 * individual Test:
+	 * POST /createUserOntology user=1 ontology=exp
+	 * POST /bsynonym term=bsynonym classIRI="http://biosemantics.arizona.edu/ontology/exp#apex" user=1 ontology=exp
+	 * POST /esynonym term=esynonym classIRI="http://biosemantics.arizona.edu/ontology/exp#apex" user=1 ontology=exp
+	   POST /class term=apex hair ontology=exp user=1 superclassIRI="http://biosemantics.arizona.edu/ontology/exp#physical_entity" 
+	               defintion=def elucidation=http://iri.org/image.jpg  createdBy=hongcui  examples=example1, example2
+	               creationDate=2009/11/11 definitionSrc=me logicDefinition=partOf some physical entity
+	   POST /hasPart user=1 ontology=exp bearerIRI=""http://biosemantics.arizona.edu/ontology/exp#apex" partIRI="http://biosemantics.arizona.edu/ontology/exp#apex_hair"
+	   POST /partOf user=1 ontology=exp bearerIRI=""http://biosemantics.arizona.edu/ontology/exp#apex" partIRI="http://biosemantics.arizona.edu/ontology/exp#apex_hair"
+	 * POST /save
+	 * GET /search ontology=exp term=apex user=1
+	 */
 }

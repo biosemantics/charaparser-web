@@ -10,10 +10,14 @@ public class UserOntology {
 	public String userId;
 	public ArrayList<String> ontos;
 	@JsonCreator
-	public UserOntology(@JsonProperty("userId") String userId, 
-			@JsonProperty("onto") String ontos){
+	public UserOntology(@JsonProperty(value="user", required=false)  String userId, 
+			@JsonProperty(value="ontologies",required=false) String ontos){
 		this.userId = userId;		
 		this.ontos = new ArrayList<String>(Arrays.asList(ontos.split(",")));
+	}
+	
+	@JsonCreator
+	public UserOntology(){
 	}
 	
 	public String getUserId(){

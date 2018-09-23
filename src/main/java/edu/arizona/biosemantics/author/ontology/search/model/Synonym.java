@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Synonym {
 
-	private String term;
+	private String synonym;
 	private String classIRI;
 	private String user;
 	private String ontology;
@@ -13,7 +13,7 @@ public class Synonym {
 	@JsonCreator
 	public Synonym(@JsonProperty("user") String user, @JsonProperty("term")String term, @JsonProperty("ontology") String ontology, 
 			@JsonProperty("classIRI") String classIRI) {
-		this.term = term;
+		this.synonym = term;
 		this.classIRI = classIRI;
 		this.user = user;
 		this.ontology = ontology;
@@ -27,7 +27,7 @@ public class Synonym {
 		return ontology==null? "":ontology;
 	}
 	public String getTerm() {
-		return term;
+		return synonym;
 	}
 
 	public String getClassIRI() {
