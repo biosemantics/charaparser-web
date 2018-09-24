@@ -57,14 +57,24 @@
       ]
     }
     ```
-
+* /createUserOntology: *Make a (set) of ontology ready. This service needs to be called before any of the requests listed below can be used*
+  * HTTP POST http://{host}/createUserOntology
+  * Request body: user can take an empty string as its value, in this case, a shared ontology will be made ready for all requests with an empty user. If user has a non-empty value, such as an id, a copy of the ontology will be made ready for this specific user. Subsequent calls to access the ontology will need to use user field with the id. Ontologies can be exp or carex.
+  ```json
+  {
+	  "user":"2",
+	   "ontologies":"exp"
+  }
+  ```
+  
 * /{ontology}/search: *Searches an ontology for a term*
-  * HTTP GET http://{host}/{ontology}/search?term={term}&parent={optional_parent}&relation={optional_relation}
-  * {ontology}: The ontology to search for the {term}. Ontology can currenlty be one of PO, PATO, CAREX
+  * HTTP GET http://{host}/{ontology}/search?user={optional_user}&term={term}&parent={optional_parent}&relation={optional_relation}
+  * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., exp.
+  * {user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
   * {term}: The term to search for
   * {optional_parent}: The optional parent the {term} is required to have
   * {optional_relation}: The optional relation the {term} is required to have
-  * Example: GET http://shark.sbs.arizona.edu:8080/PO/search?term=quaternary%20leaf%20vein
+  * Example: GET http://shark.sbs.arizona.edu:8080/carex/search?term=quaternary%20leaf%20vein (this works only after a call to /createUserOntology with an empty user and carex ontology as parameters)
   * Response body:
     ```json
     {
@@ -161,11 +171,13 @@
     }
     ```
 
-* /class: *Creates a class in the carex ontology*
+* /class: *Creates a class in the named ontology*
   * HTTP POST http://{host}/class
-  * Request body: elucidation and logicDefintion are optional.
+  * Request body: If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). Fields elucidation and logicDefintion are optional.
     ```json
     {
+     	"user":"2",
+     	"ontology":"exp",
       "term": "root-apex",
       "superclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex",
       "definition": "the apex of the root",
@@ -174,14 +186,14 @@
       "creationDate": "09-18-2017"
       "definitionSrc": "hongcui"
       "examples": "root apex blah blah blah, used in taxon xyz"
-      "logicDefinition": "apex and 'part of' some root"
+      "logicDefinition": "'root apex' and 'part of' some root"
     }
     ```
 
   * The response body will be either 
     * IRI of the newly created clas
     * UNSUCCESSFULLY
-    * NO_OPERATION (NO_OPERATION means nothing to be done by OWLAPI)
+    * NO_OPERATION (NO_OPERATION means the class already exists and nothing need to be done)
     * Error message in case of logic definition parsing failure.
 
   * Response Body:
@@ -189,11 +201,13 @@
     {IRI}|UNSUCCESSFULLY|NO_OPERATION
     ```
 
-* /esynonym: *Creates an exact synonym in the carex ontology*
+* /esynonym: *Creates an exact synonym to the class in the named ontology*
   * HTTP POST http://{host}/esynonym
-  * Request body:
+  * Request body: If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).
     ```json
     {
+      "user":"2",
+	     "ontology":"exp",
       "term": "root-tip",
       "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex"
     }
@@ -204,11 +218,13 @@
     SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
     ```
 
-* /bsynonym: *Creates a broader synonym in the carex ontology*
+* /bsynonym: *Creates a broader synonym to the class in the named ontology*
   * HTTP POST http://{host}/bsynonym
-  * Request body:
+  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).
     ```json
     {
+     	"user":"2",
+     	"ontology":"exp",
       "term": "root-tip",
       "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex"
     }
@@ -219,11 +235,13 @@
     SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
     ```
 
-* /partOf: *Creates a part-of relation in the carex ontology*
+* /partOf: *Creates a part-of relation between the part and the bearer (part is 'part_of' bearer) in the named ontology*
   * HTTP POST http://{host}/partOf
-  * Request body:
+  * Request body: If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).
     ```json
     {
+    	 "user":"2",
+	     "ontology":"exp",
       "bearerIRI": "http://biosemantics.arizona.edu/ontologies/carex#root",
       "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex"
     }
@@ -234,12 +252,14 @@
     SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
     ```
 
-* /hasPart: *Creates a has-part relation in the carex ontology*
+* /hasPart: *Creates a has-part relation between the bearer and the part (bearer 'has part' part) in the named ontology. *
   * HTTP POST <host>/hasPart
-  * Request body:
+  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).
  
     ```json
     {
+      "user":"2",
+	     "ontology":"exp",
       "bearerIRI": "http://biosemantics.arizona.edu/ontologies/carex#root",
       "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex"
     }
@@ -249,5 +269,13 @@
     ```json
     SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
     ``` 
-* /save: *Persists the current state of the carex ontology to the file system*
+* /save: *Persists the current state of the named ontology to the file system*
   * HTTP POST <host>/save
+  * Request body:If user value is empty, the shared ontology will be saved. Otherwise, a user-specific version of the ontology will be saved (See /createUserOntology).
+ 
+    ```json
+    {
+      "user":"2",
+	     "ontology":"exp",
+    }
+    ```
