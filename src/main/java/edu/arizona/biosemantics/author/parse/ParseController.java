@@ -86,8 +86,8 @@ public class ParseController {
 		description.setText(descriptionText);
 
 		Document document = documentCreator.create(description);
-		//XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
-        //System.out.println(outputter.outputString(document));
+		XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
+        System.out.println(outputter.outputString(document));
 		enhanceRun.run(document);
         //System.out.println(outputter.outputString(document));
 		

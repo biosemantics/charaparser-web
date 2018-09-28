@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import edu.arizona.biosemantics.common.ontology.search.model.OntologyEntry;
 import edu.arizona.biosemantics.common.ontology.search.model.OntologyEntry.Type;
 import edu.arizona.biosemantics.oto.common.ontologylookup.search.OntologyLookupClient;
+import edu.arizona.biosemantics.oto.common.ontologylookup.search.data.CompositeEntity;
 import edu.arizona.biosemantics.oto.common.ontologylookup.search.data.Entity;
 import edu.arizona.biosemantics.oto.common.ontologylookup.search.data.EntityProposals;
 import edu.arizona.biosemantics.oto.common.ontologylookup.search.data.FormalConcept;
@@ -50,9 +51,22 @@ public class FileSearcher {
 		try {
 			List<EntityProposals> entityProposals = this.ontologyLookupClient.searchStructure(term, locator, rel);
 			if(entityProposals != null && !entityProposals.isEmpty()) {
+				for(EntityProposals eps: entityProposals){
+					for(Entity entity: eps.getProposals()){
+						if(entity instanceof CompositeEntity){
+							CompositeEntity ce = (CompositeEntity) entity;
+							for(Entity indiv: ce.getIndividualEntities()){ //use entity score for all components of composite entity
+								result.add(new OntologyEntry(null, indiv.getClassIRI(), Type.ENTITY, entity.getConfidenceScore(),indiv.getLabel(), indiv.getPLabel()));
+							}
+					}
+						result.add(new OntologyEntry(null, entity.getClassIRI(), Type.ENTITY, entity.getConfidenceScore(),entity.getLabel(), entity.getPLabel()));
+					}
+				}
+				
+				/*
 				for(Entity entity : entityProposals.get(0).getProposals()) {
 					result.add(new OntologyEntry(null, entity.getClassIRI(), Type.ENTITY, entity.getConfidenceScore(),entity.getLabel(), entity.getPLabel()));
-				}
+				}*/
 			}
 		} catch(Throwable t) {
 			t.printStackTrace();

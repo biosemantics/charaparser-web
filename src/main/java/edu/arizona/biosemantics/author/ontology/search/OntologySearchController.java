@@ -211,7 +211,42 @@ public class OntologySearchController {
 	}
 
 	private void setUpWorkbench(ArrayList<OntologyIRI> entityOntologies, ArrayList<OntologyIRI> qualityOntologies) {
+		//find shared ontologies between entity and quality lists
+		ArrayList<OntologyIRI> shared = new ArrayList<OntologyIRI> ();
+		for(OntologyIRI e : entityOntologies){ 
+				for(OntologyIRI q : qualityOntologies) {
+					if(e.equals(q))
+						shared.add(e);
+				}
+		}
+		
+		//add shared
+		for(OntologyIRI o : shared) {
+			HashSet<String> entityOntologyNames = new HashSet<String>();
+			HashSet<String> qualityOntologyNames = new HashSet<String>();
+			qualityOntologyNames.add(o.getName());
+			entityOntologyNames.add(o.getName());
+			
+			FileSearcher searcher = new FileSearcher(entityOntologyNames, qualityOntologyNames,
+					ontologyDir, wordNetDir);
+
+			LOGGER.info("created searcher for shared e-q ontology:" + entityOntologyNames);
+			OWLOntologyManager owlOntologyManager = searcher.getOwlOntologyManager();
+			
+			OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(o.getIri()));
+			Set<OWLOntology> ontologies = new HashSet<OWLOntology>();
+			ontologies.add(owlOntology);
+			System.out.println("####################owlOntology="+owlOntology);
+			OntologyAccess ontologyAccess  = new OntologyAccess(ontologies);
+			
+			this.searchersMap.put(o.getName(), searcher);
+			this.ontologyAccessMap.put(o.getName(), ontologyAccess);
+			this.owlOntologyManagerMap.put(o.getName(), owlOntologyManager);
+		}
+		
+		//add the rest
 		for(OntologyIRI o : entityOntologies) {
+			if(shared.contains(o)) continue;
 			HashSet<String> entityOntologyNames = new HashSet<String>();
 			entityOntologyNames.add(o.getName());
 
@@ -233,6 +268,7 @@ public class OntologySearchController {
 		}
 		
 		for(OntologyIRI o : qualityOntologies) {
+			if(shared.contains(o)) continue;
 			HashSet<String> qualityOntologyNames = new HashSet<String>();
 			qualityOntologyNames.add(o.getName());
 			FileSearcher searcher = new FileSearcher(new HashSet<String>(), qualityOntologyNames, 
