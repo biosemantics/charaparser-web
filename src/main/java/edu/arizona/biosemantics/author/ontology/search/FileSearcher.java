@@ -106,5 +106,8 @@ public class FileSearcher {
 		OWLAccessorImpl api = this.ontologyLookupClient.ontoutil.OWLentityOntoAPIs.get(0);
 		api.constructorHelper(owlOntology, new ArrayList<String>());
 		api.retrieveAllConcept();
+		api = this.ontologyLookupClient.ontoutil.OWLqualityOntoAPIs.get(0);
+		api.constructorHelper(owlOntology, new ArrayList<String>());
+		api.retrieveAllConcept();
 	}
 }
