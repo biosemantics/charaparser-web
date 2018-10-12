@@ -142,6 +142,8 @@ public class OntologySearchController {
 	public boolean createUserOntology(@Value("${ontologySearch.ontologyDir}") String ontologyDir,
 			OntologySearchResultCreator ontologySearchResultCreator, @RequestBody UserOntology userOntology) throws OWLOntologyCreationException {
 		//create shared or individual ontologies
+		entityOntologies = new ArrayList<OntologyIRI> ();
+		qualityOntologies = new ArrayList<OntologyIRI>();
 		String userId = userOntology.getUserId();
 		if(userId == null || userId.isEmpty()){
 			return createSharedOntology(ontologySearchResultCreator);
@@ -348,6 +350,11 @@ public class OntologySearchController {
 		OWLAnnotation synonymAnnotation = owlDataFactory.getOWLAnnotation(
 						exactSynonymProperty, owlDataFactory.getOWLLiteral(synonymTerm, "en"));
 		OWLAxiom synonymAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clazz.getIRI(), synonymAnnotation);
+		
+		//refresh ontology search environment after the addition
+		FileSearcher searcher = this.searchersMap.get(ontoName);
+		searcher.updateSearcher(oIRI);
+		
 		return owlOntologyManager.addAxiom(owlOntology, synonymAxiom);
 	}
 	
@@ -376,6 +383,10 @@ public class OntologySearchController {
 		OWLAnnotation synonymAnnotation = owlDataFactory.getOWLAnnotation(
 						exactSynonymProperty, owlDataFactory.getOWLLiteral(synonymTerm, "en"));
 		OWLAxiom synonymAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clazz.getIRI(), synonymAnnotation);
+		
+		//refresh ontology search environment after the addition
+		FileSearcher searcher = this.searchersMap.get(ontoName);
+		searcher.updateSearcher(oIRI);
 		return owlOntologyManager.addAxiom(owlOntology, synonymAxiom);
 	}
 	
@@ -523,6 +534,11 @@ public class OntologySearchController {
 			}*/
 
 		}
+		
+		//refresh ontology search environment after the addition
+		FileSearcher searcher = this.searchersMap.get(ontoName);
+		searcher.updateSearcher(oIRI);
+		
 		return subclass.getIRI().getIRIString();
 	}
 	

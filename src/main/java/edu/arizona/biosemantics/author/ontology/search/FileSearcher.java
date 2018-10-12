@@ -5,10 +5,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.arizona.biosemantics.author.ontology.search.model.OntologyIRI;
 import edu.arizona.biosemantics.common.ontology.search.model.OntologyEntry;
 import edu.arizona.biosemantics.common.ontology.search.model.OntologyEntry.Type;
 import edu.arizona.biosemantics.oto.common.ontologylookup.search.OntologyLookupClient;
@@ -16,6 +19,7 @@ import edu.arizona.biosemantics.oto.common.ontologylookup.search.data.CompositeE
 import edu.arizona.biosemantics.oto.common.ontologylookup.search.data.Entity;
 import edu.arizona.biosemantics.oto.common.ontologylookup.search.data.EntityProposals;
 import edu.arizona.biosemantics.oto.common.ontologylookup.search.data.FormalConcept;
+import edu.arizona.biosemantics.oto.common.ontologylookup.search.owlaccessor.OWLAccessorImpl;
 import edu.arizona.biosemantics.oto.common.ontologylookup.search.search.TermSearcher;
 
 public class FileSearcher {
@@ -93,5 +97,14 @@ public class FileSearcher {
 		if(this.entityOntologyNames.size() > 0)
 			return this.ontologyLookupClient.ontoutil.OWLentityOntoAPIs.get(0).getManager();
 		return this.ontologyLookupClient.ontoutil.OWLqualityOntoAPIs.get(0).getManager();
+	}
+	
+	public void updateSearcher(OntologyIRI oIRI){
+		OWLOntologyManager owlOntologyManager = getOwlOntologyManager();
+		//get rootOnto, assuming there is not imported ontologies
+		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
+		OWLAccessorImpl api = this.ontologyLookupClient.ontoutil.OWLentityOntoAPIs.get(0);
+		api.constructorHelper(owlOntology, new ArrayList<String>());
+		api.retrieveAllConcept();
 	}
 }
