@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -58,10 +59,11 @@ public class OntologySearchResultCreator {
 	public OntologySearchResult create(String o, List<OntologyEntry> entries, 
 			OntologyAccess ontologyAccess, OWLOntology owlOntology, OWLOntologyManager owlOntologyManager) {
 		OntologySearchResult result = new OntologySearchResult();
-		
+		ArrayList<OntologyEntry> processed = new ArrayList<OntologyEntry>();
 		
 		for(OntologyEntry e : entries) {
 			String iri = e.getClassIRI();
+			if(inProcessed(processed, e)) continue;
 			OWLClass owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(iri));
 			
 			List<Annotation> resultAnnotations = new ArrayList<Annotation>();
@@ -84,14 +86,26 @@ public class OntologySearchResultCreator {
 				resultAnnotations.add(new Annotation("elucidation", elucidation));*/
 			Set<OWLClass> bearers = ontologyAccess.getBearers(owlClass);
 			Set<OWLClass> parts = ontologyAccess.getParts(owlClass);
-			for(OWLClass bearer : bearers)
-				resultAnnotations.add(new Annotation("part of", bearer.getIRI().getIRIString()));
-			for(OWLClass part : parts)
+			for(OWLClass bearer : bearers){
+				if(!bearer.equals(owlClass))
+					resultAnnotations.add(new Annotation("part of", bearer.getIRI().getIRIString()));
+			}
+			for(OWLClass part : parts){
+				if(!part.equals(owlClass))
 				resultAnnotations.add(new Annotation("has part", part.getIRI().getIRIString()));
-			
+			}
+			processed.add(e);
 			result.getEntries().add(new OntologySearchResultEntry(e.getLabel(), e.getScore(), e.getParentLabel(), resultAnnotations));
 		}
 		return result;
+	}
+
+	private boolean inProcessed(ArrayList<OntologyEntry> processed, OntologyEntry e) {
+		Iterator<OntologyEntry> it = processed.iterator();
+		while(it.hasNext()){
+			if(e.compareTo(it.next())==0) return true;
+		}
+		return false;
 	}
 	
 	/*public String getElucidation(OWLClass owlClass, OWLOntology owlOntology) {
