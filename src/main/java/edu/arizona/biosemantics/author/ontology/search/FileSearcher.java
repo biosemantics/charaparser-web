@@ -53,7 +53,7 @@ public class FileSearcher {
 		//Only search structures for now leveraging ontologylookup client
 		//This is all construction zone to find out use cases of a Searcher of ontologies we have
 		try {
-			List<EntityProposals> entityProposals = this.ontologyLookupClient.searchStructure(term, locator, rel);
+			List<EntityProposals> entityProposals = this.ontologyLookupClient.searchStructure(term, locator, rel, false);
 			if(entityProposals != null && !entityProposals.isEmpty()) {
 				for(EntityProposals eps: entityProposals){
 					for(Entity entity: eps.getProposals()){
@@ -83,7 +83,7 @@ public class FileSearcher {
 	public List<OntologyEntry> getQualityEntries(String term) {
 		List<OntologyEntry> result = new ArrayList<OntologyEntry>();
 		
-		TermSearcher termSearcher = new TermSearcher(ontologyLookupClient);
+		TermSearcher termSearcher = new TermSearcher(ontologyLookupClient, false);
 		ArrayList<FormalConcept> concepts = termSearcher.searchTerm(term, Type.QUALITY.toString().toLowerCase(), 1.0f);
 		if(concepts != null)
 			for(FormalConcept concept : concepts) 
@@ -103,11 +103,22 @@ public class FileSearcher {
 		OWLOntologyManager owlOntologyManager = getOwlOntologyManager();
 		//get rootOnto, assuming there is not imported ontologies
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
+		//System.out.println("updateSearcher "+oIRI.getName() +"####################owlOntology="+owlOntology);
+		//System.out.println("OWLentityOntoAPIs size (expected 1) = "+this.ontologyLookupClient.ontoutil.OWLentityOntoAPIs.size());
 		OWLAccessorImpl api = this.ontologyLookupClient.ontoutil.OWLentityOntoAPIs.get(0);
 		api.constructorHelper(owlOntology, new ArrayList<String>());
 		api.retrieveAllConcept();
-		//api = this.ontologyLookupClient.ontoutil.OWLqualityOntoAPIs.get(0);
-		//api.constructorHelper(owlOntology, new ArrayList<String>());
-		//api.retrieveAllConcept();
+		api.resetSearchCache();
+		//System.out.println("updateSearcher ####################api = "+api);
+		//System.out.println("updateSearcher ####################owlOntology axiom count (updated to)="+owlOntology.getAxiomCount());
+
+		api = this.ontologyLookupClient.ontoutil.OWLqualityOntoAPIs.get(0);
+		api.constructorHelper(owlOntology, new ArrayList<String>());
+		api.retrieveAllConcept();
+		api.resetSearchCache();
+	}
+	
+	OntologyLookupClient getOntoLookupClient(){
+		return this.ontologyLookupClient;
 	}
 }

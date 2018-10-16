@@ -14,7 +14,7 @@ public class TermSearcherTest {
 				qualityOntologies, 
 				"ontologies",
 				"wordNet/wn31/dict");
-		TermSearcher ts = new TermSearcher(olc);
+		TermSearcher ts = new TermSearcher(olc, false);
 		ts.searchTerm("length of leaf blade", "quality", 1.0f);
 	}
 	

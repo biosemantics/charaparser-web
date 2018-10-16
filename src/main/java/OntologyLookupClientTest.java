@@ -15,6 +15,6 @@ public class OntologyLookupClientTest {
 		OntologyLookupClient client = new OntologyLookupClient(entityOntologies, qualityOntologies, "ontologies", "wordnet/wn31/dict");
 		OWLOntologyManager man = client.ontoutil.OWLentityOntoAPIs.get(0).getManager();
 		OWLOntology onto = man.getOntology(IRI.create("http://biosemantics.arizona.edu/ontologies/exp"));
-		client.searchStructure("leaf", "", "");
+		client.searchStructure("leaf", "", "", false);
 	}
 }

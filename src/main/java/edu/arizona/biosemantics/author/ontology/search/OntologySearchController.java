@@ -87,6 +87,9 @@ public class OntologySearchController {
 	
 	private ArrayList<OntologyIRI> entityOntologies = new ArrayList<OntologyIRI> ();
 	private ArrayList<OntologyIRI> qualityOntologies = new ArrayList<OntologyIRI>();
+	
+	private ArrayList<OntologyIRI> allLiveEntityOntologies = new ArrayList<OntologyIRI> ();
+	private ArrayList<OntologyIRI> allLiveQualityOntologies = new ArrayList<OntologyIRI>();
 
 	/*@Autowired
 	public OntologySearchController(@Value("${ontologySearch.ontologyDir}") String ontologyDir,
@@ -176,8 +179,11 @@ public class OntologySearchController {
 		OntologyIRI EXP = new OntologyIRI(ontoD.getAbsolutePath(), 
 				ontologyIRIs.get(onto), onto); //for experiments
 		entityOntologies.add(EXP); //EXP
-		System.out.println("####################entityOntolgies.added:"+EXP.getName());
+		////System.outprintln("####################entityOntolgies.added:"+EXP.getName());
 		qualityOntologies.add(EXP);
+		
+		if(! this.allLiveEntityOntologies.contains(EXP)) this.allLiveEntityOntologies.add(EXP);
+		if(! this.allLiveQualityOntologies.contains(EXP)) this.allLiveQualityOntologies.add(EXP);
 		
 		setUpWorkbench(entityOntologies, qualityOntologies);
 		
@@ -190,7 +196,7 @@ public class OntologySearchController {
 		
 			//copy base ontologies to user ontologies
 			for(String onto: userOntologies){
-				System.out.println("####################user ontology:"+onto);
+				////System.outprintln("####################user ontology:"+onto);
 				File ontoS = new File(ontologyDir, onto+".owl");
 				File ontoD = new File(ontologyDir, onto+"_"+userId+".owl"); //ontology indexed as EXP_1.owl, EXP_2.owl, 1 and 2 are user ids.
 				try{
@@ -204,8 +210,11 @@ public class OntologySearchController {
 				OntologyIRI EXP = new OntologyIRI(ontoD.getAbsolutePath(), 
 						ontologyIRIs.get(onto), onto+"_"+userId); //for experiments
 				entityOntologies.add(EXP); //EXP_1
-				System.out.println("####################entityOntolgies.added:"+EXP.getName());
+				////System.outprintln("####################entityOntolgies.added:"+EXP.getName());
 				qualityOntologies.add(EXP);
+				
+				if(! this.allLiveEntityOntologies.contains(EXP)) this.allLiveEntityOntologies.add(EXP);
+				if(! this.allLiveQualityOntologies.contains(EXP)) this.allLiveQualityOntologies.add(EXP);
 			}
 			setUpWorkbench(entityOntologies, qualityOntologies);
 		
@@ -238,7 +247,7 @@ public class OntologySearchController {
 			OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(o.getIri()));
 			Set<OWLOntology> ontologies = new HashSet<OWLOntology>();
 			ontologies.add(owlOntology);
-			System.out.println("####################owlOntology="+owlOntology);
+			////System.outprintln("####################owlOntology="+owlOntology);
 			OntologyAccess ontologyAccess  = new OntologyAccess(ontologies);
 			
 			this.searchersMap.put(o.getName(), searcher);
@@ -261,7 +270,7 @@ public class OntologySearchController {
 			OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(o.getIri()));
 			Set<OWLOntology> ontologies = new HashSet<OWLOntology>();
 			ontologies.add(owlOntology);
-			System.out.println("####################owlOntology="+owlOntology);
+			////System.outprintln("####################owlOntology="+owlOntology);
 			OntologyAccess ontologyAccess  = new OntologyAccess(ontologies);
 			
 			this.searchersMap.put(o.getName(), searcher);
@@ -300,7 +309,7 @@ public class OntologySearchController {
 			ontoName = ontology+"_"+usrid;
 		}
 		OntologyIRI oIRI = getOntologyIRI(ontoName);
-		System.out.println("####################search ontoName="+ontoName);
+		////System.outprintln("/search ####################search ontoName="+ontoName);
 		
 		
 		//ontoName: EXP_1 or EXP, CAREX, etc.
@@ -309,12 +318,25 @@ public class OntologySearchController {
 
 		List<OntologyEntry> entries = new ArrayList<OntologyEntry>();
 		FileSearcher searcher = this.searchersMap.get(ontoName);
+		//searcher.updateSearcher(oIRI);
 		if(this.isQualityOntology(ontoName)) {
-			System.out.println("####################searcher="+searcher);
+			//System.out.println("/search q "+ontoName +"####################searcher="+searcher);
+			//System.out.println("/search q "+ontoName +"####################ontology count ="+
+					//searcher.getOwlOntologyManager().getOntologies().size());
+			//System.out.println("/search q "+ontoName +"####################ontology axiom count ="+
+			//searcher.getOwlOntologyManager().getOntology(IRI.create(oIRI.getIri())).getAxiomCount());
+			//System.out.println("/search q "+ontoName +"####################ontology api  ="+
+					//searcher.getOntoLookupClient().ontoutil.OWLqualityOntoAPIs.get(0));
 			entries.addAll(searcher.getQualityEntries(term));
 		}
 		if(this.isEntityOntology(ontoName)) {
-			System.out.println("####################searcher="+searcher);
+			//System.out.println("/searcher ####################searcher="+searcher);
+			//System.out.println("/search e "+ontoName +"####################ontology count ="+
+					//searcher.getOwlOntologyManager().getOntologies().size());
+			//System.out.println("/search e "+ontoName +"####################ontology axiom count ="+
+					//searcher.getOwlOntologyManager().getOntology(IRI.create(oIRI.getIri())).getAxiomCount());
+			//System.out.println("/search e "+ontoName+ "####################ontology api  ="+
+							//searcher.getOntoLookupClient().ontoutil.OWLentityOntoAPIs.get(0));
 			entries.addAll(
 					searcher.getEntityEntries(term, parent.orElse(""), relation.orElse("")));
 		}
@@ -335,8 +357,8 @@ public class OntologySearchController {
 			ontoName = ontoName+"_"+usrid;
 		}
 		OntologyIRI oIRI = getOntologyIRI(ontoName);
-		System.out.println("####################createESynonym ontoName="+ontoName);
-		System.out.println("####################Iri="+oIRI.getIri());
+		////System.outprintln("####################createESynonym ontoName="+ontoName);
+		////System.outprintln("####################Iri="+oIRI.getIri());
 		
 		//use the selected ontology		
 		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName);// this.owlOntologyManagerMap.get(oIRI);
@@ -368,8 +390,8 @@ public class OntologySearchController {
 			ontoName = ontoName+"_"+usrid;
 		}
 		OntologyIRI oIRI = getOntologyIRI(ontoName);
-		System.out.println("####################createBSynonym ontoName="+ontoName);
-		System.out.println("####################Iri="+oIRI.getIri());
+		////System.outprintln("####################createBSynonym ontoName="+ontoName);
+		////System.outprintln("####################Iri="+oIRI.getIri());
 		
 		//use the selected ontology		
 		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName); //this.owlOntologyManagerMap.get(oIRI);
@@ -400,12 +422,14 @@ public class OntologySearchController {
 			ontoName = ontoName+"_"+usrid;
 		}
 		OntologyIRI oIRI = getOntologyIRI(ontoName);
-		System.out.println("####################class ontoName="+ontoName);
-		System.out.println("####################Iri="+oIRI.getIri());
+		////System.outprintln("/class ####################class ontoName="+ontoName);
+		////System.outprintln("/class ####################Iri="+oIRI.getIri());
 		
 		//use the selected ontology		
 		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName);//this.owlOntologyManagerMap.get(oIRI);
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
+		////System.outprintln("/class ####################owlOntology="+owlOntology);
+		////System.outprintln("/class ####################owlOntology axiom count (before)="+owlOntology.getAxiomCount());
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 		
 		String subclassIRI = oIRI.getIri() + "#" + c.getTerm().replaceAll("\\s+", " ").replaceAll("\\s", "_");
@@ -516,7 +540,7 @@ public class OntologySearchController {
 				clsB = parser.parseManchesterExpression(c.getLogicDefinition()); //"'part of' some 'physical entity'"
 			}catch(Exception e){
 				String msg = e.getMessage();
-				//System.out.println(msg);
+				//////System.outprintln(msg);
 				return msg;
 			}
 			OWLAxiom def = owlDataFactory.getOWLEquivalentClassesAxiom(subclass, clsB);
@@ -530,15 +554,18 @@ public class OntologySearchController {
 			try{
 				manager.saveOntology(carex, format, IRI.create(file.toURI()));
 			}catch(Exception e){
-				System.out.println(e.getStackTrace());
+				////System.outprintln(e.getStackTrace());
 			}*/
 
 		}
 		
+		////System.outprintln("/class ####################owlOntology axiom count (after)="+owlOntology.getAxiomCount());
+
 		//refresh ontology search environment after the addition
 		FileSearcher searcher = this.searchersMap.get(ontoName);
 		searcher.updateSearcher(oIRI);
-		
+		////System.outprintln("/class ####################refreshed searcher="+searcher);
+
 		return subclass.getIRI().getIRIString();
 	}
 	
@@ -599,6 +626,22 @@ public class OntologySearchController {
 	}
 	
 	private boolean isEntityOntology(String o) {
+		for(OntologyIRI on : allLiveEntityOntologies) {
+			if(on.getName().equalsIgnoreCase(o))
+				return true;
+		}
+		return false;
+	}
+
+	private boolean isQualityOntology(String o) {
+		for(OntologyIRI on : allLiveQualityOntologies) {
+			if(on.getName().equalsIgnoreCase(o))
+				return true;
+		}
+		return false;
+	}
+	
+	/*private boolean isEntityOntology(String o) {
 		for(OntologyIRI on : entityOntologies) {
 			if(on.getName().equalsIgnoreCase(o))
 				return true;
@@ -612,9 +655,21 @@ public class OntologySearchController {
 				return true;
 		}
 		return false;
-	}
+	}*/
 	
 	private OntologyIRI getOntologyIRI(String o) {
+		for(OntologyIRI oIRI : allLiveEntityOntologies) {
+			if(oIRI.getName().equalsIgnoreCase(o))
+				return oIRI;
+		}
+		for(OntologyIRI oIRI : allLiveQualityOntologies) {
+			if(oIRI.getName().equalsIgnoreCase(o))
+				return oIRI;
+		}
+		return null;
+	}
+	
+	/*private OntologyIRI getOntologyIRI(String o) {
 		for(OntologyIRI oIRI : entityOntologies) {
 			if(oIRI.getName().equalsIgnoreCase(o))
 				return oIRI;
@@ -624,8 +679,7 @@ public class OntologySearchController {
 				return oIRI;
 		}
 		return null;
-	}
-	
+	}*/
 	@PreDestroy
 	public void destroy() throws Exception {
 		this.saveAll();
