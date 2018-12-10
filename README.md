@@ -285,7 +285,7 @@
   * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
   * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
   * Example: GET http://shark.sbs.arizona.edu:8080/carex/getTree (this works only after a call to /createUserOntology with an empty user and carex ontology as parameters)
-  * Response body: (excerpt)
+  * Response body: 
     ```json
     {
     "data": {
