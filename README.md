@@ -279,3 +279,27 @@
 	     "ontology":"exp",
     }
     ```
+*  /{ontology}/getTree: *Obtain the entire ontology as a JSON object
+  * HTTP GET http://{host}/{ontology}/getTree?user={optional_user}
+  * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
+  * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
+  * Example: GET http://shark.sbs.arizona.edu:8080/carex/getTree (this works only after a call to /createUserOntology with an empty user and carex ontology as parameters)
+  * Response body:
+    ```json
+    {
+    "data": {
+        "details": [
+            {
+                "IRI": "http://www.w3.org/2002/07/owl#Thing"
+            }
+        ]
+    },
+    "children": [
+        {
+            "data": {
+                "details": [
+                    {
+                        "IRI": "http://purl.obolibrary.org/obo/UBERON_0001062"
+                    }
+     ```
+    
