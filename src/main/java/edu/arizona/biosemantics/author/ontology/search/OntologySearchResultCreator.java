@@ -22,8 +22,10 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLLiteral;
+import org.semanticweb.owlapi.model.OWLObjectAllValuesFrom;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -52,7 +54,7 @@ import edu.arizona.biosemantics.common.ontology.search.model.OntologyEntry;
 public class OntologySearchResultCreator {
 
 	//private static final Logger LOGGER = LoggerFactory.getLogger(OntologySearchResultCreator.class);
-	//private static Ontology[] entityOntologies = { Ontology.PO, Ontology.CAREX };
+	//private static Ontology[] entityOntologies = { Ontology.po, Ontology.carex };
 	//private static String ELUCIDATION = "http://purl.oblibrary.org/obo/IAO_0000600";
 	private static String oboInOwlId = "http://www.geneontology.org/formats/oboInOwl#id";
 	
@@ -64,11 +66,31 @@ public class OntologySearchResultCreator {
 		for(OntologyEntry e : entries) {
 			String iri = e.getClassIRI();
 			if(inProcessed(processed, e)) continue;
+			if(iri==null) continue; //spatial terms such as left side will matched to a fixed spatial term pattern in ontology search, but without an iri because BSPO is not used.
 			OWLClass owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(iri));
 			
 			List<Annotation> resultAnnotations = new ArrayList<Annotation>();
 			//add oboInOwl:id property
 			resultAnnotations.add(new Annotation(oboInOwlId, iri));
+			//data properties
+			Set<OWLClassExpression> superclasses = EntitySearcher.getSuperClasses(owlClass, owlOntology).collect(Collectors.toSet());
+			for(OWLClassExpression superclass: superclasses){
+				if(superclass instanceof OWLObjectSomeValuesFrom){
+					OWLObjectSomeValuesFrom property = (OWLObjectSomeValuesFrom)superclass;
+					if(property.isObjectRestriction()){
+						resultAnnotations.add(new Annotation(property.getProperty().toString().replaceAll("^<|>$", ""), 
+								property.getFiller().toString().replaceAll("^<|>$", "")));
+					}
+				}
+				if(superclass instanceof OWLObjectAllValuesFrom){
+					OWLObjectAllValuesFrom property = (OWLObjectAllValuesFrom)superclass;
+					if(property.isObjectRestriction()){
+						resultAnnotations.add(new Annotation(property.getProperty().toString().replaceAll("^<|>$", ""), 
+								property.getFiller().toString().replaceAll("^<|>$", "")));
+					}
+				}
+			}
+			//annotation properties
 			Set<OWLAnnotation> annotations = EntitySearcher.getAnnotations(owlClass, owlOntology).collect(Collectors.toSet());
 			for(OWLAnnotation a : annotations) {
 				Optional<OWLLiteral> literal = a.getValue().annotationValue().asLiteral();

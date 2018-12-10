@@ -52,6 +52,63 @@ public class ParseController {
 		this.sentenceSplitter = sentenceSplitter;
 	}
 
+	/*test description: perigynium beak weak, 4-5 mm; apex awnlike; stamen branching, full.*/
+	@GetMapping(value = "/parse", produces = { MediaType.APPLICATION_JSON_VALUE })
+	public Description parse(@RequestParam Optional<String> sentence, @RequestParam Optional<String> description) throws Exception {
+		List<ChunkCollector> chunkCollectors = new ArrayList<ChunkCollector>();
+		edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.Description descriptionObject = 
+				new edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.Description();
+
+		String descriptionText = "";
+		if(description.isPresent()) {
+			descriptionText = description.get();
+			descriptionObject.setText(descriptionText);
+			List<String> sentences = sentenceSplitter.split(descriptionText);	
+			for(int source = 0; source < sentences.size(); source++) {
+				edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.Statement statement = new edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.Statement();
+				statement.setText(sentences.get(source));
+				String statementId = "d" + "0" + "_s" + source; //"0" refers to the current description in the text editor
+				statement.setId(statementId);
+				descriptionObject.addStatement(statement);
+				SentenceChunkerRun chunkerRun = markupCreator.createChunkerRun(sentences.get(source), String.valueOf(source));
+				ChunkCollector chunkCollector = chunkerRun.call();
+				System.out.println(chunkCollector.toString());
+				chunkCollectors.add(chunkCollector);
+			}
+		} else if(sentence.isPresent()) {
+			descriptionText = sentence.get();
+			descriptionObject.setText(descriptionText);
+			edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.Statement statement = new edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.Statement();
+			statement.setText(descriptionText);
+			String statementId = "d" + "0" + "_s" + "0"; //"0" refers to the current description and the current sentence in the text editor
+			statement.setId(statementId);
+			descriptionObject.addStatement(statement);
+			SentenceChunkerRun chunkerRun = markupCreator.createChunkerRun(descriptionText, String.valueOf(1));
+			ChunkCollector chunkCollector = chunkerRun.call();
+			System.out.println(chunkCollector.toString());
+			chunkCollectors.add(chunkCollector);
+		}
+		if(chunkCollectors.isEmpty())
+			throw new IllegalArgumentException();
+		
+		return createDescription(chunkCollectors, descriptionObject);
+	}
+	
+	private Description createDescription(List<ChunkCollector> chunkCollectors, edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.Description description) throws IOException {
+		IDescriptionExtractor descriptionExtractor = markupCreator.createDescriptionExtractor();
+		descriptionExtractor.extract(description, 1, chunkCollectors);
+		
+
+		Document document = documentCreator.create(description);
+		XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
+        System.out.println(outputter.outputString(document));
+		enhanceRun.run(document);
+        System.out.println(outputter.outputString(document));
+		
+		return descriptionResponseCreator.create(document);
+	}
+	
+	/* original from Thomas 
 	@GetMapping(value = "/parse", produces = { MediaType.APPLICATION_JSON_VALUE })
 	public Description parse(@RequestParam Optional<String> sentence, @RequestParam Optional<String> description) throws Exception {
 		List<ChunkCollector> chunkCollectors = new ArrayList<ChunkCollector>();
@@ -82,15 +139,23 @@ public class ParseController {
 		IDescriptionExtractor descriptionExtractor = markupCreator.createDescriptionExtractor();
 		edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.Description description = 
 				new edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.Description();
-		descriptionExtractor.extract(description, 1, chunkCollectors);
 		description.setText(descriptionText);
+		descriptionExtractor.extract(description, 1, chunkCollectors);
+		
 
 		Document document = documentCreator.create(description);
 		XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
         System.out.println(outputter.outputString(document));
 		enhanceRun.run(document);
-        //System.out.println(outputter.outputString(document));
+        System.out.println(outputter.outputString(document));
 		
 		return descriptionResponseCreator.create(document);
-	}
+	}*/
 }
+
+
+
+/* test description 
+
+Herbs, perennial, cespitose or not, rhizomatous, rarely stoloniferous. Culms usually trigonous, sometimes round. Leaves basal and cauline, sometimes all basal; ligules present; blades flat, V-shaped, or M-shaped in cross section, rarely filiform, involute, or rounded, commonly less than 20 mm wide, if flat then with distinct midvein. Inflorescences terminal, consisting of spikelets borne in spikes arranged in spikes, racemes, or panicles; bracts subtending spikes leaflike or scalelike; bracts subtending spikelets scalelike, very rarely leaflike. Spikelets 1-flowered; scales 0–1. Flowers unisexual; staminate flowers without scales; pistillate flowers with 1 scale with fused margins (perigynium) enclosing flower, open only at apex; perianth absent; stamens 1–3; styles deciduous or variously persistent, linear, 2–3(–4)-fid. Achenes biconvex, plano-convex, or trigonous, rarely 4-angled. x = 10.
+*/

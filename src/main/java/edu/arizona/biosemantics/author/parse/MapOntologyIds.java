@@ -21,18 +21,26 @@ import edu.arizona.biosemantics.common.ontology.search.model.Ontology;
 import edu.arizona.biosemantics.common.ontology.search.model.OntologyEntry;
 import edu.arizona.biosemantics.semanticmarkup.enhance.transform.AbstractTransformer;
 
+/*test description: perigynium beak weak, 4-5 mm; apex awnlike; stamen branching, full.*/
+//http://shark.sbs.arizona.edu:8080/parse?description=perigynium beak weak, 4-5 mm long; apex awnlike; stamen branching, full.
 @Component
 public class MapOntologyIds extends AbstractTransformer {
 
-	private static Ontology[] ontologies = { Ontology.PO, Ontology.PATO, Ontology.CAREX };
+	//private static Ontology[] ontologies = { Ontology.po, Ontology.pato, Ontology.carex };
+	private static Ontology ontology = Ontology.carex;
+	private static HashSet<String> entity = new HashSet<String>();
+	static{entity.add("carex");}
+	private static HashSet<String> quality = new HashSet<String>();
+	static{quality.add("carex");}
 	private HashMap<Ontology, Searcher> searchersMap;
 	
 	@Autowired
 	public MapOntologyIds(@Value("${ontologySearch.ontologyDir}") String ontologyDir,
 			@Value("${ontologySearch.wordNetDir}") String wordNetDir) throws OWLOntologyCreationException {
 		this.searchersMap = new HashMap<Ontology, Searcher>();
-		for(Ontology o : ontologies) 
-			this.searchersMap.put(o, new FileSearcher(o, ontologyDir, wordNetDir));
+		this.searchersMap.put(ontology, new FileSearcher(entity, quality, ontologyDir, wordNetDir, false));
+		//for(Ontology o : ontologies) 
+			//this.searchersMap.put(o, new FileSearcher(o, ontologyDir, wordNetDir, false));
 	}
 	
 	@Override
@@ -51,23 +59,19 @@ public class MapOntologyIds extends AbstractTransformer {
 				charType = charType.trim();
 			
 			if(charType == null || !charType.equals("range_value")) {
-				//if(value != null) {
-					String searchTerm = value;
-					List<OntologyEntry> entries = getCharacterEntries(searchTerm);
-
-					String ontologyId = "";
-					for(OntologyEntry entry : entries) {
-						if(!ontologyId.isEmpty())
-							ontologyId += ";";
-						ontologyId += entry.getClassIRI() + "[" + searchTerm + ":" + entry.getParentLabel() + 
-								"/" + entry.getLabel() + ":" + entry.getScore() + "]";
+					String ontologyIds = "";
+					//value may contain modifiers separated from value by ; or alternative values separated by "|"
+					for(String searchTerm: value.split("\\s*[;|]\\s*")){
+						List<OntologyEntry> entries = getCharacterEntries(searchTerm);
+						if(!entries.isEmpty())
+							ontologyIds += formulateOntologyMatchingInfo(searchTerm, entries) + " ; ";
 					}
-					if(!entries.isEmpty())
-						character.setAttribute("ontologyid", ontologyId);
-				//}
+					character.setAttribute("ontologyid", ontologyIds.replaceFirst(" ; $", "").trim());
+				
 			}
 		}
 	}
+
 
 	private void mapEntities(Document document) {
 		for (Element biologicalEntity : this.biologicalEntityPath.evaluate(document)) {
@@ -85,31 +89,59 @@ public class MapOntologyIds extends AbstractTransformer {
 			
 			if(searchTerm != null) {
 				List<OntologyEntry> entries = getEntityEntries(searchTerm);
-				String ontologyId = "";
-				for(OntologyEntry entry : entries) {
-					if(!ontologyId.isEmpty());
-						ontologyId += ";";
-					ontologyId += entry.getClassIRI() + "[" + searchTerm + ":" + entry.getParentLabel() + 
-							"/" + entry.getLabel() + ":" + entry.getScore() + "]";
-				}
-				if(!entries.isEmpty())
+				if(!entries.isEmpty()){
+					String ontologyId = formulateOntologyMatchingInfo(searchTerm, entries);
 					biologicalEntity.setAttribute("ontologyid", ontologyId);
+				}
 			}
 		}
 	}
+	
+	/**
+	 * use " ; " to separate matches
+	 * scores for all notrecommended type = -1 * score
+	 * scores for broader synonyms score = score +"b". 
+	 * @param searchTerm
+	 * @param entries
+	 * @return
+	 */
+	private String formulateOntologyMatchingInfo(String searchTerm, List<OntologyEntry> entries) {
+		String ontologyId = "";
+		for(OntologyEntry entry : entries) {
+			if(!ontologyId.isEmpty())
+				ontologyId += " ; ";
+			
+			String score = "";
+			
+			if(entry.getMatchType()==null){ 
+				score = Double.toString(entry.getScore());
+			}else if(entry.getMatchType().compareTo("notrecommended")==0){
+				score = Double.toString(-1.0*entry.getScore());
+			}else if(entry.getMatchType().compareTo("broad")==0){
+					score = Double.toString(entry.getScore())+"b";
+			}else{
+				score = Double.toString(entry.getScore());
+			}
+			ontologyId += entry.getClassIRI() + "[" + searchTerm + ":" + entry.getParentLabel() + 
+					"/" + entry.getLabel() + ":" + score + "]";
+		}
+		return ontologyId;
+	}
 
 	private List<OntologyEntry> getEntityEntries(String searchTerm) {
-		Searcher searcher = this.searchersMap.get(Ontology.PO);
-		List<OntologyEntry> ontologyEntries = searcher.getEntityEntries(searchTerm, "", "");
+		List<OntologyEntry> ontologyEntries = new ArrayList<OntologyEntry>();
+		//Searcher searcher = this.searchersMap.get(Ontology.po);
+		//List<OntologyEntry> ontologyEntries = searcher.getEntityEntries(searchTerm, "", "");
 		
-		searcher = this.searchersMap.get(Ontology.CAREX);
+		Searcher searcher = this.searchersMap.get(Ontology.carex);
 		ontologyEntries.addAll(searcher.getEntityEntries(searchTerm, "", ""));
 		
 		return ontologyEntries;
 	}
 	
 	private List<OntologyEntry> getCharacterEntries(String searchTerm) {
-		Searcher searcher = this.searchersMap.get(Ontology.PATO);
+		//Searcher searcher = this.searchersMap.get(Ontology.pato);
+		Searcher searcher = this.searchersMap.get(Ontology.carex);
 		return searcher.getEntityEntries(searchTerm, "", "");
 	}
 }

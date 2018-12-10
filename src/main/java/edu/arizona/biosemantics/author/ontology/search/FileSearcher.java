@@ -60,10 +60,10 @@ public class FileSearcher {
 						if(entity instanceof CompositeEntity){
 							CompositeEntity ce = (CompositeEntity) entity;
 							for(Entity indiv: ce.getIndividualEntities()){ //use entity score for all components of composite entity
-								result.add(new OntologyEntry(null, indiv.getClassIRI(), Type.ENTITY, entity.getConfidenceScore(),indiv.getLabel(), indiv.getPLabel()));
+								result.add(new OntologyEntry(null, indiv.getClassIRI(), Type.ENTITY, entity.getConfidenceScore(),indiv.getLabel(), indiv.getPLabel(), indiv.getMatchType()));
 							}
 					}
-						result.add(new OntologyEntry(null, entity.getClassIRI(), Type.ENTITY, entity.getConfidenceScore(),entity.getLabel(), entity.getPLabel()));
+						result.add(new OntologyEntry(null, entity.getClassIRI(), Type.ENTITY, entity.getConfidenceScore(),entity.getLabel(), entity.getPLabel(), entity.getMatchType()));
 					}
 				}
 				
@@ -87,7 +87,7 @@ public class FileSearcher {
 		ArrayList<FormalConcept> concepts = termSearcher.searchTerm(term, Type.QUALITY.toString().toLowerCase(), 1.0f);
 		if(concepts != null)
 			for(FormalConcept concept : concepts) 
-				result.add(new OntologyEntry(null, concept.getClassIRI(), Type.QUALITY, concept.getConfidenceScore(), concept.getLabel(), concept.getPLabel()));
+				result.add(new OntologyEntry(null, concept.getClassIRI(), Type.QUALITY, concept.getConfidenceScore(), concept.getLabel(), concept.getPLabel(), concept.getMatchType()));
 		
 		Collections.sort(result);
 		return result;

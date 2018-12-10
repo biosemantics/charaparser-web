@@ -43,7 +43,14 @@
 		<dependency>
 		  <groupId>edu.arizona.biosemantics.semanticmarkup</groupId>
 		  <artifactId>semantic-markup</artifactId>
-		  <version>0.1.198-SNAPSHOT</version>
+		  <version>0.1.198-author-SNAPSHOT</version>
+		</dependency>
+		
+		<dependency>
+		  <groupId>edu.arizona.biosemantics.semanticmarkup</groupId>
+		  <artifactId>semantic-markup</artifactId>
+		  <version>0.1.198-author-SNAPSHOT</version>
+		  <classifier>sources</classifier>
 		</dependency>
 		
 		<!-- force guice 4.1.0 due to conflict between owl api wanting this version and semanticmarkup/enhance still being on 4.0 -->
@@ -60,15 +67,27 @@
 			</dependency> 
 		
 		<dependency>
+	<groupId>com.googlecode.json-simple</groupId>
+	<artifactId>json-simple</artifactId>
+	<version>1.1.1</version>
+</dependency>
+
+<!-- https://mvnrepository.com/artifact/net.sourceforge.owlapi/jfact -->
+<dependency>
+    <groupId>net.sourceforge.owlapi</groupId>
+    <artifactId>jfact</artifactId>
+    <version>5.0.1</version>
+</dependency>
+		<dependency>
 		  <groupId>edu.arizona.biosemantics.semanticmarkup</groupId>
 		  <artifactId>enhance</artifactId>
-		  <version>0.0.27-SNAPSHOT</version>
+		  <version>0.0.27-author-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>
 		  <groupId>edu.arizona.biosemantics.oto</groupId>
 		  <artifactId>oto-common</artifactId>
-		  <version>0.0.32-cache-SNAPSHOT</version>
+		  <version>0.0.32-author-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>
