@@ -279,7 +279,8 @@
 	     "ontology":"exp",
     }
     ```
-*  /{ontology}/getTree: *Obtain the entire ontology as a JSON object
+
+*  /{ontology}/getTree: *Obtain the entire ontology as a JSON object*
   * HTTP GET http://{host}/{ontology}/getTree?user={optional_user}
   * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
   * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
