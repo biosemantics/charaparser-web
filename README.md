@@ -234,6 +234,23 @@
     ```json
     SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
     ```
+    
+* /definition: *add a defintion property to the class in the named ontology*
+  * HTTP POST http://{host}/definition
+  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).
+    ```json
+    {
+     	"user":"2",
+     	"ontology":"exp",
+      "definition": "the summit of a root",
+      "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex"
+    }
+    ```
+
+  * Response Body:
+    ```json
+    SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
+    ```
 
 * /partOf: *Creates a part-of relation between the part and the bearer (part is 'part_of' bearer) in the named ontology*
   * HTTP POST http://{host}/partOf
