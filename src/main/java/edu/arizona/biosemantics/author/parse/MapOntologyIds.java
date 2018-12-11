@@ -23,7 +23,7 @@ import edu.arizona.biosemantics.semanticmarkup.enhance.transform.AbstractTransfo
 
 /*test description: perigynium beak weak, 4-5 mm; apex awnlike; stamen branching, full.*/
 //http://shark.sbs.arizona.edu:8080/parse?description=perigynium beak weak, 4-5 mm long; apex awnlike; stamen branching, full.
-@Component
+//@Component
 public class MapOntologyIds extends AbstractTransformer {
 
 	//private static Ontology[] ontologies = { Ontology.po, Ontology.pato, Ontology.carex };
@@ -34,11 +34,27 @@ public class MapOntologyIds extends AbstractTransformer {
 	static{quality.add("carex");}
 	private HashMap<Ontology, Searcher> searchersMap;
 	
-	@Autowired
+	//* run when api starts, this make all /parse requests use the same static ontology
+	/*@Autowired
 	public MapOntologyIds(@Value("${ontologySearch.ontologyDir}") String ontologyDir,
 			@Value("${ontologySearch.wordNetDir}") String wordNetDir) throws OWLOntologyCreationException {
 		this.searchersMap = new HashMap<Ontology, Searcher>();
 		this.searchersMap.put(ontology, new FileSearcher(entity, quality, ontologyDir, wordNetDir, false));
+		//deprecated FileSearcher
+		//for(Ontology o : ontologies) 
+			//this.searchersMap.put(o, new FileSearcher(o, ontologyDir, wordNetDir, false));
+	}*/
+	
+	/**
+	 * run when a /parse request is made to use the updated ontology
+	 * @param ontologyDir
+	 * @param wordNetDir
+	 * @throws OWLOntologyCreationException
+	 */
+	public MapOntologyIds(String ontologyDir, String wordNetDir) throws OWLOntologyCreationException {
+		this.searchersMap = new HashMap<Ontology, Searcher>();
+		this.searchersMap.put(ontology, new FileSearcher(entity, quality, ontologyDir, wordNetDir, false));
+		//deprecated FileSearcher
 		//for(Ontology o : ontologies) 
 			//this.searchersMap.put(o, new FileSearcher(o, ontologyDir, wordNetDir, false));
 	}

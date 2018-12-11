@@ -6,10 +6,14 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 import org.jdom2.Document;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,32 +28,56 @@ import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 
+import edu.arizona.biosemantics.author.ontology.search.OntologySearchController;
 import edu.arizona.biosemantics.author.parse.model.BiologicalEntity;
 import edu.arizona.biosemantics.author.parse.model.Description;
 import edu.arizona.biosemantics.author.parse.model.Relation;
 import edu.arizona.biosemantics.author.parse.model.Statement;
+import edu.arizona.biosemantics.oto2.oto.server.Configuration;
 import edu.arizona.biosemantics.semanticmarkup.ling.chunk.ChunkCollector;
 import edu.arizona.biosemantics.semanticmarkup.markupelement.description.ling.extract.IDescriptionExtractor;
 import edu.arizona.biosemantics.semanticmarkup.markupelement.description.transform.SentenceChunkerRun;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 @RestController
 public class ParseController {
-
+	private static final Logger LOGGER = LoggerFactory.getLogger(ParseController.class);
 	private MarkupCreator markupCreator;
 	private DescriptionResponseCreator descriptionResponseCreator;
 	private DocumentCreator documentCreator;
-	private EnhanceRun enhanceRun;
+	//private EnhanceRun enhanceRun;
 	private SentenceSplitter sentenceSplitter;
+	public static final okhttp3.MediaType JSON
+    = okhttp3.MediaType.parse("application/json; charset=utf-8");
 
 	@Autowired
 	public ParseController(MarkupCreator markupCreator, DocumentCreator documentCreator,
-			EnhanceRun enhanceRun, DescriptionResponseCreator descriptionResponseCreator, 
+			/*EnhanceRun enhanceRun, */DescriptionResponseCreator descriptionResponseCreator, 
 			SentenceSplitter sentenceSplitter) throws Exception {
 		this.markupCreator = markupCreator;
 		this.documentCreator = documentCreator;
-		this.enhanceRun = enhanceRun;
+		//this.enhanceRun = enhanceRun;
 		this.descriptionResponseCreator = descriptionResponseCreator;
 		this.sentenceSplitter = sentenceSplitter;
+
+		//setup ontology by calling /createUserOntology
+
+		OkHttpClient client = new OkHttpClient();
+		String url = "http://shark.sbs.arizona.edu:8080/createUserOntology?";
+		String json = "{\"user\":\"\", \"ontologies\":\"carex\"}";
+
+		RequestBody body = RequestBody.create(JSON, json);
+		Request request = new Request.Builder()
+				.url(url)
+				.post(body)
+				.build();
+		Response response = client.newCall(request).execute();
+		if(response.body().string().compareTo("true")==0){
+			LOGGER.info("Succeed in createUserOntolgy for user '' and ontology carex");
+		}
 	}
 
 	/*test description: perigynium beak weak, 4-5 mm; apex awnlike; stamen branching, full.*/
@@ -94,7 +122,7 @@ public class ParseController {
 		return createDescription(chunkCollectors, descriptionObject);
 	}
 	
-	private Description createDescription(List<ChunkCollector> chunkCollectors, edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.Description description) throws IOException {
+	private Description createDescription(List<ChunkCollector> chunkCollectors, edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.Description description) throws IOException, InterruptedException, ExecutionException,  OWLOntologyCreationException {
 		IDescriptionExtractor descriptionExtractor = markupCreator.createDescriptionExtractor();
 		descriptionExtractor.extract(description, 1, chunkCollectors);
 		
@@ -102,6 +130,7 @@ public class ParseController {
 		Document document = documentCreator.create(description);
 		XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
         System.out.println(outputter.outputString(document));
+        EnhanceRun enhanceRun = new EnhanceRun();//create a fresh instance of enhanceRun to use updated ontology
 		enhanceRun.run(document);
         System.out.println(outputter.outputString(document));
 		
