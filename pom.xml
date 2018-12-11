@@ -53,13 +53,7 @@
 		  <classifier>sources</classifier>
 		</dependency>
 		
-		<!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp -->
-		<dependency>
-		    <groupId>com.squareup.okhttp3</groupId>
-		    <artifactId>okhttp</artifactId>
-		    <version>3.12.0</version>
-		</dependency>
-		
+
 		
 		<!-- force guice 4.1.0 due to conflict between owl api wanting this version and semanticmarkup/enhance still being on 4.0 -->
 		<dependency>

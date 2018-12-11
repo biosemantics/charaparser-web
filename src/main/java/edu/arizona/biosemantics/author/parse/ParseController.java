@@ -37,10 +37,7 @@ import edu.arizona.biosemantics.oto2.oto.server.Configuration;
 import edu.arizona.biosemantics.semanticmarkup.ling.chunk.ChunkCollector;
 import edu.arizona.biosemantics.semanticmarkup.markupelement.description.ling.extract.IDescriptionExtractor;
 import edu.arizona.biosemantics.semanticmarkup.markupelement.description.transform.SentenceChunkerRun;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+
 
 @RestController
 public class ParseController {
@@ -50,8 +47,7 @@ public class ParseController {
 	private DocumentCreator documentCreator;
 	//private EnhanceRun enhanceRun;
 	private SentenceSplitter sentenceSplitter;
-	public static final okhttp3.MediaType JSON
-    = okhttp3.MediaType.parse("application/json; charset=utf-8");
+
 
 	@Autowired
 	public ParseController(MarkupCreator markupCreator, DocumentCreator documentCreator,
@@ -62,27 +58,12 @@ public class ParseController {
 		//this.enhanceRun = enhanceRun;
 		this.descriptionResponseCreator = descriptionResponseCreator;
 		this.sentenceSplitter = sentenceSplitter;
-
-		//setup ontology by calling /createUserOntology
-
-		OkHttpClient client = new OkHttpClient();
-		String url = "http://shark.sbs.arizona.edu:8080/createUserOntology?";
-		String json = "{\"user\":\"\", \"ontologies\":\"carex\"}";
-
-		RequestBody body = RequestBody.create(JSON, json);
-		Request request = new Request.Builder()
-				.url(url)
-				.post(body)
-				.build();
-		Response response = client.newCall(request).execute();
-		if(response.body().string().compareTo("true")==0){
-			LOGGER.info("Succeed in createUserOntolgy for user '' and ontology carex");
-		}
 	}
 
 	/*test description: perigynium beak weak, 4-5 mm; apex awnlike; stamen branching, full.*/
 	@GetMapping(value = "/parse", produces = { MediaType.APPLICATION_JSON_VALUE })
 	public Description parse(@RequestParam Optional<String> sentence, @RequestParam Optional<String> description) throws Exception {
+	
 		List<ChunkCollector> chunkCollectors = new ArrayList<ChunkCollector>();
 		edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.Description descriptionObject = 
 				new edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.Description();
