@@ -54,6 +54,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import edu.arizona.biosemantics.author.ontology.search.model.Class;
+import edu.arizona.biosemantics.author.ontology.search.model.Definition;
 import edu.arizona.biosemantics.author.ontology.search.model.UserOntology;
 import edu.arizona.biosemantics.author.ontology.search.model.HasPart;
 import edu.arizona.biosemantics.author.ontology.search.model.OntologyIRI;
@@ -438,6 +439,43 @@ public class OntologySearchController {
 		return c;
 	}
 
+	@PostMapping(value = "/definition", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
+	public ChangeApplied createBSynonym(@RequestBody Definition definition) {
+		//which ontology to use
+		String usrid = "";
+		String ontoName = definition.getOntology();
+		if(!definition.getUser().isEmpty()){
+			usrid = definition.getUser();
+			ontoName = ontoName+"_"+usrid;
+		}
+		OntologyIRI oIRI = getOntologyIRI(ontoName);
+		////System.outprintln("####################createBSynonym ontoName="+ontoName);
+		////System.outprintln("####################Iri="+oIRI.getIri());
+
+		//use the selected ontology		
+		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName); //this.owlOntologyManagerMap.get(oIRI);
+		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
+		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
+
+		String def = definition.getDefinition();
+		OWLClass clazz = owlDataFactory.getOWLClass(definition.getClassIRI());
+		OWLAnnotationProperty definitionProperty = 
+				owlDataFactory.getOWLAnnotationProperty(IRI.create(AnnotationProperty.DEFINITION.getIRI()));
+		OWLAnnotation synonymAnnotation = owlDataFactory.getOWLAnnotation(
+				definitionProperty, owlDataFactory.getOWLLiteral(def, "en"));
+		OWLAxiom definitionAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clazz.getIRI(), synonymAnnotation);
+
+		ChangeApplied c = owlOntologyManager.addAxiom(owlOntology, definitionAxiom);
+		
+		//refresh ontology search environment after the addition
+		//FileSearcher searcher = this.searchersMap.get(ontoName);
+		//searcher.updateSearcher(oIRI);
+
+		//save ontology
+		saveOntology(ontoName, oIRI);
+		
+		return c;
+	}
 	@PostMapping(value = "/class", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
 	public String createClass(@RequestBody Class c) {
 		//which ontology to use
