@@ -243,7 +243,10 @@
      	"user":"2",
      	"ontology":"exp",
       "definition": "the summit of a root",
+      "providedBy": "hongcui",
+      "exampleSentence": "root apex rounded",
       "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex"
+      
     }
     ```
 
