@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import org.jdom2.Document;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.springframework.stereotype.Component;
 
 import au.com.bytecode.opencsv.CSVReader;
@@ -68,7 +69,7 @@ import edu.arizona.biosemantics.semanticmarkup.enhance.transform.old.MoveCharact
 import edu.arizona.biosemantics.semanticmarkup.enhance.transform.old.StandardizeStructureNameBySyntax;
 import edu.arizona.biosemantics.semanticmarkup.enhance.transform.old.StandardizeTerminology;
 
-@Component
+//@Component
 public class EnhanceRun {
 
 	private String negWords = "no|not|never";
@@ -94,8 +95,9 @@ public class EnhanceRun {
 	private SomeInflector inflector;
 	private MapOntologyIds mapOntologyIds;
 	
-	public EnhanceRun(MapOntologyIds mapOntologyIds) throws IOException, InterruptedException, ExecutionException {
-		this.mapOntologyIds = mapOntologyIds;
+	//public EnhanceRun(MapOntologyIds mapOntologyIds) throws IOException, InterruptedException, ExecutionException {
+	public EnhanceRun() throws IOException, InterruptedException, ExecutionException,  OWLOntologyCreationException {
+		this.mapOntologyIds = new MapOntologyIds(Configuration.ontologyDirectory, Configuration.wordNetDirectory);
 		/*this.filePath2KnowsPartOf = filePath2KnowsPartOf;
 		this.termReviewTermCategorization = termReviewTermCategorization;
 		this.termReviewSynonyms = termReviewSynonyms;*/
