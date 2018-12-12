@@ -95,6 +95,7 @@ public class OntologySearchController {
 	private HashMap<String, OntologyAccess> ontologyAccessMap = new HashMap<String, OntologyAccess>();
 	private HashMap<String, FileSearcher> searchersMap = new HashMap<String, FileSearcher>();
 	private HashMap<String, OWLOntologyManager> owlOntologyManagerMap = new HashMap<String, OWLOntologyManager>();
+	//private HashMap<String, Hashtable<String, String>> termDefinitionMap = new HashMap<String, Hashtable<String, String>>();
 
 	private OntologySearchResultCreator ontologySearchResultCreator;
 	private String ontologyDir;
@@ -268,6 +269,7 @@ public class OntologySearchController {
 			this.searchersMap.put(o.getName(), searcher);
 			this.ontologyAccessMap.put(o.getName(), ontologyAccess);
 			this.owlOntologyManagerMap.put(o.getName(), owlOntologyManager);
+			//this.termDefinitionMap.put(o.getName(), new Hashtable<String, String>());
 		}
 
 		//add the rest
@@ -291,6 +293,7 @@ public class OntologySearchController {
 			this.searchersMap.put(o.getName(), searcher);
 			this.ontologyAccessMap.put(o.getName(), ontologyAccess);
 			this.owlOntologyManagerMap.put(o.getName(), owlOntologyManager);
+			//this.termDefinitionMap.put(o.getName(), new Hashtable<String, String>());
 		}
 
 		for(OntologyIRI o : qualityOntologies) {
@@ -308,6 +311,7 @@ public class OntologySearchController {
 			this.searchersMap.put(o.getName(), searcher);
 			this.ontologyAccessMap.put(o.getName(), ontologyAccess);
 			this.owlOntologyManagerMap.put(o.getName(), owlOntologyManager);
+			//this.termDefinitionMap.put(o.getName(), new Hashtable<String, String>());
 		}
 	}
 
@@ -818,6 +822,19 @@ public class OntologySearchController {
 		
 	}
 
+	/*@GetMapping(value = "/{ontology}/getDefinition", produces = { MediaType.APPLICATION_JSON_VALUE })
+	public String getClassHierarchyInJSON(@PathVariable String ontology, @RequestParam Optional<String> user, 
+			@RequestParam String baseIri, @RequestParam String term){
+		String usrid = "";
+		String ontoName = ontology;
+		if(user.isPresent()){
+			usrid = user.get();
+			ontoName = ontology+"_"+usrid;
+		}
+		return this.termDefinitionMap.get(ontoName).get(baseIri+"#"+term);
+	}*/
+	
+
 	@GetMapping(value = "/{ontology}/getTree", produces = { MediaType.APPLICATION_JSON_VALUE })
 	public String getClassHierarchyInJSON(@PathVariable String ontology, @RequestParam Optional<String> user) throws Exception {
 		String usrid = "";
@@ -827,6 +844,7 @@ public class OntologySearchController {
 			ontoName = ontology+"_"+usrid;
 		}
 		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName); //ontology: carex
+		//Hashtable<String, String> termDefinitionCache = this.termDefinitionMap.get(ontoName);
 		OntologyIRI oIRI = getOntologyIRI(ontoName);
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
@@ -882,6 +900,7 @@ public class OntologySearchController {
 			result = definition(clazz, definition, onto);
 			if(!result.isEmpty()){
 				o.put("definition", result);
+				//termDefinitionCache.put(clazz.getIRI().toString(), result);
 				//System.out.println("shared synonyms: "+synonymB4(clazz));
 			}
 

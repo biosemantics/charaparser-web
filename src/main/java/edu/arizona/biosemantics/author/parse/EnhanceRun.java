@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -96,8 +97,8 @@ public class EnhanceRun {
 	private MapOntologyIds mapOntologyIds;
 	
 	//public EnhanceRun(MapOntologyIds mapOntologyIds) throws IOException, InterruptedException, ExecutionException {
-	public EnhanceRun() throws IOException, InterruptedException, ExecutionException,  OWLOntologyCreationException {
-		this.mapOntologyIds = new MapOntologyIds(Configuration.ontologyDirectory, Configuration.wordNetDirectory);
+	public EnhanceRun(HashMap<String, Hashtable<String, String>> termDefinitionCache) throws IOException, InterruptedException, ExecutionException,  OWLOntologyCreationException {
+		this.mapOntologyIds = new MapOntologyIds(Configuration.ontologyDirectory, Configuration.wordNetDirectory, termDefinitionCache);
 		/*this.filePath2KnowsPartOf = filePath2KnowsPartOf;
 		this.termReviewTermCategorization = termReviewTermCategorization;
 		this.termReviewSynonyms = termReviewSynonyms;*/

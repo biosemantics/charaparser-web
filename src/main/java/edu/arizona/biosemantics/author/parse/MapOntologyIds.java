@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -33,6 +34,7 @@ public class MapOntologyIds extends AbstractTransformer {
 	private static HashSet<String> quality = new HashSet<String>();
 	static{quality.add("carex");}
 	private HashMap<Ontology, Searcher> searchersMap;
+	private HashMap<String, Hashtable<String, String>> termDefinitionCache;
 	
 	//* run when api starts, this make all /parse requests use the same static ontology
 	/*@Autowired
@@ -51,7 +53,8 @@ public class MapOntologyIds extends AbstractTransformer {
 	 * @param wordNetDir
 	 * @throws OWLOntologyCreationException
 	 */
-	public MapOntologyIds(String ontologyDir, String wordNetDir) throws OWLOntologyCreationException {
+	public MapOntologyIds(String ontologyDir, String wordNetDir, HashMap<String, Hashtable<String, String>> termDefinitionCache) throws OWLOntologyCreationException {
+		this.termDefinitionCache = termDefinitionCache;
 		this.searchersMap = new HashMap<Ontology, Searcher>();
 		this.searchersMap.put(ontology, new FileSearcher(entity, quality, ontologyDir, wordNetDir, false));
 		//deprecated FileSearcher
@@ -80,7 +83,7 @@ public class MapOntologyIds extends AbstractTransformer {
 					for(String searchTerm: value.split("\\s*[;|]\\s*")){
 						List<OntologyEntry> entries = getCharacterEntries(searchTerm);
 						if(!entries.isEmpty())
-							ontologyIds += formulateOntologyMatchingInfo(searchTerm, entries) + " ; ";
+							ontologyIds += formulateCacheOntologyMatchingInfo(searchTerm, entries) + " ; ";
 					}
 					character.setAttribute("ontologyid", ontologyIds.replaceFirst(" ; $", "").trim());
 				
@@ -106,7 +109,7 @@ public class MapOntologyIds extends AbstractTransformer {
 			if(searchTerm != null) {
 				List<OntologyEntry> entries = getEntityEntries(searchTerm);
 				if(!entries.isEmpty()){
-					String ontologyId = formulateOntologyMatchingInfo(searchTerm, entries);
+					String ontologyId = formulateCacheOntologyMatchingInfo(searchTerm, entries);
 					biologicalEntity.setAttribute("ontologyid", ontologyId);
 				}
 			}
@@ -121,7 +124,7 @@ public class MapOntologyIds extends AbstractTransformer {
 	 * @param entries
 	 * @return
 	 */
-	private String formulateOntologyMatchingInfo(String searchTerm, List<OntologyEntry> entries) {
+	private String formulateCacheOntologyMatchingInfo(String searchTerm, List<OntologyEntry> entries) {
 		String ontologyId = "";
 		for(OntologyEntry entry : entries) {
 			if(!ontologyId.isEmpty())
@@ -140,6 +143,7 @@ public class MapOntologyIds extends AbstractTransformer {
 			}
 			ontologyId += entry.getClassIRI() + "[" + searchTerm + ":" + entry.getParentLabel() + 
 					"/" + entry.getLabel() + ":" + score + "]";
+			termDefinitionCache.get("carex").put(entry.getClassIRI(), entry.getDefinition());
 		}
 		return ontologyId;
 	}
