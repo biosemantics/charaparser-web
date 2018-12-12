@@ -170,7 +170,15 @@
       ]
     }
     ```
-
+* /getDefinition: *retrieve the defintion string of a matching class in the named ontology in /parse*
+  * HTTP GET  http://{host}/{ontology}/search?user={optional_user}&term={term}&baseIri={baseIri}
+  * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., carex.
+  * {optional_user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
+  * {term}: The term to search the definition for
+  * {baseIri}: The base iri of the ontology id for the term. The complete ontology id=base_iri#term.
+  * Example: GET http://shark.sbs.arizona.edu:8080/carex/getDefinition?baseIri=http://biosemantics.arizona.edu/ontologies/carex&term=apex (this works only after a call to /parse with an empty user and carex ontology as parameters, and term in /parse has an ontology id)
+  * Response Body: the definition as a tring
+ 
 * /class: *Creates a class in the named ontology*
   * HTTP POST http://{host}/class
   * Request body: If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). Fields elucidation and logicDefintion are optional.
@@ -243,7 +251,10 @@
      	"user":"2",
      	"ontology":"exp",
       "definition": "the summit of a root",
+      "providedBy": "hongcui",
+      "exampleSentence": "root apex rounded",
       "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex"
+      
     }
     ```
 
