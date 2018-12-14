@@ -1,6 +1,5 @@
 import java.util.HashSet;
 
-import edu.arizona.biosemantics.author.ontology.search.FileSearcher;
 import edu.arizona.biosemantics.oto.common.ontologylookup.search.OntologyLookupClient;
 import edu.arizona.biosemantics.oto.common.ontologylookup.search.search.TermSearcher;
 

@@ -31,7 +31,7 @@ public class MapOntologyIds extends AbstractTransformer {
 	//private static Ontology[] ontologies = { Ontology.po, Ontology.pato, Ontology.carex };
 	//private static Ontology ontology = Ontology.carex;
 	private static String ontoName = "carex";
-	private edu.arizona.biosemantics.author.ontology.search.FileSearcher searcher;
+	private FileSearcher searcher;
 	//private static HashSet<String> entity = new HashSet<String>();
 	//static{entity.add(ontoName);}
 	//private static HashSet<String> quality = new HashSet<String>();

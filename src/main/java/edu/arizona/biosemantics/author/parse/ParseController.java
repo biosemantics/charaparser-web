@@ -187,6 +187,9 @@ public class ParseController {
 
 
 /* test description 
+ * perigynium beak weak, 4-5 mm long; apex awnlike; stamen branching, full.
+Petals as many as sepals, sometimes absent
+ 
 
 Herbs, perennial, cespitose or not, rhizomatous, rarely stoloniferous. Culms usually trigonous, sometimes round. Leaves basal and cauline, sometimes all basal; ligules present; blades flat, V-shaped, or M-shaped in cross section, rarely filiform, involute, or rounded, commonly less than 20 mm wide, if flat then with distinct midvein. Inflorescences terminal, consisting of spikelets borne in spikes arranged in spikes, racemes, or panicles; bracts subtending spikes leaflike or scalelike; bracts subtending spikelets scalelike, very rarely leaflike. Spikelets 1-flowered; scales 0–1. Flowers unisexual; staminate flowers without scales; pistillate flowers with 1 scale with fused margins (perigynium) enclosing flower, open only at apex; perianth absent; stamens 1–3; styles deciduous or variously persistent, linear, 2–3(–4)-fid. Achenes biconvex, plano-convex, or trigonous, rarely 4-angled. x = 10.
 */
