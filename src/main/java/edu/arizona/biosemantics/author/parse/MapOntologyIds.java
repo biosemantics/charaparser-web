@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import edu.arizona.biosemantics.author.ontology.search.OntologySearchController;
 import edu.arizona.biosemantics.common.log.LogLevel;
 import edu.arizona.biosemantics.common.ontology.search.FileSearcher;
 import edu.arizona.biosemantics.common.ontology.search.Searcher;
@@ -28,12 +29,15 @@ import edu.arizona.biosemantics.semanticmarkup.enhance.transform.AbstractTransfo
 public class MapOntologyIds extends AbstractTransformer {
 
 	//private static Ontology[] ontologies = { Ontology.po, Ontology.pato, Ontology.carex };
-	private static Ontology ontology = Ontology.carex;
-	private static HashSet<String> entity = new HashSet<String>();
-	static{entity.add("carex");}
-	private static HashSet<String> quality = new HashSet<String>();
-	static{quality.add("carex");}
-	private HashMap<Ontology, Searcher> searchersMap;
+	//private static Ontology ontology = Ontology.carex;
+	private static String ontoName = "carex";
+	private edu.arizona.biosemantics.author.ontology.search.FileSearcher searcher;
+	//private static HashSet<String> entity = new HashSet<String>();
+	//static{entity.add(ontoName);}
+	//private static HashSet<String> quality = new HashSet<String>();
+	//static{quality.add(ontoName);}
+	//private HashMap<Ontology, Searcher> searchersMap;
+	//private FileSearcher searcher;
 	private HashMap<String, Hashtable<String, String>> termDefinitionCache;
 	
 	//* run when api starts, this make all /parse requests use the same static ontology
@@ -53,15 +57,20 @@ public class MapOntologyIds extends AbstractTransformer {
 	 * @param wordNetDir
 	 * @throws OWLOntologyCreationException
 	 */
-	public MapOntologyIds(String ontologyDir, String wordNetDir, HashMap<String, Hashtable<String, String>> termDefinitionCache) throws OWLOntologyCreationException {
+	/*public MapOntologyIds(String ontologyDir, String wordNetDir, HashMap<String, Hashtable<String, String>> termDefinitionCache) throws OWLOntologyCreationException {
 		this.termDefinitionCache = termDefinitionCache;
 		this.searchersMap = new HashMap<Ontology, Searcher>();
 		this.searchersMap.put(ontology, new FileSearcher(entity, quality, ontologyDir, wordNetDir, false));
 		//deprecated FileSearcher
 		//for(Ontology o : ontologies) 
 			//this.searchersMap.put(o, new FileSearcher(o, ontologyDir, wordNetDir, false));
-	}
+	}*/
 	
+	public MapOntologyIds(OntologySearchController OSC, HashMap<String, Hashtable<String, String>> termDefinitionCache) throws OWLOntologyCreationException {
+		this.termDefinitionCache = termDefinitionCache;
+		this.searcher = OSC.getSearcher(this.ontoName);
+	}
+
 	@Override
 	public void transform(Document document) {
 		mapEntities(document);
@@ -81,6 +90,7 @@ public class MapOntologyIds extends AbstractTransformer {
 					String ontologyIds = "";
 					//value may contain modifiers separated from value by ; or alternative values separated by "|"
 					for(String searchTerm: value.split("\\s*[;|]\\s*")){
+						//call OSC to search for the searchTerm
 						List<OntologyEntry> entries = getCharacterEntries(searchTerm);
 						if(!entries.isEmpty())
 							ontologyIds += formulateCacheOntologyMatchingInfo(searchTerm, entries) + " ; ";
@@ -149,19 +159,21 @@ public class MapOntologyIds extends AbstractTransformer {
 	}
 
 	private List<OntologyEntry> getEntityEntries(String searchTerm) {
-		List<OntologyEntry> ontologyEntries = new ArrayList<OntologyEntry>();
-		//Searcher searcher = this.searchersMap.get(Ontology.po);
-		//List<OntologyEntry> ontologyEntries = searcher.getEntityEntries(searchTerm, "", "");
+		return searcher.getEntityEntries(searchTerm, "", "");
 		
+		/*
+		List<OntologyEntry> ontologyEntries = new ArrayList<OntologyEntry>();
 		Searcher searcher = this.searchersMap.get(Ontology.carex);
 		ontologyEntries.addAll(searcher.getEntityEntries(searchTerm, "", ""));
 		
 		return ontologyEntries;
+		*/
 	}
 	
 	private List<OntologyEntry> getCharacterEntries(String searchTerm) {
+		return searcher.getQualityEntries(searchTerm);
 		//Searcher searcher = this.searchersMap.get(Ontology.pato);
-		Searcher searcher = this.searchersMap.get(Ontology.carex);
-		return searcher.getEntityEntries(searchTerm, "", "");
+		//Searcher searcher = this.searchersMap.get(Ontology.carex);
+		//return searcher.getEntityEntries(searchTerm, "", "");
 	}
 }

@@ -18,6 +18,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.springframework.stereotype.Component;
 
 import au.com.bytecode.opencsv.CSVReader;
+import edu.arizona.biosemantics.author.ontology.search.OntologySearchController;
 import edu.arizona.biosemantics.common.biology.TaxonGroup;
 import edu.arizona.biosemantics.common.ling.know.IGlossary;
 import edu.arizona.biosemantics.common.ling.know.SingularPluralProvider;
@@ -97,8 +98,9 @@ public class EnhanceRun {
 	private MapOntologyIds mapOntologyIds;
 	
 	//public EnhanceRun(MapOntologyIds mapOntologyIds) throws IOException, InterruptedException, ExecutionException {
-	public EnhanceRun(HashMap<String, Hashtable<String, String>> termDefinitionCache) throws IOException, InterruptedException, ExecutionException,  OWLOntologyCreationException {
-		this.mapOntologyIds = new MapOntologyIds(Configuration.ontologyDirectory, Configuration.wordNetDirectory, termDefinitionCache);
+	public EnhanceRun(OntologySearchController OSC, HashMap<String, Hashtable<String, String>> termDefinitionCache) throws IOException, InterruptedException, ExecutionException,  OWLOntologyCreationException {
+		//this.mapOntologyIds = new MapOntologyIds(Configuration.ontologyDirectory, Configuration.wordNetDirectory, termDefinitionCache);
+		this.mapOntologyIds = new MapOntologyIds(OSC, termDefinitionCache);
 		/*this.filePath2KnowsPartOf = filePath2KnowsPartOf;
 		this.termReviewTermCategorization = termReviewTermCategorization;
 		this.termReviewSynonyms = termReviewSynonyms;*/

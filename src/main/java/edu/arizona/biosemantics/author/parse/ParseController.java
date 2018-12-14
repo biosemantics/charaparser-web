@@ -51,13 +51,15 @@ public class ParseController {
 	//private EnhanceRun enhanceRun;
 	private SentenceSplitter sentenceSplitter;
 	private HashMap<String, Hashtable<String, String>> termDefinitionMap = new HashMap<String, Hashtable<String, String>>();
-
+	private OntologySearchController OSC;
 
 
 	@Autowired
-	public ParseController(MarkupCreator markupCreator, DocumentCreator documentCreator,
+	public ParseController(OntologySearchController OSC, MarkupCreator markupCreator, DocumentCreator documentCreator,
 			/*EnhanceRun enhanceRun, */DescriptionResponseCreator descriptionResponseCreator, 
 			SentenceSplitter sentenceSplitter) throws Exception {
+		this.OSC = OSC;
+		OSC.createSharedOntology(); //setup 'carex' ontology for use for all users
 		this.markupCreator = markupCreator;
 		this.documentCreator = documentCreator;
 		//this.enhanceRun = enhanceRun;
@@ -130,7 +132,7 @@ public class ParseController {
 		Document document = documentCreator.create(description);
 		XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
         System.out.println(outputter.outputString(document));
-        EnhanceRun enhanceRun = new EnhanceRun(termDefinitionMap);//create a fresh instance of enhanceRun to use updated ontology
+        EnhanceRun enhanceRun = new EnhanceRun(OSC, termDefinitionMap);//create a fresh instance of enhanceRun to use updated ontology
 		enhanceRun.run(document);
         System.out.println(outputter.outputString(document));
 		

@@ -3,7 +3,7 @@ package edu.arizona.biosemantics.author.ontology.search;
 import java.io.File;
 
 import java.io.FileOutputStream;
-import java.io.IOException;
+//import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLDocumentFormat;
+//import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -51,7 +51,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+//import com.fasterxml.jackson.annotation.JsonProperty;
 
 import edu.arizona.biosemantics.author.ontology.search.model.Class;
 import edu.arizona.biosemantics.author.ontology.search.model.Definition;
@@ -97,7 +97,7 @@ public class OntologySearchController {
 	private HashMap<String, OWLOntologyManager> owlOntologyManagerMap = new HashMap<String, OWLOntologyManager>();
 	//private HashMap<String, Hashtable<String, String>> termDefinitionMap = new HashMap<String, Hashtable<String, String>>();
 
-	private OntologySearchResultCreator ontologySearchResultCreator;
+	private OntologySearchResultCreator ontologySearchResultCreator = new OntologySearchResultCreator();
 	private String ontologyDir;
 	private String wordNetDir;
 
@@ -151,10 +151,10 @@ public class OntologySearchController {
 
 	@Autowired
 	public OntologySearchController(@Value("${ontologySearch.ontologyDir}") String ontologyDir,
-			@Value("${ontologySearch.wordNetDir}") String wordNetDir, OntologySearchResultCreator ontologySearchResultCreator){
+			@Value("${ontologySearch.wordNetDir}") String wordNetDir/*, OntologySearchResultCreator ontologySearchResultCreator*/){
 		this.ontologyDir = ontologyDir;
 		this.wordNetDir = wordNetDir;
-		this.ontologySearchResultCreator = ontologySearchResultCreator;
+		//this.ontologySearchResultCreator = ontologySearchResultCreator;
 	}
 
 	@PostMapping(value = "/createUserOntology", consumes = { MediaType.APPLICATION_JSON_VALUE}, produces = { MediaType.APPLICATION_JSON_VALUE })
@@ -165,13 +165,13 @@ public class OntologySearchController {
 		qualityOntologies = new ArrayList<OntologyIRI>();
 		String userId = userOntology.getUserId();
 		if(userId == null || userId.isEmpty()){
-			return createSharedOntology(ontologySearchResultCreator);
+			return createSharedOntology(/*ontologySearchResultCreator*/);
 		}else{
-			return createInvidualOntology(userId, userOntology.getUserOntologies(), ontologySearchResultCreator);
+			return createInvidualOntology(userId, userOntology.getUserOntologies()/*, ontologySearchResultCreator*/);
 		}
 	}
 
-	private boolean createSharedOntology(OntologySearchResultCreator ontologySearchResultCreator) throws OWLOntologyCreationException {
+	public boolean createSharedOntology(/*OntologySearchResultCreator ontologySearchResultCreator*/) throws OWLOntologyCreationException {
 		//this.ontologySearchResultCreator = ontologySearchResultCreator;
 
 		/*OntologyIRI CAREX = new OntologyIRI(new File(ontologyDir, "carex.owl").getAbsolutePath(), 
@@ -206,7 +206,7 @@ public class OntologySearchController {
 		return true;
 	}
 
-	private boolean createInvidualOntology(String userId, ArrayList<String> userOntologies, OntologySearchResultCreator ontologySearchResultCreator) 
+	private boolean createInvidualOntology(String userId, ArrayList<String> userOntologies/*, OntologySearchResultCreator ontologySearchResultCreator*/) 
 			throws OWLOntologyCreationException{
 
 
@@ -400,7 +400,7 @@ public class OntologySearchController {
 		searcher.updateSearcher(oIRI);
 
 		//save ontology
-		saveOntology(ontoName, oIRI);
+		//saveOntology(ontoName, oIRI);
 		
 		return c;
 	}
@@ -438,7 +438,7 @@ public class OntologySearchController {
 		searcher.updateSearcher(oIRI);
 
 		//save ontology
-		saveOntology(ontoName, oIRI);
+		//saveOntology(ontoName, oIRI);
 		
 		return c;
 	}
@@ -476,7 +476,7 @@ public class OntologySearchController {
 		//searcher.updateSearcher(oIRI);
 
 		//save ontology
-		saveOntology(ontoName, oIRI);
+		//saveOntology(ontoName, oIRI);
 		
 		return c;
 	}
@@ -635,7 +635,7 @@ public class OntologySearchController {
 		////System.outprintln("/class ####################refreshed searcher="+searcher);
 		
 		//save ontology
-		saveOntology(ontoName, oIRI);
+		//saveOntology(ontoName, oIRI);
 
 		return subclass.getIRI().getIRIString();
 	}
@@ -672,7 +672,7 @@ public class OntologySearchController {
 		searcher.updateSearcher(oIRI);
 
 		//save ontology
-		saveOntology(ontoName, oIRI);
+		//saveOntology(ontoName, oIRI);
 		
 		return c;
 	}
@@ -707,7 +707,7 @@ public class OntologySearchController {
 		FileSearcher searcher = this.searchersMap.get(ontoName);
 		searcher.updateSearcher(oIRI);
 		//save ontology
-		saveOntology(ontoName, oIRI);
+		//saveOntology(ontoName, oIRI);
 		
 		return c;
 	}
@@ -1033,7 +1033,10 @@ public class OntologySearchController {
 		int i = iri.lastIndexOf("#") >0? iri.lastIndexOf("#") : iri.lastIndexOf("/");
 		return iri.substring(i+1);
 	}
-
+	
+	public FileSearcher getSearcher(String ontoName){
+		return this.searchersMap.get(ontoName);
+	}
 
 
 	/*
