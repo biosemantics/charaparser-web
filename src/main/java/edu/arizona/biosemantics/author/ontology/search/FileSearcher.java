@@ -1,4 +1,4 @@
-package edu.arizona.biosemantics.author.ontology.search;
+/*package edu.arizona.biosemantics.author.ontology.search;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -67,10 +67,6 @@ public class FileSearcher {
 					}
 				}
 				
-				/*
-				for(Entity entity : entityProposals.get(0).getProposals()) {
-					result.add(new OntologyEntry(null, entity.getClassIRI(), Type.ENTITY, entity.getConfidenceScore(),entity.getLabel(), entity.getPLabel()));
-				}*/
 			}
 		} catch(Throwable t) {
 			t.printStackTrace();
@@ -121,4 +117,4 @@ public class FileSearcher {
 	OntologyLookupClient getOntoLookupClient(){
 		return this.ontologyLookupClient;
 	}
-}
+}*/

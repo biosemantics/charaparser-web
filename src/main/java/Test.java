@@ -20,7 +20,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
-import edu.arizona.biosemantics.author.ontology.search.FileSearcher;
+import edu.arizona.biosemantics.common.ontology.search.FileSearcher;
 import edu.arizona.biosemantics.author.ontology.search.model.OntologyIRI;
 import edu.arizona.biosemantics.author.ontology.search.model.Synonym;
 import edu.arizona.biosemantics.common.ontology.search.OntologyAccess;
@@ -78,7 +78,7 @@ public class Test {
 
 		//set up ontology search environment
 		FileSearcher searcher = new FileSearcher(entityOntologyNames, new HashSet<String>(), 
-				ontoDir, wordNetDir);
+				ontoDir, wordNetDir, false);
 		OWLOntologyManager owlOntologyManager = searcher.getOwlOntologyManager();
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(o.getIri()));
 		Set<OWLOntology> ontologies = new HashSet<OWLOntology>();

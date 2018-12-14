@@ -52,7 +52,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 //import com.fasterxml.jackson.annotation.JsonProperty;
-
+import edu.arizona.biosemantics.common.ontology.search.FileSearcher;
 import edu.arizona.biosemantics.author.ontology.search.model.Class;
 import edu.arizona.biosemantics.author.ontology.search.model.Definition;
 import edu.arizona.biosemantics.author.ontology.search.model.UserOntology;
@@ -255,7 +255,7 @@ public class OntologySearchController {
 			entityOntologyNames.add(o.getName());
 
 			FileSearcher searcher = new FileSearcher(entityOntologyNames, qualityOntologyNames,
-					ontologyDir, wordNetDir);
+					ontologyDir, wordNetDir, false);
 
 			LOGGER.info("created searcher for shared e-q ontology:" + entityOntologyNames);
 			OWLOntologyManager owlOntologyManager = searcher.getOwlOntologyManager();
@@ -279,7 +279,7 @@ public class OntologySearchController {
 			entityOntologyNames.add(o.getName());
 
 			FileSearcher searcher = new FileSearcher(entityOntologyNames, new HashSet<String>(), 
-					ontologyDir, wordNetDir);
+					ontologyDir, wordNetDir, false);
 
 			LOGGER.info("created searcher for " + entityOntologyNames);
 			OWLOntologyManager owlOntologyManager = searcher.getOwlOntologyManager();
@@ -301,7 +301,7 @@ public class OntologySearchController {
 			HashSet<String> qualityOntologyNames = new HashSet<String>();
 			qualityOntologyNames.add(o.getName());
 			FileSearcher searcher = new FileSearcher(new HashSet<String>(), qualityOntologyNames, 
-					ontologyDir, wordNetDir);
+					ontologyDir, wordNetDir, false);
 			OWLOntologyManager owlOntologyManager = searcher.getOwlOntologyManager();
 			OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(o.getIri()));
 			Set<OWLOntology> ontologies = new HashSet<OWLOntology>();
@@ -397,7 +397,7 @@ public class OntologySearchController {
 		
 		//refresh ontology search environment after the addition
 		FileSearcher searcher = this.searchersMap.get(ontoName);
-		searcher.updateSearcher(oIRI);
+		searcher.updateSearcher(IRI.create(oIRI.getIri()));
 
 		//save ontology
 		//saveOntology(ontoName, oIRI);
@@ -435,8 +435,7 @@ public class OntologySearchController {
 		
 		//refresh ontology search environment after the addition
 		FileSearcher searcher = this.searchersMap.get(ontoName);
-		searcher.updateSearcher(oIRI);
-
+		searcher.updateSearcher(IRI.create(oIRI.getIri()));
 		//save ontology
 		//saveOntology(ontoName, oIRI);
 		
@@ -631,7 +630,7 @@ public class OntologySearchController {
 
 		//refresh ontology search environment after the addition
 		FileSearcher searcher = this.searchersMap.get(ontoName);
-		searcher.updateSearcher(oIRI);
+		searcher.updateSearcher(IRI.create(oIRI.getIri()));
 		////System.outprintln("/class ####################refreshed searcher="+searcher);
 		
 		//save ontology
@@ -669,7 +668,7 @@ public class OntologySearchController {
 		
 		//refresh ontology search environment after the addition
 		FileSearcher searcher = this.searchersMap.get(ontoName);
-		searcher.updateSearcher(oIRI);
+		searcher.updateSearcher(IRI.create(oIRI.getIri()));
 
 		//save ontology
 		//saveOntology(ontoName, oIRI);
@@ -705,7 +704,7 @@ public class OntologySearchController {
 		ChangeApplied c = owlOntologyManager.addAxiom(owlOntology, partOfAxiom);
 		//refresh ontology search environment after the addition
 		FileSearcher searcher = this.searchersMap.get(ontoName);
-		searcher.updateSearcher(oIRI);
+		searcher.updateSearcher(IRI.create(oIRI.getIri()));
 		//save ontology
 		//saveOntology(ontoName, oIRI);
 		
