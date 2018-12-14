@@ -25,7 +25,7 @@ import edu.arizona.biosemantics.semanticmarkup.enhance.transform.AbstractTransfo
 
 /*test description: perigynium beak weak, 4-5 mm; apex awnlike; stamen branching, full.*/
 //http://shark.sbs.arizona.edu:8080/parse?description=perigynium beak weak, 4-5 mm long; apex awnlike; stamen branching, full.
-//@Component
+@Component
 public class MapOntologyIds extends AbstractTransformer {
 
 	//private static Ontology[] ontologies = { Ontology.po, Ontology.pato, Ontology.carex };
@@ -38,7 +38,7 @@ public class MapOntologyIds extends AbstractTransformer {
 	//static{quality.add(ontoName);}
 	//private HashMap<Ontology, Searcher> searchersMap;
 	//private FileSearcher searcher;
-	private HashMap<String, Hashtable<String, String>> termDefinitionCache;
+	static HashMap<String, Hashtable<String, String>> termDefinitionCache = new HashMap<String, Hashtable<String, String>>();
 	
 	//* run when api starts, this make all /parse requests use the same static ontology
 	/*@Autowired
@@ -66,9 +66,17 @@ public class MapOntologyIds extends AbstractTransformer {
 			//this.searchersMap.put(o, new FileSearcher(o, ontologyDir, wordNetDir, false));
 	}*/
 	
-	public MapOntologyIds(OntologySearchController OSC, HashMap<String, Hashtable<String, String>> termDefinitionCache) throws OWLOntologyCreationException {
-		this.termDefinitionCache = termDefinitionCache;
-		this.searcher = OSC.getSearcher(this.ontoName);
+	/**
+	 * share the ontology and search function of OSC
+	 * @param OSC
+	 * @param termDefinitionCache
+	 * @throws OWLOntologyCreationException
+	 */
+	@Autowired
+	public MapOntologyIds(OntologySearchController OSC) throws OWLOntologyCreationException {
+		OSC.createSharedOntology(); //setup 'carex' ontology for use for all users
+		this.searcher = OSC.getSearcher(MapOntologyIds.ontoName);
+		MapOntologyIds.termDefinitionCache.put("carex", new Hashtable<String,String>());
 	}
 
 	@Override

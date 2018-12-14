@@ -71,7 +71,7 @@ import edu.arizona.biosemantics.semanticmarkup.enhance.transform.old.MoveCharact
 import edu.arizona.biosemantics.semanticmarkup.enhance.transform.old.StandardizeStructureNameBySyntax;
 import edu.arizona.biosemantics.semanticmarkup.enhance.transform.old.StandardizeTerminology;
 
-//@Component
+@Component
 public class EnhanceRun {
 
 	private String negWords = "no|not|never";
@@ -98,9 +98,10 @@ public class EnhanceRun {
 	private MapOntologyIds mapOntologyIds;
 	
 	//public EnhanceRun(MapOntologyIds mapOntologyIds) throws IOException, InterruptedException, ExecutionException {
-	public EnhanceRun(OntologySearchController OSC, HashMap<String, Hashtable<String, String>> termDefinitionCache) throws IOException, InterruptedException, ExecutionException,  OWLOntologyCreationException {
+	public EnhanceRun(MapOntologyIds mapOntologyIds) throws IOException, InterruptedException, ExecutionException,  OWLOntologyCreationException {
 		//this.mapOntologyIds = new MapOntologyIds(Configuration.ontologyDirectory, Configuration.wordNetDirectory, termDefinitionCache);
-		this.mapOntologyIds = new MapOntologyIds(OSC, termDefinitionCache);
+		//this.mapOntologyIds = new MapOntologyIds(OSC);
+		this.mapOntologyIds = mapOntologyIds;
 		/*this.filePath2KnowsPartOf = filePath2KnowsPartOf;
 		this.termReviewTermCategorization = termReviewTermCategorization;
 		this.termReviewSynonyms = termReviewSynonyms;*/

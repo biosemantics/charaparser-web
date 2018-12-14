@@ -48,21 +48,20 @@ public class ParseController {
 	private MarkupCreator markupCreator;
 	private DescriptionResponseCreator descriptionResponseCreator;
 	private DocumentCreator documentCreator;
-	//private EnhanceRun enhanceRun;
+	private EnhanceRun enhanceRun;
 	private SentenceSplitter sentenceSplitter;
-	private HashMap<String, Hashtable<String, String>> termDefinitionMap = new HashMap<String, Hashtable<String, String>>();
-	private OntologySearchController OSC;
+	//private HashMap<String, Hashtable<String, String>> termDefinitionMap = new HashMap<String, Hashtable<String, String>>();
+	//private OntologySearchController OSC;
 
 
 	@Autowired
-	public ParseController(OntologySearchController OSC, MarkupCreator markupCreator, DocumentCreator documentCreator,
-			/*EnhanceRun enhanceRun, */DescriptionResponseCreator descriptionResponseCreator, 
+	public ParseController(MarkupCreator markupCreator, DocumentCreator documentCreator,
+			EnhanceRun enhanceRun, DescriptionResponseCreator descriptionResponseCreator, 
 			SentenceSplitter sentenceSplitter) throws Exception {
-		this.OSC = OSC;
-		OSC.createSharedOntology(); //setup 'carex' ontology for use for all users
 		this.markupCreator = markupCreator;
 		this.documentCreator = documentCreator;
-		//this.enhanceRun = enhanceRun;
+		//this.enhanceRun = new EnhanceRun(OSC);
+		this.enhanceRun = enhanceRun;
 		this.descriptionResponseCreator = descriptionResponseCreator;
 		this.sentenceSplitter = sentenceSplitter;
 		
@@ -71,7 +70,7 @@ public class ParseController {
 	/*test description: perigynium beak weak, 4-5 mm; apex awnlike; stamen branching, full.*/
 	@GetMapping(value = "/parse", produces = { MediaType.APPLICATION_JSON_VALUE })
 	public Description parse(@RequestParam Optional<String> sentence, @RequestParam Optional<String> description) throws Exception {
-		this.termDefinitionMap.put("carex", new Hashtable<String,String>());
+		
 		
 		List<ChunkCollector> chunkCollectors = new ArrayList<ChunkCollector>();
 		edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.Description descriptionObject = 
@@ -121,7 +120,7 @@ public class ParseController {
 			usrid = user.get();
 			ontoName = ontology+"_"+usrid;
 		}
-		return this.termDefinitionMap.get(ontoName).get(baseIri+"#"+term);
+		return MapOntologyIds.termDefinitionCache.get(ontoName).get(baseIri+"#"+term);
 	}
 	
 	private Description createDescription(List<ChunkCollector> chunkCollectors, edu.arizona.biosemantics.semanticmarkup.markupelement.description.model.Description description) throws IOException, InterruptedException, ExecutionException,  OWLOntologyCreationException {
@@ -132,7 +131,7 @@ public class ParseController {
 		Document document = documentCreator.create(description);
 		XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
         System.out.println(outputter.outputString(document));
-        EnhanceRun enhanceRun = new EnhanceRun(OSC, termDefinitionMap);//create a fresh instance of enhanceRun to use updated ontology
+        //EnhanceRun enhanceRun = new EnhanceRun(OSC);//create a fresh instance of enhanceRun to use updated ontology
 		enhanceRun.run(document);
         System.out.println(outputter.outputString(document));
 		
