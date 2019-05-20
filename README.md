@@ -170,7 +170,7 @@
       ]
     }
     ```
-* /getDefinition: *retrieve the defintion string of a matching class in the named ontology in /parse*
+* /getDefinition: *retrieve the defintion string of a matching class in the named ontology in /parse* [NOT AVAILABLE AT THIS TIME]
   * HTTP GET  http://{host}/{ontology}/search?user={optional_user}&term={term}&baseIri={baseIri}
   * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., carex.
   * {optional_user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
@@ -178,6 +178,7 @@
   * {baseIri}: The base iri of the ontology id for the term. The complete ontology id=base_iri#term.
   * Example: GET http://shark.sbs.arizona.edu:8080/carex/getDefinition?baseIri=http://biosemantics.arizona.edu/ontologies/carex&term=apex (this works only after a call to /parse with an empty user and carex ontology as parameters, and term in /parse has an ontology id)
   * Response Body: the definition as a tring
+  
  
 * /class: *Creates a class in the named ontology*
   * HTTP POST http://{host}/class
@@ -307,6 +308,46 @@
 	     "ontology":"exp",
     }
     ```
+    
+    
+* /{ontology}/getSubclasses: *Obtain the subclasses of the term as a JSON object*
+  * HTTP  http://{host}/{ontology}/getSubclasses?user={optional_user}&baseIri={baseIri}&term={term}
+  * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., carex.
+  * {optional_user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
+  * {term}: The term for which to find its subclasses
+  * {baseIri}: The base iri of the ontology id for the term. The complete ontology id of the term =base_iri#term.
+  * Example: GET http://shark.sbs.arizona.edu:8080/carex/getSubclasses?baseIri=http://biosemantics.arizona.edu/ontologies/carex&term=coloration 
+  * Response body:
+  ```json
+  {
+    "data": {
+        "details": [
+            {
+                "IRI": "http://biosemantics.arizona.edu/ontologies/carex#coloration"
+            }
+        ]
+    },
+    "children": [
+        {
+            "data": {
+                "details": [
+                    {
+                        "IRI": "http://biosemantics.arizona.edu/ontologies/carex#reddish"
+                    }
+                ]
+            },
+            "children": [
+                {
+                    "data": {
+                        "details": [
+                            {
+                                "IRI": "http://biosemantics.arizona.edu/ontologies/carex#dotted-reddish"
+                            }
+                        ]
+                    },
+                    "text": "dotted reddish"
+                },
+  ```
 
 *  /{ontology}/getTree: *Obtain the entire ontology as a JSON object*
   * HTTP GET http://{host}/{ontology}/getTree?user={optional_user}
