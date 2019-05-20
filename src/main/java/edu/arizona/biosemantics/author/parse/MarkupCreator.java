@@ -74,9 +74,9 @@ public class MarkupCreator {
 		this.normalizer = injector.getInstance(INormalizer.class);
 		this.parentTagProvider = injector.getInstance(Key.get(ParentTagProvider.class, Names.named("ParentTagProvider")));
 		IGlossary glossary = injector.getInstance(IGlossary.class);
-		OTOClient otoClient = injector.getInstance(OTOClient.class);
+		//OTOClient otoClient = injector.getInstance(OTOClient.class);
 
-		GlossaryDownload glossaryDownload = this.getGlossaryDownload(glossary, otoClient, TaxonGroup.PLANT);
+		GlossaryDownload glossaryDownload = this.getGlossaryDownload(glossary, /*otoClient,*/ TaxonGroup.PLANT);
 		this.initGlossary(glossaryDownload, new Collection(), glossary, inflector);
 		ITerminologyLearner terminologyLearner= injector.getInstance(ITerminologyLearner.class);
 		terminologyLearner.readResults(new ArrayList<AbstractDescriptionsFile>());
@@ -119,33 +119,34 @@ public class MarkupCreator {
 				posTagger, parser, chunkerChain, prevMissingOrgan, sentencesLatch);
 	}
 
-	private GlossaryDownload getGlossaryDownload(IGlossary glossary, OTOClient otoClient, TaxonGroup taxonGroup)
+	private GlossaryDownload getGlossaryDownload(IGlossary glossary, /*OTOClient otoClient,*/ TaxonGroup taxonGroup)
 			throws TransformationException {
 
 		GlossaryDownload glossaryDownload = new GlossaryDownload();
+		//remove dependency on OTO, use local version
 		String glossaryVersion = "latest";
-		boolean downloadSuccessful = false;
+		/*boolean downloadSuccessful = false;
 		otoClient.open();
 		Future<GlossaryDownload> futureGlossaryDownload = otoClient.getGlossaryDownload(taxonGroup.getDisplayName(),
-				glossaryVersion);
+				glossaryVersion);*/
 
 		try {
-			glossaryDownload = futureGlossaryDownload.get();
+			/*glossaryDownload = futureGlossaryDownload.get();
 
 			downloadSuccessful = glossaryDownload != null
 					&& !glossaryDownload.getVersion().equals("Requested version not available")
 					&& !glossaryDownload.getVersion().equals("No Glossary Available")
 					&& !glossaryDownload.getVersion().contains("available")
 					&& !glossaryDownload.getVersion().contains("Available");
-			if (!downloadSuccessful)
+			if (!downloadSuccessful)*/
 				glossaryDownload = getLocalGlossaryDownload(taxonGroup);
 		} catch (Exception e) {
-			otoClient.close();
+			//otoClient.close();
 			logger.error("Couldn't download glossary " + taxonGroup.getDisplayName() + " version: " + glossaryVersion,
 					e);
 			throw new TransformationException();
 		}
-		otoClient.close();
+		//otoClient.close();
 		return glossaryDownload;
 
 	}

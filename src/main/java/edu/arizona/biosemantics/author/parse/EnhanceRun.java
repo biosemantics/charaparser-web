@@ -1,8 +1,10 @@
 package edu.arizona.biosemantics.author.parse;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -98,7 +100,7 @@ public class EnhanceRun {
 	private MapOntologyIds mapOntologyIds;
 	
 	//public EnhanceRun(MapOntologyIds mapOntologyIds) throws IOException, InterruptedException, ExecutionException {
-	public EnhanceRun(MapOntologyIds mapOntologyIds) throws IOException, InterruptedException, ExecutionException,  OWLOntologyCreationException {
+	public EnhanceRun(MapOntologyIds mapOntologyIds) throws IOException, ClassNotFoundException, InterruptedException, ExecutionException,  OWLOntologyCreationException {
 		//this.mapOntologyIds = new MapOntologyIds(Configuration.ontologyDirectory, Configuration.wordNetDirectory, termDefinitionCache);
 		//this.mapOntologyIds = new MapOntologyIds(OSC);
 		this.mapOntologyIds = mapOntologyIds;
@@ -205,7 +207,7 @@ public class EnhanceRun {
 		return set;
 	}
 
-	private void initGlossary(IGlossary glossary, IInflector inflector, TaxonGroup taxonGroup/*, String termReviewTermCategorization, String termReviewSynonyms*/) throws IOException, InterruptedException, ExecutionException {
+	private void initGlossary(IGlossary glossary, IInflector inflector, TaxonGroup taxonGroup/*, String termReviewTermCategorization, String termReviewSynonyms*/) throws IOException, ClassNotFoundException, InterruptedException, ExecutionException {
 		addPermanentGlossary(glossary, inflector, taxonGroup);
 		//addTermReviewGlossary(glossary, inflector, termReviewTermCategorization, termReviewSynonyms);
 	}
@@ -286,7 +288,9 @@ public class EnhanceRun {
 		}
 	}
 
-	private void addPermanentGlossary(IGlossary glossary, IInflector inflector, TaxonGroup taxonGroup) throws InterruptedException, ExecutionException {
+	private void addPermanentGlossary(IGlossary glossary, IInflector inflector, TaxonGroup taxonGroup) throws InterruptedException, IOException, ClassNotFoundException, ExecutionException {
+		/*remove the dependency on OTO, use local glossary*/
+		/*
 		OTOClient otoClient = new OTOClient("http://biosemantics.arizona.edu:8080/OTO");
 		GlossaryDownload glossaryDownload = new GlossaryDownload();		
 		String glossaryVersion = "latest";
@@ -294,6 +298,13 @@ public class EnhanceRun {
 		Future<GlossaryDownload> futureGlossaryDownload = otoClient.getGlossaryDownload(taxonGroup.getDisplayName(), glossaryVersion);
 		glossaryDownload = futureGlossaryDownload.get();
 		otoClient.close();
+		*/
+		
+		//TODO: remove the dependencies on OTO, replace otoClient with package edu.arizona.biosemantics.author.parse.MarkupCreator.java private GlossaryDownload getLocalGlossaryDownload(TaxonGroup taxonGroup)
+		ObjectInputStream objectIn = new ObjectInputStream(new FileInputStream(Configuration.glossariesDownloadDirectory
+				+ File.separator + "GlossaryDownload." + taxonGroup.getDisplayName() + ".ser"));
+		GlossaryDownload glossaryDownload = (GlossaryDownload) objectIn.readObject();
+		objectIn.close();
 				
 		//add the syn set of the glossary
 		HashSet<Term> gsyns = new HashSet<Term>();

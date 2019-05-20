@@ -74,7 +74,9 @@ public class MapOntologyIds extends AbstractTransformer {
 	 */
 	@Autowired
 	public MapOntologyIds(OntologySearchController OSC) throws OWLOntologyCreationException {
-		OSC.createSharedOntology(); //setup 'carex' ontology for use for all users
+		ArrayList<String> ontos = new ArrayList<String>();
+		ontos.add("carex");
+		OSC.createSharedOntology(ontos); //setup 'carex' ontology for use for all users
 		this.searcher = OSC.getSearcher(MapOntologyIds.ontoName);
 		MapOntologyIds.termDefinitionCache.put("carex", new Hashtable<String,String>());
 	}

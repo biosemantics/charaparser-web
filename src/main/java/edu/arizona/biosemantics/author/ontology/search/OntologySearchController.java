@@ -165,13 +165,13 @@ public class OntologySearchController {
 		qualityOntologies = new ArrayList<OntologyIRI>();
 		String userId = userOntology.getUserId();
 		if(userId == null || userId.isEmpty()){
-			return createSharedOntology(/*ontologySearchResultCreator*/);
+			return createSharedOntology(userOntology.getUserOntologies()/*ontologySearchResultCreator*/);
 		}else{
 			return createInvidualOntology(userId, userOntology.getUserOntologies()/*, ontologySearchResultCreator*/);
 		}
 	}
 
-	public boolean createSharedOntology(/*OntologySearchResultCreator ontologySearchResultCreator*/) throws OWLOntologyCreationException {
+	public boolean createSharedOntology(ArrayList<String> ontos/*OntologySearchResultCreator ontologySearchResultCreator*/) throws OWLOntologyCreationException {
 		//this.ontologySearchResultCreator = ontologySearchResultCreator;
 
 		/*OntologyIRI CAREX = new OntologyIRI(new File(ontologyDir, "carex.owl").getAbsolutePath(), 
@@ -188,7 +188,8 @@ public class OntologySearchController {
 		setUpWorkbench(entityOntologies, qualityOntologies);*/
 		//copy base ontologies to user ontologies
 
-		String onto = "carex"; //both entity and quality
+		//String onto = "carex"; //both entity and quality
+		for(String onto: ontos){
 
 		File ontoD = new File(ontologyDir, onto+".owl");
 
@@ -202,6 +203,7 @@ public class OntologySearchController {
 		if(! this.allLiveQualityOntologies.contains(EXP)) this.allLiveQualityOntologies.add(EXP);
 
 		setUpWorkbench(entityOntologies, qualityOntologies);
+		}
 
 		return true;
 	}
@@ -833,7 +835,44 @@ public class OntologySearchController {
 		return this.termDefinitionMap.get(ontoName).get(baseIri+"#"+term);
 	}*/
 	
+	
+	/**
+	 * Obtain the subclasses of the termIri as a JSON object
+	 * 
+	 */
+	@GetMapping(value = "/{ontology}/getSubclasses", produces = { MediaType.APPLICATION_JSON_VALUE })
+	public String getSubclassesInJSON(@PathVariable String ontology, @RequestParam Optional<String> user, 
+			@RequestParam String baseIri, @RequestParam String term){
+		String usrid = "";
+		String ontoName = ontology;
+		if(user.isPresent()){
+			usrid = user.get();
+			ontoName = ontology+"_"+usrid;
+		}
+		
+		OntologyIRI oIRI = getOntologyIRI(ontoName);
+		
 
+		//use the selected ontology		
+		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName);//this.owlOntologyManagerMap.get(oIRI);
+		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
+		JFactFactory reasonerFactory = new JFactFactory();
+		OWLReasoner reasoner = reasonerFactory.createNonBufferingReasoner(owlOntology);
+		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
+		OWLClass clazz = owlDataFactory.getOWLClass(IRI.create(baseIri+"#"+term)); //must use # in the ontology
+		
+		JSONObject object = new JSONObject();
+		
+		OWLAnnotationProperty definition = owlDataFactory.getOWLAnnotationProperty(IRI.create(definitions));
+		OWLAnnotationProperty elucidation = owlDataFactory.getOWLAnnotationProperty(IRI.create(elucidations));
+		
+		writeSimplifiedJSONObject(reasoner, owlDataFactory, clazz, object, owlOntologyManager, owlOntology, definition, elucidation);
+
+		return object.toJSONString(); 
+	}
+	
+	
+	//Obtain the entire ontology as a JSON object
 	@GetMapping(value = "/{ontology}/getTree", produces = { MediaType.APPLICATION_JSON_VALUE })
 	public String getClassHierarchyInJSON(@PathVariable String ontology, @RequestParam Optional<String> user) throws Exception {
 		String usrid = "";
@@ -862,6 +901,53 @@ public class OntologySearchController {
 		writeJSONObject(reasoner, owlDataFactory, root, object, owlOntologyManager, owlOntology, synonymE, synonymB, synonymNR, definition, elucidation);
 
 		return object.toJSONString(); 
+	}
+	
+	private JSONObject writeSimplifiedJSONObject(OWLReasoner reasoner, OWLDataFactory owlDataFactory, OWLClass clazz, JSONObject object, OWLOntologyManager manager, OWLOntology onto, OWLAnnotationProperty definition, OWLAnnotationProperty elucidation) {
+		if(reasoner.isSatisfiable(clazz)){
+			//print this  class
+			object.put("text", labelFor(clazz, onto, owlDataFactory));
+			//System.out.println("text: "+ labelFor(clazz));
+
+			JSONObject data = new JSONObject();
+			//details holds: class IRI, synonyms
+			JSONArray details = new JSONArray();
+			JSONObject o = new JSONObject();
+
+			o.put("IRI", clazz.getIRI().getIRIString());
+			
+			String result = definition(clazz, definition, onto);
+			if(!result.isEmpty()){
+				o.put("definition", result);
+				//termDefinitionCache.put(clazz.getIRI().toString(), result);
+				//System.out.println("shared synonyms: "+synonymB4(clazz));
+			}
+
+			result = elucidation(clazz, elucidation, onto);
+			if(!result.isEmpty()){
+				o.put("elucidation", result);
+				//System.out.println("shared synonyms: "+synonymB4(clazz));
+			}
+
+			details.add(o);
+			data.put("details", details);
+			object.put("data", data);
+
+
+			//subclasses for the children field
+			Set <OWLClass> subClzz = reasoner.getSubClasses(clazz, true).entities().collect(Collectors.toSet());
+			if(!isEmpty(subClzz, manager)){
+				JSONArray children = new JSONArray();
+				Iterator<OWLClass> it = subClzz.iterator();
+				while(it.hasNext()){
+					OWLClass c = it.next();
+					if(!c.equals(clazz))
+						children.add(/*i++,*/ writeSimplifiedJSONObject(reasoner, owlDataFactory, c, new JSONObject(), manager, onto, definition, elucidation));
+				}
+				object.put("children", children);
+			}
+		}
+		return object;
 	}
 
 	private JSONObject writeJSONObject(OWLReasoner reasoner, OWLDataFactory owlDataFactory, OWLClass clazz, JSONObject object, OWLOntologyManager manager, OWLOntology onto, OWLAnnotationProperty synonymE, OWLAnnotationProperty synonymB, OWLAnnotationProperty synonymNR, OWLAnnotationProperty definition, OWLAnnotationProperty elucidation) {
