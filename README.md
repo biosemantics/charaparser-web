@@ -170,7 +170,7 @@
       ]
     }
     ```
-* /getDefinition: *retrieve the defintion string of a matching class in the named ontology in /parse* [NOT AVAILABLE AT THIS TIME]
+* /getDefinition: *retrieve the defintion string of a matching class in the named ontology in /parse* 
   * HTTP GET  http://{host}/{ontology}/search?user={optional_user}&term={term}&baseIri={baseIri}
   * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., carex.
   * {optional_user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
