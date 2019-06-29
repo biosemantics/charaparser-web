@@ -75,7 +75,7 @@
   * {optional_parent}: The optional parent the {term} is required to have
   * {optional_relation}: The optional relation the {term} is required to have
   * Example: GET http://shark.sbs.arizona.edu:8080/carex/search?term=quaternary%20leaf%20vein (this works only after a call to /createUserOntology with an empty user and carex ontology as parameters)
-  * Response body:
+  * Response body: returns classes related to the term in someway, such as a synonym, or other relationships.  
     ```json
     {
       "entries": [
