@@ -255,7 +255,25 @@
       "providedBy": "hongcui",
       "exampleSentence": "root apex rounded",
       "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex"
-      
+    }
+    ```
+
+  * Response Body:
+    ```json
+    SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
+    ```
+
+* /comment: *add a rdfs:comment property to the class in the named ontology*
+  * HTTP POST http://{host}/comment
+  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).
+    ```json
+    {
+     	"user":"2",
+     	"ontology":"exp",
+      "comment": "not sure this term covers my example",
+      "providedBy": "hongcui",
+      "exampleSentence": "root ends rounded",
+      "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex"
     }
     ```
 
