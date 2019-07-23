@@ -68,14 +68,17 @@
   ```
   
 * /{ontology}/search: *Searches an ontology for a term*
-  * HTTP GET http://{host}/{ontology}/search?user={optional_user}&term={term}&parent={optional_parent}&relation={optional_relation}
+  * HTTP GET http://{host}/{ontology}/search?user={optional_user}&term={term}&ancestorIRI={ancestorIRI}&parent={optional_parent}&relation={optional_relation}
   * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., exp.
-  * {user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
+  * {optional_user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
   * {term}: The term to search for
+  * {optional_ancestorIRI}: The ancestor the search term must have. Use %23 for # in the IRI.
   * {optional_parent}: The optional parent the {term} is required to have
   * {optional_relation}: The optional relation the {term} is required to have
-  * Example: GET http://shark.sbs.arizona.edu:8080/carex/search?term=quaternary%20leaf%20vein (this works only after a call to /createUserOntology with an empty user and carex ontology as parameters)
-  * Response body:
+  * Example: 
+  GET http://shark.sbs.arizona.edu:8080/carex/search?term=reddish&ancestorIRI=http://biosemantics.arizona.edu/ontologies/carex%23colored
+  GET http://shark.sbs.arizona.edu:8080/carex/search?term=quaternary%20leaf%20vein (this works only after a call to /createUserOntology with an empty user and carex ontology as parameters)
+  * Response body: returns classes related to the term in someway, such as a synonym, or other relationships.  
     ```json
     {
       "entries": [
@@ -170,7 +173,7 @@
       ]
     }
     ```
-* /getDefinition: *retrieve the defintion string of a matching class in the named ontology in /parse* [NOT AVAILABLE AT THIS TIME]
+* /getDefinition: *retrieve the defintion string of a matching class in the named ontology in /parse* 
   * HTTP GET  http://{host}/{ontology}/search?user={optional_user}&term={term}&baseIri={baseIri}
   * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., carex.
   * {optional_user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
@@ -255,7 +258,25 @@
       "providedBy": "hongcui",
       "exampleSentence": "root apex rounded",
       "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex"
-      
+    }
+    ```
+
+  * Response Body:
+    ```json
+    SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
+    ```
+
+* /comment: *add a rdfs:comment property to the class in the named ontology*
+  * HTTP POST http://{host}/comment
+  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).
+    ```json
+    {
+     	"user":"2",
+     	"ontology":"exp",
+      "comment": "not sure this term covers my example",
+      "providedBy": "hongcui",
+      "exampleSentence": "root ends rounded",
+      "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex"
     }
     ```
 
