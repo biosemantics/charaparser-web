@@ -68,13 +68,16 @@
   ```
   
 * /{ontology}/search: *Searches an ontology for a term*
-  * HTTP GET http://{host}/{ontology}/search?user={optional_user}&term={term}&parent={optional_parent}&relation={optional_relation}
+  * HTTP GET http://{host}/{ontology}/search?user={optional_user}&term={term}&ancestorIRI={ancestorIRI}&parent={optional_parent}&relation={optional_relation}
   * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., exp.
-  * {user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
+  * {optional_user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
   * {term}: The term to search for
+  * {optional_ancestorIRI}: The ancestor the search term must have. Use %23 for # in the IRI.
   * {optional_parent}: The optional parent the {term} is required to have
   * {optional_relation}: The optional relation the {term} is required to have
-  * Example: GET http://shark.sbs.arizona.edu:8080/carex/search?term=quaternary%20leaf%20vein (this works only after a call to /createUserOntology with an empty user and carex ontology as parameters)
+  * Example: 
+  GET http://shark.sbs.arizona.edu:8080/carex/search?term=reddish&ancestorIRI=http://biosemantics.arizona.edu/ontologies/carex%23colored
+  GET http://shark.sbs.arizona.edu:8080/carex/search?term=quaternary%20leaf%20vein (this works only after a call to /createUserOntology with an empty user and carex ontology as parameters)
   * Response body: returns classes related to the term in someway, such as a synonym, or other relationships.  
     ```json
     {
