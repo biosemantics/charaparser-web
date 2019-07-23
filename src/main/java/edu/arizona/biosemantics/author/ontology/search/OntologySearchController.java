@@ -339,7 +339,7 @@ public class OntologySearchController {
 
 		OWLReasoner reasoner = null;
 		OWLDataFactory owlDataFactory = null;
-		if(ancestorIRI != null){
+		if(ancestorIRI.isPresent()){
 			//use selected ontology
 			OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName);//this.owlOntologyManagerMap.get(oIRI);
 			OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
@@ -378,7 +378,7 @@ public class OntologySearchController {
 		}
 
 
-		if(ancestorIRI != null){
+		if(ancestorIRI.isPresent()){
 			//required superclass
 			OWLClass superClazz = owlDataFactory.getOWLClass(IRI.create(ancestorIRI.get().replaceAll("%23", "#"))); //+"#"+term)); //must use # in the ontology
 			//filter the result entries
