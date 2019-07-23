@@ -36,6 +36,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.parameters.ChangeApplied;
+import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.search.EntitySearcher;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
@@ -53,7 +54,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 //import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.arizona.biosemantics.common.ontology.search.FileSearcher;
+import edu.arizona.biosemantics.author.ontology.search.model.AnAnnotation;
 import edu.arizona.biosemantics.author.ontology.search.model.Class;
+import edu.arizona.biosemantics.author.ontology.search.model.Comment;
 import edu.arizona.biosemantics.author.ontology.search.model.Definition;
 import edu.arizona.biosemantics.author.ontology.search.model.UserOntology;
 import edu.arizona.biosemantics.author.ontology.search.model.HasPart;
@@ -91,6 +94,7 @@ public class OntologySearchController {
 	private static String synonyme = "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym";
 	private static String definitions = "http://purl.obolibrary.org/obo/IAO_0000115";
 	private static String elucidations = "http://purl.obolibrary.org/obo/IAO_0000600";
+	private static String comment = "http://www.w3.org/2000/01/rdf-schema#comment";
 
 	private HashMap<String, OntologyAccess> ontologyAccessMap = new HashMap<String, OntologyAccess>();
 	private HashMap<String, FileSearcher> searchersMap = new HashMap<String, FileSearcher>();
@@ -322,7 +326,7 @@ public class OntologySearchController {
 	//TODO: http://localhost:8088/carex/search?term=weak
 	//should return 4 ids, but only returned 1
 	@GetMapping(value = "/{ontology}/search", produces = { MediaType.APPLICATION_JSON_VALUE })
-	public OntologySearchResult search(@PathVariable String ontology, @RequestParam String term, 
+	public OntologySearchResult search(@PathVariable String ontology, @RequestParam String term, @RequestParam Optional<String> ancestorIRI,
 			@RequestParam Optional<String> parent, @RequestParam Optional<String> relation, @RequestParam Optional<String> user) throws Exception {
 		String usrid = "";
 		String ontoName = ontology;
@@ -333,7 +337,17 @@ public class OntologySearchController {
 		OntologyIRI oIRI = getOntologyIRI(ontoName);
 		////System.outprintln("/search ####################search ontoName="+ontoName);
 
-
+		OWLReasoner reasoner = null;
+		OWLDataFactory owlDataFactory = null;
+		if(ancestorIRI != null){
+			//use selected ontology
+			OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName);//this.owlOntologyManagerMap.get(oIRI);
+			OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
+			JFactFactory reasonerFactory = new JFactFactory();
+			reasoner = reasonerFactory.createNonBufferingReasoner(owlOntology);
+			owlDataFactory = owlOntologyManager.getOWLDataFactory();
+			reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
+		}
 		//ontoName: EXP_1 or EXP, CAREX, etc.
 		if(!searchersMap.containsKey(ontoName)) 
 			throw new IllegalArgumentException();
@@ -363,6 +377,23 @@ public class OntologySearchController {
 					searcher.getEntityEntries(term, parent.orElse(""), relation.orElse("")));
 		}
 
+
+		if(ancestorIRI != null){
+			//required superclass
+			OWLClass superClazz = owlDataFactory.getOWLClass(IRI.create(ancestorIRI.get().replaceAll("%23", "#"))); //+"#"+term)); //must use # in the ontology
+			//filter the result entries
+			List<OntologyEntry> fentries = new ArrayList<OntologyEntry>();
+			for(OntologyEntry result: entries){
+				OWLClass thisClaz = owlDataFactory.getOWLClass(IRI.create(result.getClassIRI()));
+				//find all superclasses of this matching class
+				Set <OWLClass> superClzz = reasoner.getSuperClasses(thisClaz,false).entities().collect(Collectors.toSet());
+				for(OWLClass sup: superClzz){
+					//any super class matches the required?
+					if(sup.getIRI().toString().compareTo(superClazz.getIRI().toString())==0) fentries.add(result);
+				}
+			}
+			entries = fentries;
+		}
 		return ontologySearchResultCreator.create(ontoName, entries, 
 				this.ontologyAccessMap.get(ontoName), 
 				this.owlOntologyManagerMap.get(ontoName).getOntology(IRI.create(oIRI.getIri())),
@@ -445,12 +476,23 @@ public class OntologySearchController {
 	}
 
 	@PostMapping(value = "/definition", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
-	public ChangeApplied createBSynonym(@RequestBody Definition definition) {
+	public ChangeApplied addDefinition(@RequestBody Definition definition) {
+		String definitionIRI = AnnotationProperty.DEFINITION.getIRI();
+		return addAnnotation(definition, definitionIRI);
+	}
+	
+	@PostMapping(value = "/comment", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
+	public ChangeApplied addComment(@RequestBody Comment comment) {
+		String commentIRI = OntologySearchController.comment;
+		return addAnnotation(comment, commentIRI);
+	}
+
+	private ChangeApplied addAnnotation(AnAnnotation annotation, String annotationIRI) {
 		//which ontology to use
 		String usrid = "";
-		String ontoName = definition.getOntology();
-		if(!definition.getUser().isEmpty()){
-			usrid = definition.getUser();
+		String ontoName = annotation.getOntology();
+		if(!annotation.getUser().isEmpty()){
+			usrid = annotation.getUser();
 			ontoName = ontoName+"_"+usrid;
 		}
 		OntologyIRI oIRI = getOntologyIRI(ontoName);
@@ -462,10 +504,10 @@ public class OntologySearchController {
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 
-		String def = definition.getDefinition();
-		OWLClass clazz = owlDataFactory.getOWLClass(definition.getClassIRI());
+		String def = annotation.getAnnotationContent();
+		OWLClass clazz = owlDataFactory.getOWLClass(annotation.getClassIRI());
 		OWLAnnotationProperty definitionProperty = 
-				owlDataFactory.getOWLAnnotationProperty(IRI.create(AnnotationProperty.DEFINITION.getIRI()));
+				owlDataFactory.getOWLAnnotationProperty(IRI.create(annotationIRI));
 		OWLAnnotation synonymAnnotation = owlDataFactory.getOWLAnnotation(
 				definitionProperty, owlDataFactory.getOWLLiteral(def, "en"));
 		OWLAxiom definitionAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clazz.getIRI(), synonymAnnotation);
@@ -843,13 +885,15 @@ public class OntologySearchController {
 	@GetMapping(value = "/{ontology}/getSubclasses", produces = { MediaType.APPLICATION_JSON_VALUE })
 	public String getSubclassesInJSON(@PathVariable String ontology, @RequestParam Optional<String> user, 
 			@RequestParam String baseIri, @RequestParam String term){
+		 //@RequestParam String termIri){ //use %23 for #, allows both forms:/term #term 
 		String usrid = "";
 		String ontoName = ontology;
 		if(user.isPresent()){
 			usrid = user.get();
 			ontoName = ontology+"_"+usrid;
 		}
-		
+		if(term.contains(" ")) term = term.trim().replaceAll("\\s+", "-"); //carex ontology: use - in multiple words phrases, such as life-cycle, in class IRI. 
+		//termIri = termIri.replaceAll("%23", "#");
 		OntologyIRI oIRI = getOntologyIRI(ontoName);
 		
 
@@ -858,8 +902,10 @@ public class OntologySearchController {
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
 		JFactFactory reasonerFactory = new JFactFactory();
 		OWLReasoner reasoner = reasonerFactory.createNonBufferingReasoner(owlOntology);
+		reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 		OWLClass clazz = owlDataFactory.getOWLClass(IRI.create(baseIri+"#"+term)); //must use # in the ontology
+		//OWLClass clazz = owlDataFactory.getOWLClass(IRI.create(termIri)); //must use # in the ontology
 		
 		JSONObject object = new JSONObject();
 		
@@ -944,7 +990,8 @@ public class OntologySearchController {
 					if(!c.equals(clazz))
 						children.add(/*i++,*/ writeSimplifiedJSONObject(reasoner, owlDataFactory, c, new JSONObject(), manager, onto, definition, elucidation));
 				}
-				object.put("children", children);
+				if(children.size()>0)
+					object.put("children", children);
 			}
 		}
 		return object;
