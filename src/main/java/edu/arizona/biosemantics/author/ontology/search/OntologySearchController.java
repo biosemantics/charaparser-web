@@ -380,7 +380,7 @@ public class OntologySearchController {
 
 		if(ancestorIRI.isPresent()){
 			//required superclass
-			OWLClass superClazz = owlDataFactory.getOWLClass(IRI.create(ancestorIRI.get().replaceAll("%23", "#"))); //+"#"+term)); //must use # in the ontology
+			OWLClass superClazz = owlDataFactory.getOWLClass(IRI.create(ancestorIRI.get().replaceAll("%23", "#").replaceAll("%20", "-").replaceAll("\\s+", "-"))); //use either # or / in iri
 			//filter the result entries
 			List<OntologyEntry> fentries = new ArrayList<OntologyEntry>();
 			for(OntologyEntry result: entries){
@@ -543,19 +543,19 @@ public class OntologySearchController {
 		////System.outprintln("/class ####################owlOntology axiom count (before)="+owlOntology.getAxiomCount());
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 
-		String subclassIRI = oIRI.getIri() + "#" + c.getTerm().replaceAll("\\s+", " ").replaceAll("\\s", "_");
+		String subclassIRI = oIRI.getIri() + "#" + c.getTerm().trim().replaceAll("\\s+", "-").replaceAll("%20", "-");
 		OWLClass subclass = owlDataFactory.getOWLClass(subclassIRI);
 
 		OWLAnnotationProperty labelProperty =
 				owlDataFactory.getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI());
-		OWLLiteral labelLiteral = owlDataFactory.getOWLLiteral(c.getTerm(), "en");
+		OWLLiteral labelLiteral = owlDataFactory.getOWLLiteral(c.getTerm().trim().replaceAll("%20", " "), "en");
 		OWLAnnotation labelAnnotation = owlDataFactory.getOWLAnnotation(labelProperty, labelLiteral);
 		OWLAxiom labelAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(subclass.getIRI(), labelAnnotation);
 		ChangeApplied change = owlOntologyManager.addAxiom(owlOntology, labelAxiom);
 		if(change != ChangeApplied.SUCCESSFULLY && change !=ChangeApplied.NO_OPERATION )
 			return change.name();
 
-		OWLClass superclass = owlDataFactory.getOWLClass(c.getSuperclassIRI());
+		OWLClass superclass = owlDataFactory.getOWLClass(c.getSuperclassIRI().trim().replaceAll("\\s+", "-").replaceAll("%20", "-"));
 		OWLAxiom subclassAxiom = owlDataFactory.getOWLSubClassOfAxiom(subclass, superclass);
 		change = owlOntologyManager.addAxiom(owlOntology, subclassAxiom);
 		if(change != ChangeApplied.SUCCESSFULLY && change !=ChangeApplied.NO_OPERATION)
