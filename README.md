@@ -185,19 +185,19 @@
  
 * /class: *Creates a class in the named ontology*
   * HTTP POST http://{host}/class
-  * Request body: If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). Fields elucidation and logicDefintion are optional.
+  * Request body: If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). Fields elucidation and logicDefintion are optional. All other fields are required of a non-empty value.
     ```json
     {
-     	"user":"2",
+     	"user":"",
      	"ontology":"exp",
       "term": "root-apex",
       "superclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex",
       "definition": "the apex of the root",
-      "elucidation": "http://some.illustration.of/the/apex-root.jpg"
-      "createdBy": "hongcui"
-      "creationDate": "09-18-2017"
-      "definitionSrc": "hongcui"
-      "examples": "root apex blah blah blah, used in taxon xyz"
+      "elucidation": "http://some.illustration.of/the/apex-root.jpg",
+      "createdBy": "hongcui",
+      "creationDate": "09-18-2017",
+      "definitionSrc": "hongcui",
+      "examples": "root apex blah blah blah, used in taxon xyz",
       "logicDefinition": "'root apex' and 'part of' some root"
     }
     ```
@@ -215,13 +215,14 @@
 
 * /esynonym: *Creates an exact synonym to the class in the named ontology*
   * HTTP POST http://{host}/esynonym
-  * Request body: If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).
+  * Request body: If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). All other fields are required of a non-empty value.
     ```json
     {
-      "user":"2",
-	     "ontology":"exp",
+      "user":"",
+      "ontology":"exp",
       "term": "root-tip",
-      "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex"
+      "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex",
+      "decisionExperts": "hong;bruce"
     }
     ```
 
@@ -232,13 +233,14 @@
 
 * /bsynonym: *Creates a broader synonym to the class in the named ontology*
   * HTTP POST http://{host}/bsynonym
-  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).
+  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). All other fields are required of a non-empty value.
     ```json
     {
-     	"user":"2",
+     	"user":"",
      	"ontology":"exp",
       "term": "root-tip",
-      "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex"
+      "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex",
+      "decisionExperts": "hong;bruce"
     }
     ```
 
@@ -249,10 +251,10 @@
     
 * /definition: *add a defintion property to the class in the named ontology*
   * HTTP POST http://{host}/definition
-  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).
+  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). All other fields are required of a non-empty value.
     ```json
     {
-     	"user":"2",
+     	"user":"",
      	"ontology":"exp",
       "definition": "the summit of a root",
       "providedBy": "hongcui",
@@ -268,10 +270,10 @@
 
 * /comment: *add a rdfs:comment property to the class in the named ontology*
   * HTTP POST http://{host}/comment
-  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).
+  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). All other fields are required of a non-empty value.
     ```json
     {
-     	"user":"2",
+     	"user":"",
      	"ontology":"exp",
       "comment": "not sure this term covers my example",
       "providedBy": "hongcui",
@@ -287,13 +289,14 @@
 
 * /partOf: *Creates a part-of relation between the part and the bearer (part is 'part_of' bearer) in the named ontology*
   * HTTP POST http://{host}/partOf
-  * Request body: If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).
+  * Request body: If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). All other fields are required of a non-empty value.
     ```json
     {
-    	 "user":"2",
-	     "ontology":"exp",
+    	 "user":"",
+	 "ontology":"exp",
       "bearerIRI": "http://biosemantics.arizona.edu/ontologies/carex#root",
-      "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex"
+      "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex",
+      "decisionExperts": "hong;bruce"
     }
     ```
 
@@ -304,14 +307,15 @@
 
 * /hasPart: *Creates a has-part relation between the bearer and the part (bearer 'has part' part) in the named ontology. *
   * HTTP POST <host>/hasPart
-  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).
+  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). All other fields are required of a non-empty value.
  
     ```json
     {
-      "user":"2",
-	     "ontology":"exp",
+      "user":"",
+      "ontology":"exp",
       "bearerIRI": "http://biosemantics.arizona.edu/ontologies/carex#root",
-      "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex"
+      "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex",
+      "decisionExperts": "bruce:hong"
     }
     ```
  
@@ -325,8 +329,8 @@
  
     ```json
     {
-      "user":"2",
-	     "ontology":"exp",
+      "user":"",
+      "ontology":"exp",
     }
     ```
     
