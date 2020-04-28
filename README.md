@@ -406,7 +406,7 @@
   * Example: GET http://shark.sbs.arizona.edu:8080/carex/getStandardCollection? (this works only after a call to /createUserOntology with an empty user and carex ontology as parameters)
   * Response body: 
     ```json
-{
+    {
     "entries": [
         {
             "score": 1.0,
@@ -433,3 +433,111 @@
         },
 	```
 	
+* /moveFromToreviewToSuperclass: *add the term as a subclass of the superclass, deprecate the old term (subclass of toreview), remove (category) from the subclassTerm*
+  * HTTP POST <host>/moveFromToreviewToSuperclass
+  * Request body:If user value is empty, the shared ontology will be saved. Otherwise, a user-specific version of the ontology will be saved (See /createUserOntology). All other fields are required of a non-empty value.
+ 
+    ```json
+     {
+	"user": "",
+	"ontology": "carex",
+	"subclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#attachment_%28structure%29", 
+	"superclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#anatomical_structure",
+	"subclassTerm": "attachment (structure)",
+	"decisionExperts": "hong;bruce"
+     }
+    ```
+    
+* /moveFromToreviewToSuperclass: *add the term as a subclass of the superclass, deprecate the old term (subclass of toreview), remove (category) from the subclassTerm*
+  * HTTP POST <host>/moveFromToreviewToSuperclass
+  * Request body:If user value is empty, the shared ontology will be saved. Otherwise, a user-specific version of the ontology will be saved (See /createUserOntology). All other fields are required of a non-empty value.
+ 
+    ```json
+     {
+	"user": "",
+	"ontology": "carex",
+	"subclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#attachment_%28structure%29", 
+	"superclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#anatomical_structure",
+	"subclassTerm": "attachment (structure)",
+	"decisionExperts": "hong;bruce"
+     }
+    ```
+    
+* /{ontology}/getClassesWMSuperclasses: *Obtain classes with multiple superclasses*
+  * HTTP GET http://{host}/{ontology}/getClassesWMSuperclasses?user={optional_user}
+  * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
+  * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
+  * Example: GET http://shark.sbs.arizona.edu:8080/carex/getClassesWMSuperclasses? (this works only after a call to /createUserOntology with an empty user and carex ontology as parameters)
+  * Response body: 
+    ```json
+    {
+    "terms": {
+        "term 80": {
+            "iri": "http://biosemantics.arizona.edu/ontologies/carex#purple_banded",
+            "sentences": [],
+            "label": "purple banded",
+            "categories": {
+                "category 2": {
+                    "iri": "http://biosemantics.arizona.edu/ontologies/carex#purple",
+                    "elucidation": [],
+                    "name": "purple",
+                    "definition": [
+                        "\"A color that falls about midway between red and blue in hue\""
+                    ]
+                },
+                "category 1": {
+                    "iri": "http://biosemantics.arizona.edu/ontologies/carex#banded",
+                    "elucidation": [],
+                    "name": "banded",
+                    "definition": [
+                        "horizontal ring on a vertical structure."
+                    ]
+                }
+            }
+        },
+	```
+* /{ontology}/getClassesWMZdefinitions: *Obtain classes with zero or more than one defintions*
+  * HTTP GET http://{host}/{ontology}/getClassesWMZdefinitions?user={optional_user}
+  * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
+  * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
+  * Example: GET http://shark.sbs.arizona.edu:8080/carex/getClassesWMZdefinitions? (this works only after a call to /createUserOntology with an empty user and carex ontology as parameters)
+  * Response body: 
+    ```json
+    {
+    "terms": {
+        "term 80": {
+            "iri": "http://biosemantics.arizona.edu/ontologies/carex#sheath_front_apex",
+            "elucidations": [],
+            "sentences": [],
+            "label": "sheath front apex",
+            "superclass label": [
+                "anatomical structure"
+            ],
+            "definitions": []
+        },
+	
+	```
+	
+* /{ontology}/getToreviewClasses: *Obtain classes that are subclasses of toreview*
+  * HTTP GET http://{host}/{ontology}/getToreviewClasses?user={optional_user}
+  * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
+  * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
+  * Example: GET http://shark.sbs.arizona.edu:8080/carex/getToreviewClasses? (this works only after a call to /createUserOntology with an empty user and carex ontology as parameters)
+  * Response body: 
+    ```json
+    {
+    "terms": {
+        "term 2": {
+            "iri": "http://biosemantics.arizona.edu/ontologies/carex#apical_tooth",
+            "elucidations": [],
+            "sentences": [
+                "beak straight , pale green , not strongly 2_edged , 0 . 6 – 1 . 6 mm , ciliate_serrulate , apical teeth 0 . 2 – 0 . 5 mm ."
+            ],
+            "label": "apical tooth",
+            "definitions": [
+                "Term is unclear but could refer to one of two projections (teeth) that are associaed with the beak of the perigynium or projections along the edge of a perigynium body"
+            ]
+        },
+	```
+
+
