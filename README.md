@@ -374,6 +374,7 @@
                 },
   ```
 
+
 *  /{ontology}/getTree: *Obtain the entire ontology as a JSON object*
   * HTTP GET http://{host}/{ontology}/getTree?user={optional_user}
   * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
@@ -398,3 +399,38 @@
                     }
      ```
     
+    
+*  /{ontology}/getStandardCollection: *Obtain the standard carex characters*
+  * HTTP GET http://{host}/{ontology}/getStandardCollection?user={optional_user}
+  * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
+  * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
+  * Example: GET http://shark.sbs.arizona.edu:8080/carex/getStandardCollection? (this works only after a call to /createUserOntology with an empty user and carex ontology as parameters)
+  * Response body: 
+    ```
+{
+    "entries": [
+        {
+            "score": 1.0,
+            "term": "number of staminate flowers",
+            "parentTerm": "perceived quantity",
+            "resultAnnotations": [
+                {
+                    "property": "http://www.geneontology.org/formats/oboInOwl#id",
+                    "value": "http://biosemantics.arizona.edu/ontologies/carex#number_of_staminate_flowers"
+                },
+                {
+                    "property": "http://biosemantics.arizona.edu/ontologies/carex#quality_of",
+                    "value": "http://biosemantics.arizona.edu/ontologies/carex#staminate_flower"
+                },
+                {
+                    "property": "http://biosemantics.arizona.edu/ontologies/carex#in_collection",
+                    "value": "http://biosemantics.arizona.edu/ontologies/carex#carex_standard_character_set"
+                },
+                {
+                    "property": "http://www.w3.org/2000/01/rdf-schema#label",
+                    "value": "number of staminate flowers"
+                }
+            ]
+        },
+	```
+	
