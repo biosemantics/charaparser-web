@@ -22,17 +22,24 @@ import javax.annotation.PreDestroy;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.obolibrary.macro.ManchesterSyntaxTool;
+import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLDataProperty;
+import org.semanticweb.owlapi.model.OWLEntity;
 //import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
+import org.semanticweb.owlapi.model.OWLObjectPropertyAxiom;
+import org.semanticweb.owlapi.model.OWLObjectPropertyDomainAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -431,11 +438,16 @@ public class OntologySearchController {
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 
 		String synonymTerm = synonym.getTerm();
-		List<OWLClass> relatedClasses = findRelatedClasses(owlOntology, owlDataFactory, synonymTerm);
+		ArrayList<OWLClass> classesWesynonym = new ArrayList<OWLClass>();//exact-syno
+		ArrayList<OWLClass> classesWnsynonym = new ArrayList<OWLClass>();//not-recommended-synonym
+		findClassesWithExactSynonym(owlOntology, owlDataFactory, synonymTerm, classesWesynonym, classesWnsynonym);
 		OWLClass clazz = owlDataFactory.getOWLClass(synonym.getClassIRI());
 		ChangeApplied c = null;
 		
-		if(relatedClasses.isEmpty()){
+		//if esynonym is a not-recommended-synonym, report error
+		if(!classesWnsynonym.isEmpty()){
+			return ChangeApplied.valueOf("NO_OPERATION"); //synonym is a not recommended synonmy, so not action
+		}else if(classesWesynonym.isEmpty()){
 			OWLAnnotationProperty exactSynonymProperty = 
 					owlDataFactory.getOWLAnnotationProperty(IRI.create(AnnotationProperty.EXACT_SYNONYM.getIRI()));
 			OWLAnnotation synonymAnnotation = owlDataFactory.getOWLAnnotation(
@@ -445,34 +457,37 @@ public class OntologySearchController {
 			c = owlOntologyManager.addAxiom(owlOntology, synonymAxiom);
 		}else{
 			//add as bsynonym
-			for(OWLClass clz: relatedClasses){
+			for(OWLClass clz: classesWesynonym){
 				//add bsynonym
 				OWLAnnotationProperty bSynonymProperty = 
 						owlDataFactory.getOWLAnnotationProperty(IRI.create(AnnotationProperty.BROAD_SYNONYM.getIRI()));
 				OWLAnnotation synonymAnnotation = owlDataFactory.getOWLAnnotation(
 						bSynonymProperty, owlDataFactory.getOWLLiteral(synonymTerm));
 				OWLAxiom synonymAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clz.getIRI(), synonymAnnotation);
-				c = owlOntologyManager.addAxiom(owlOntology, synonymAxiom);
+				owlOntologyManager.addAxiom(owlOntology, synonymAxiom);
+				synonymAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clazz.getIRI(), synonymAnnotation);
+				owlOntologyManager.addAxiom(owlOntology, synonymAxiom);
 				
 				//remove esynonym
 				OWLAnnotationProperty eSynonymProperty = 
 						owlDataFactory.getOWLAnnotationProperty(IRI.create(AnnotationProperty.EXACT_SYNONYM.getIRI()));
 				OWLAnnotation esynonymAnnotation = owlDataFactory.getOWLAnnotation(
 						eSynonymProperty, owlDataFactory.getOWLLiteral(synonymTerm));
-				OWLAxiom esynonymAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clz.getIRI(), synonymAnnotation);
+				OWLAxiom esynonymAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clz.getIRI(), esynonymAnnotation);
 				RemoveAxiom remove = new RemoveAxiom(owlOntology, esynonymAxiom);
-				c = owlOntologyManager.applyChange(remove);
+				owlOntologyManager.applyChange(remove);
 				
 				//add note about the change
 				OWLAnnotationProperty noteProperty = 
 						owlDataFactory.getOWLAnnotationProperty(IRI.create("http://purl.obolibrary.org/obo/IAO_0000116")); //editor_note
 				OWLAnnotation noteAnnotation = owlDataFactory.getOWLAnnotation(
-						noteProperty, owlDataFactory.getOWLLiteral("adding "+synonym.getTerm() +" as exact_synomyn to "+synonym.getClassIRI() + 
-								" by "+synonym.getUser() + " triggered the change from exact_synonym to broad_synonym on this class"));
+						noteProperty, owlDataFactory.getOWLLiteral("Adding '"+synonym.getTerm() +"' as exact_synomyn to "+synonym.getClassIRI() + 
+								" by "+synonym.getExperts() + " triggered the change of making the term a broad_synonym on this class (as opposed to the initial extact_synonym)"));
 				OWLAxiom noteAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clz.getIRI(), noteAnnotation);
-				c = owlOntologyManager.addAxiom(owlOntology, noteAxiom);
+				owlOntologyManager.addAxiom(owlOntology, noteAxiom);
 				
 			}
+			c = ChangeApplied.valueOf("SUCCESSFULLY"); 
 		}
 		
 		//refresh ontology search environment after the addition
@@ -487,25 +502,35 @@ public class OntologySearchController {
 	
 	
 
-	private List<OWLClass> findRelatedClasses(OWLOntology owlOntology, OWLDataFactory owlDataFactory, String synonymTerm) {
-		ArrayList<OWLClass> classes = new ArrayList<OWLClass>();
+	private void findClassesWithExactSynonym(OWLOntology owlOntology, OWLDataFactory owlDataFactory, String esynonym, ArrayList<OWLClass> classesWesynonym, ArrayList<OWLClass> classesWnsynonym) {
 		
 		//esyn = "term"
 		OWLAnnotationProperty eSynonymProperty = 
 				owlDataFactory.getOWLAnnotationProperty(IRI.create(AnnotationProperty.EXACT_SYNONYM.getIRI()));
+		
+		OWLAnnotationProperty nSynonymProperty = 
+				owlDataFactory.getOWLAnnotationProperty(IRI.create("http://biosemantics.arizona.edu/ontologies/carex#has_not_recommended_synonym"));
+		
 		
 		//loop through all classes to find matching classes
 	    Set<OWLClass> set = owlOntology.classesInSignature().collect(Collectors.toSet());
 	    for(OWLClass clz: set){
 	    	Set<OWLAnnotation> annos = EntitySearcher.getAnnotationObjects(clz, owlOntology, eSynonymProperty).collect(Collectors.toSet());
 	    	for(OWLAnnotation anno: annos){
-	    		if(anno.getValue().compareTo(owlDataFactory.getOWLLiteral(synonymTerm))==0){
-	    			classes.add(clz);
+	    		if(anno.getValue().equals(owlDataFactory.getOWLLiteral(esynonym))){
+	    			classesWesynonym.add(clz);
 	    		}
   		
 	    	}
+	    	
+	    	annos = EntitySearcher.getAnnotationObjects(clz, owlOntology, nSynonymProperty).collect(Collectors.toSet());
+	    	for(OWLAnnotation anno: annos){
+	    		if(anno.getValue().equals(owlDataFactory.getOWLLiteral(esynonym))){
+	    			classesWnsynonym.add(clz);
+	    		}
+	    	}
 	    }
-		return classes;
+		
 	}
 
 	@PostMapping(value = "/bsynonym", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
@@ -896,8 +921,8 @@ public class OntologySearchController {
 	 * @param superclass
 	 * @return
 	 */
-	@PostMapping(value = "/superclass", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
-	public ChangeApplied createSuperclass(@RequestBody Superclass superclass) {
+	@PostMapping(value = "/moveFromToreviewToSuperclass", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
+	public ChangeApplied moveFromToReviewToSuperclass(@RequestBody Superclass superclass) {
 		//which ontology to use
 		String usrid = "";
 		String ontoName = superclass.getOntology();
@@ -913,11 +938,61 @@ public class OntologySearchController {
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 
-		OWLClass sub = owlDataFactory.getOWLClass(superclass.getSubclassIRI());
+		//attachment_%28structure%29
+		
+		String osubIRI = superclass.getSubclassIRI();
+		String subIRI = osubIRI;
+		if(osubIRI.contains("_%28")){
+			subIRI = osubIRI.replaceFirst("_%28.*", ""); //attachment
+		}
+		OWLClass osub = owlDataFactory.getOWLClass(osubIRI); //found the old class
+		OWLClass sub = owlDataFactory.getOWLClass(subIRI); //created a new class
 		OWLClass supr = owlDataFactory.getOWLClass(superclass.getSuperclassIRI());
 		
-		OWLAxiom partOfAxiom = owlDataFactory.getOWLSubClassOfAxiom(sub, supr);
-		ChangeApplied c= owlOntologyManager.addAxiom(owlOntology, partOfAxiom);
+		
+		OWLClass toreview = owlDataFactory.getOWLClass(IRI.create("http://biosemantics.arizona.edu/ontologies/carex#toreview"));
+		OWLAxiom toreviewSubAxiom = owlDataFactory.getOWLSubClassOfAxiom(osub, toreview);
+		RemoveAxiom remove = new RemoveAxiom(owlOntology, toreviewSubAxiom);
+		owlOntologyManager.applyChange(remove);
+		if(!osub.equals(sub)){
+			//move annotation/object properties of osub to sub, then deprecate osub
+			//annotations
+			Set<OWLAnnotationAssertionAxiom> aaas = EntitySearcher.getAnnotationAssertionAxioms(osub, owlOntology).collect(Collectors.toSet());	
+			for(OWLAnnotationAssertionAxiom aaa: aaas){
+				OWLAnnotation annot = null;
+				if(aaa.getProperty().equals(owlDataFactory.getRDFSLabel())){
+					String av = aaa.getValue().literalValue().toString();
+					//remove _() from the label
+					//av: Optional["attachment (structure)"^^xsd:string]
+					av = av.replaceFirst("^.*?\"", "").replaceFirst("\".*$", "").replaceFirst("\\s+\\(.*$", "");
+					annot = owlDataFactory.getOWLAnnotation(aaa.getProperty(), owlDataFactory.getOWLLiteral(av));
+				}else{
+					annot = owlDataFactory.getOWLAnnotation(aaa.getProperty(), aaa.getValue());
+				}
+				OWLAxiom aAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(sub.getIRI(), annot);
+				owlOntologyManager.addAxiom(owlOntology, aAxiom);				
+			}
+			
+			//object properties
+			//TODO: couldn't figure out how to do this. 
+			
+			OWLAnnotationAssertionAxiom dAxiom = owlDataFactory.getDeprecatedOWLAnnotationAssertionAxiom(osub.getIRI()); //deprecate the old class
+			owlOntologyManager.addAxiom(owlOntology, dAxiom);
+		}
+		
+		//add note about the change
+		OWLAnnotationProperty noteProperty = 
+				owlDataFactory.getOWLAnnotationProperty(IRI.create("http://purl.obolibrary.org/obo/IAO_0000116")); //editor_note
+		OWLAnnotation noteAnnotation = owlDataFactory.getOWLAnnotation(
+				noteProperty, owlDataFactory.getOWLLiteral("Moved "+superclass.getSubclassIRI() +" from class toreview to subclass of "+superclass.getSuperclassIRI() + 
+						" by "+superclass.getExperts() + " via the mobile app "));
+		OWLAxiom noteAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(sub.getIRI(), noteAnnotation);
+		owlOntologyManager.addAxiom(owlOntology, noteAxiom);
+		
+		OWLAxiom subclassAxiom = owlDataFactory.getOWLSubClassOfAxiom(sub, supr);
+		ChangeApplied c= owlOntologyManager.addAxiom(owlOntology, subclassAxiom);
+		
+		
 		
 		//refresh ontology search environment after the addition
 		FileSearcher searcher = this.searchersMap.get(ontoName);

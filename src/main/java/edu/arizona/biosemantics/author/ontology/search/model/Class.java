@@ -17,6 +17,7 @@ public class Class {
 	private String creationDate;
 	private String definitionSrc;
 	private String logicDefinition;
+	private String experts;
 	
 	@JsonCreator
 	public Class(@JsonProperty(value="user", required=false) String user, 
@@ -29,9 +30,10 @@ public class Class {
 			@JsonProperty("examples") String exampleOfUsage, 
 			@JsonProperty("creationDate") String creationDate, 
 			@JsonProperty("definitionSrc") String definitionSrc, 
-			@JsonProperty("logicDefinition") String logicDefinition) {
+			@JsonProperty("logicDefinition") String logicDefinition,
+			@JsonProperty(value="decisionExperts", required=false) String experts) {
 		super();
-		this.user = user;
+		this.user = user; //decides which ontology to use
 		this.ontology = ontology;
 		this.term = term;
 		this.superclassIRI = superclassIRI;
@@ -42,7 +44,19 @@ public class Class {
 		this.creationDate = creationDate;
 		this.definitionSrc = definitionSrc;
 		this.logicDefinition = logicDefinition; // leaf blade = blade and part_of some leaf
+		this.experts = experts; //the creator of the class
 	}
+	
+
+	public String getExperts() {
+		return experts;
+	}
+
+
+	public void setExperts(String experts) {
+		this.experts = experts;
+	}
+
 
 	public String getUser() {
 		return user==null? "" : user;

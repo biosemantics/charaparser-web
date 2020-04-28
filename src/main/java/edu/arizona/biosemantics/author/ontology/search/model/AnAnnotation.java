@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class AnAnnotation {
 
-	protected String annotationContent;
+	protected String annotationContent; //should include annotator name and annotation date
 	protected String classIRI;
 	protected String user;
 	protected String ontology;

@@ -9,16 +9,29 @@ public class Synonym {
 	private String classIRI;
 	private String user;
 	private String ontology;
+	private String experts;
 	
 	@JsonCreator
 	public Synonym(@JsonProperty(value="user", required=false) String user, @JsonProperty("term")String term, @JsonProperty("ontology") String ontology, 
-			@JsonProperty("classIRI") String classIRI) {
+			@JsonProperty("classIRI") String classIRI, @JsonProperty(value="decisionExperts", required=false) String experts) {
 		this.synonym = term;
 		this.classIRI = classIRI;
 		this.user = user;
 		this.ontology = ontology;
+		this.experts = experts;
 	}
 	
+	
+	public String getExperts() {
+		return experts;
+	}
+
+
+	public void setExperts(String experts) {
+		this.experts = experts;
+	}
+
+
 	public String getUser(){
 		return user==null? "" : user;
 	}
