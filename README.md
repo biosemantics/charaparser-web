@@ -463,7 +463,7 @@
      }
     ```
     
-* /{ontology}/getClassesWMSuperclasses: *Obtain classes with multiple superclasses*
+* /{ontology}/getClassesWMSuperclasses: *Conflict type 1: Obtain classes with multiple superclasses*
   * HTTP GET http://{host}/{ontology}/getClassesWMSuperclasses?user={optional_user}
   * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
   * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
@@ -496,7 +496,7 @@
             }
         },
 	```
-* /{ontology}/getClassesWMZdefinitions: *Obtain classes with zero or more than one defintions*
+* /{ontology}/getClassesWMZdefinitions: *Conflict type 2: Obtain classes with zero or more than one defintions*
   * HTTP GET http://{host}/{ontology}/getClassesWMZdefinitions?user={optional_user}
   * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
   * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
@@ -518,7 +518,7 @@
 	
 	```
 	
-* /{ontology}/getToreviewClasses: *Obtain classes that are subclasses of toreview*
+* /{ontology}/getToreviewClasses: *Conflict type 3: Obtain classes that are subclasses of toreview*
   * HTTP GET http://{host}/{ontology}/getToreviewClasses?user={optional_user}
   * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
   * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
