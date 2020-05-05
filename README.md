@@ -463,7 +463,7 @@
      }
     ```
     
-* /{ontology}/getClassesWMSuperclasses: *Conflict type 1: Obtain classes with multiple superclasses*
+* /{ontology}/getClassesWMSuperclasses: *Conflict type 1: Obtain classes with multiple superclasses and with at least one example sentence*
   * HTTP GET http://{host}/{ontology}/getClassesWMSuperclasses?user={optional_user}
   * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
   * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
@@ -518,7 +518,7 @@
 	
 	```
 	
-* /{ontology}/getToreviewClasses: *Conflict type 3: Obtain classes that are subclasses of toreview*
+* /{ontology}/getToreviewClasses: *Conflict type 3: Obtain classes that are subclasses of toreview and have exactly one definition*
   * HTTP GET http://{host}/{ontology}/getToreviewClasses?user={optional_user}
   * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
   * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
@@ -539,5 +539,17 @@
             ]
         },
 	```
+* /deprecate: *add deprecate annotation to the class*
+  * HTTP POST <host>/save
+  * Request body:If user value is empty, the shared ontology will be saved. Otherwise, a user-specific version of the ontology will be saved (See /createUserOntology).
+ 
+    ```json
+    {
+      "user":"",
+      "ontology":"exp",
+      "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#apical_tooth"
+    }
+    ```	
+	
 
 
