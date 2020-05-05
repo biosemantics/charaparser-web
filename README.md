@@ -185,19 +185,19 @@
  
 * /class: *Creates a class in the named ontology*
   * HTTP POST http://{host}/class
-  * Request body: If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). Fields elucidation and logicDefintion are optional.
+  * Request body: If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). Fields elucidation and logicDefintion are optional. All other fields are required of a non-empty value.
     ```json
     {
-     	"user":"2",
+     	"user":"",
      	"ontology":"exp",
       "term": "root-apex",
       "superclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex",
       "definition": "the apex of the root",
-      "elucidation": "http://some.illustration.of/the/apex-root.jpg"
-      "createdBy": "hongcui"
-      "creationDate": "09-18-2017"
-      "definitionSrc": "hongcui"
-      "examples": "root apex blah blah blah, used in taxon xyz"
+      "elucidation": "http://some.illustration.of/the/apex-root.jpg",
+      "createdBy": "hongcui",
+      "creationDate": "09-18-2017",
+      "definitionSrc": "hongcui",
+      "examples": "root apex blah blah blah, used in taxon xyz",
       "logicDefinition": "'root apex' and 'part of' some root"
     }
     ```
@@ -215,13 +215,14 @@
 
 * /esynonym: *Creates an exact synonym to the class in the named ontology*
   * HTTP POST http://{host}/esynonym
-  * Request body: If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).
+  * Request body: If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). All other fields are required of a non-empty value.
     ```json
     {
-      "user":"2",
-	     "ontology":"exp",
+      "user":"",
+      "ontology":"exp",
       "term": "root-tip",
-      "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex"
+      "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex",
+      "decisionExperts": "hong;bruce"
     }
     ```
 
@@ -232,13 +233,14 @@
 
 * /bsynonym: *Creates a broader synonym to the class in the named ontology*
   * HTTP POST http://{host}/bsynonym
-  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).
+  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). All other fields are required of a non-empty value.
     ```json
     {
-     	"user":"2",
+     	"user":"",
      	"ontology":"exp",
       "term": "root-tip",
-      "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex"
+      "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex",
+      "decisionExperts": "hong;bruce"
     }
     ```
 
@@ -249,10 +251,10 @@
     
 * /definition: *add a defintion property to the class in the named ontology*
   * HTTP POST http://{host}/definition
-  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).
+  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). All other fields are required of a non-empty value.
     ```json
     {
-     	"user":"2",
+     	"user":"",
      	"ontology":"exp",
       "definition": "the summit of a root",
       "providedBy": "hongcui",
@@ -268,10 +270,10 @@
 
 * /comment: *add a rdfs:comment property to the class in the named ontology*
   * HTTP POST http://{host}/comment
-  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).
+  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). All other fields are required of a non-empty value.
     ```json
     {
-     	"user":"2",
+     	"user":"",
      	"ontology":"exp",
       "comment": "not sure this term covers my example",
       "providedBy": "hongcui",
@@ -287,13 +289,14 @@
 
 * /partOf: *Creates a part-of relation between the part and the bearer (part is 'part_of' bearer) in the named ontology*
   * HTTP POST http://{host}/partOf
-  * Request body: If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).
+  * Request body: If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). All other fields are required of a non-empty value.
     ```json
     {
-    	 "user":"2",
-	     "ontology":"exp",
+    	 "user":"",
+	 "ontology":"exp",
       "bearerIRI": "http://biosemantics.arizona.edu/ontologies/carex#root",
-      "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex"
+      "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex",
+      "decisionExperts": "hong;bruce"
     }
     ```
 
@@ -304,14 +307,15 @@
 
 * /hasPart: *Creates a has-part relation between the bearer and the part (bearer 'has part' part) in the named ontology. *
   * HTTP POST <host>/hasPart
-  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).
+  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). All other fields are required of a non-empty value.
  
     ```json
     {
-      "user":"2",
-	     "ontology":"exp",
+      "user":"",
+      "ontology":"exp",
       "bearerIRI": "http://biosemantics.arizona.edu/ontologies/carex#root",
-      "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex"
+      "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex",
+      "decisionExperts": "bruce:hong"
     }
     ```
  
@@ -325,8 +329,8 @@
  
     ```json
     {
-      "user":"2",
-	     "ontology":"exp",
+      "user":"",
+      "ontology":"exp",
     }
     ```
     
@@ -370,7 +374,7 @@
                 },
   ```
 
-*  /{ontology}/getTree: *Obtain the entire ontology as a JSON object*
+* /{ontology}/getTree: *Obtain the entire ontology as a JSON object*
   * HTTP GET http://{host}/{ontology}/getTree?user={optional_user}
   * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
   * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
@@ -394,3 +398,146 @@
                     }
      ```
     
+    
+* /{ontology}/getStandardCollection: *Obtain the standard carex characters*
+  * HTTP GET http://{host}/{ontology}/getStandardCollection?user={optional_user}
+  * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
+  * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
+  * Example: GET http://shark.sbs.arizona.edu:8080/carex/getStandardCollection? (this works only after a call to /createUserOntology with an empty user and carex ontology as parameters)
+  * Response body: 
+    ```json
+    {
+    "entries": [
+        {
+            "score": 1.0,
+            "term": "number of staminate flowers",
+            "parentTerm": "perceived quantity",
+            "resultAnnotations": [
+                {
+                    "property": "http://www.geneontology.org/formats/oboInOwl#id",
+                    "value": "http://biosemantics.arizona.edu/ontologies/carex#number_of_staminate_flowers"
+                },
+                {
+                    "property": "http://biosemantics.arizona.edu/ontologies/carex#quality_of",
+                    "value": "http://biosemantics.arizona.edu/ontologies/carex#staminate_flower"
+                },
+                {
+                    "property": "http://biosemantics.arizona.edu/ontologies/carex#in_collection",
+                    "value": "http://biosemantics.arizona.edu/ontologies/carex#carex_standard_character_set"
+                },
+                {
+                    "property": "http://www.w3.org/2000/01/rdf-schema#label",
+                    "value": "number of staminate flowers"
+                }
+            ]
+        },
+	```
+	
+* /moveFromToreviewToSuperclass: *add the term as a subclass of the superclass, deprecate the old term (subclass of toreview), remove (category) from the subclassTerm*
+  * HTTP POST <host>/moveFromToreviewToSuperclass
+  * Request body:If user value is empty, the shared ontology will be saved. Otherwise, a user-specific version of the ontology will be saved (See /createUserOntology). All other fields are required of a non-empty value.
+ 
+    ```json
+     {
+	"user": "",
+	"ontology": "carex",
+	"subclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#attachment_%28structure%29", 
+	"superclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#anatomical_structure",
+	"subclassTerm": "attachment (structure)",
+	"decisionExperts": "hong;bruce"
+     }
+    ```
+    
+* /moveFromToreviewToSuperclass: *add the term as a subclass of the superclass, deprecate the old term (subclass of toreview), remove (category) from the subclassTerm*
+  * HTTP POST <host>/moveFromToreviewToSuperclass
+  * Request body:If user value is empty, the shared ontology will be saved. Otherwise, a user-specific version of the ontology will be saved (See /createUserOntology). All other fields are required of a non-empty value.
+ 
+    ```json
+     {
+	"user": "",
+	"ontology": "carex",
+	"subclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#attachment_%28structure%29", 
+	"superclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#anatomical_structure",
+	"subclassTerm": "attachment (structure)",
+	"decisionExperts": "hong;bruce"
+     }
+    ```
+    
+* /{ontology}/getClassesWMSuperclasses: *Conflict type 1: Obtain classes with multiple superclasses*
+  * HTTP GET http://{host}/{ontology}/getClassesWMSuperclasses?user={optional_user}
+  * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
+  * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
+  * Example: GET http://shark.sbs.arizona.edu:8080/carex/getClassesWMSuperclasses? (this works only after a call to /createUserOntology with an empty user and carex ontology as parameters)
+  * Response body: 
+    ```json
+    {
+    "terms": {
+        "term 80": {
+            "iri": "http://biosemantics.arizona.edu/ontologies/carex#purple_banded",
+            "sentences": [],
+            "label": "purple banded",
+            "categories": {
+                "category 2": {
+                    "iri": "http://biosemantics.arizona.edu/ontologies/carex#purple",
+                    "elucidation": [],
+                    "name": "purple",
+                    "definition": [
+                        "\"A color that falls about midway between red and blue in hue\""
+                    ]
+                },
+                "category 1": {
+                    "iri": "http://biosemantics.arizona.edu/ontologies/carex#banded",
+                    "elucidation": [],
+                    "name": "banded",
+                    "definition": [
+                        "horizontal ring on a vertical structure."
+                    ]
+                }
+            }
+        },
+	```
+* /{ontology}/getClassesWMZdefinitions: *Conflict type 2: Obtain classes with zero or more than one defintions*
+  * HTTP GET http://{host}/{ontology}/getClassesWMZdefinitions?user={optional_user}
+  * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
+  * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
+  * Example: GET http://shark.sbs.arizona.edu:8080/carex/getClassesWMZdefinitions? (this works only after a call to /createUserOntology with an empty user and carex ontology as parameters)
+  * Response body: 
+    ```json
+    {
+    "terms": {
+        "term 80": {
+            "iri": "http://biosemantics.arizona.edu/ontologies/carex#sheath_front_apex",
+            "elucidations": [],
+            "sentences": [],
+            "label": "sheath front apex",
+            "superclass label": [
+                "anatomical structure"
+            ],
+            "definitions": []
+        },
+	
+	```
+	
+* /{ontology}/getToreviewClasses: *Conflict type 3: Obtain classes that are subclasses of toreview*
+  * HTTP GET http://{host}/{ontology}/getToreviewClasses?user={optional_user}
+  * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
+  * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
+  * Example: GET http://shark.sbs.arizona.edu:8080/carex/getToreviewClasses? (this works only after a call to /createUserOntology with an empty user and carex ontology as parameters)
+  * Response body: 
+    ```json
+    {
+    "terms": {
+        "term 2": {
+            "iri": "http://biosemantics.arizona.edu/ontologies/carex#apical_tooth",
+            "elucidations": [],
+            "sentences": [
+                "beak straight , pale green , not strongly 2_edged , 0 . 6 – 1 . 6 mm , ciliate_serrulate , apical teeth 0 . 2 – 0 . 5 mm ."
+            ],
+            "label": "apical tooth",
+            "definitions": [
+                "Term is unclear but could refer to one of two projections (teeth) that are associaed with the beak of the perigynium or projections along the edge of a perigynium body"
+            ]
+        },
+	```
+
+
