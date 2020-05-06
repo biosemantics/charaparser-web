@@ -432,7 +432,20 @@
             ]
         },
 	```
-	
+* /moveFromToreviewToSuperclass: *add the term as a subclass of the superclass, deprecate the old term (subclass of toreview), remove (category) from the subclassTerm*
+  * HTTP POST <host>/moveFromToreviewToSuperclass
+  * Request body:If user value is empty, the shared ontology will be saved. Otherwise, a user-specific version of the ontology will be saved (See /createUserOntology). All other fields are required of a non-empty value.
+ 
+    ```json
+     {
+	"user": "",
+	"ontology": "carex",
+	"subclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#attachment_%28structure%29", 
+	"superclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#anatomical_structure",
+	"subclassTerm": "attachment (structure)",
+	"decisionExperts": "hong;bruce"
+     }
+    ```
 
     
 * /{ontology}/getClassesWMSuperclasses: *Conflict type 1: Obtain classes with multiple superclasses and with at least one example sentence*
