@@ -222,7 +222,8 @@
       "ontology":"exp",
       "term": "root-tip",
       "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex",
-      "decisionExperts": "hong;bruce"
+      "decisionExperts": "hong;bruce",
+      "decisionDate": "2020-01-15"
     }
     ```
 
@@ -240,7 +241,8 @@
      	"ontology":"exp",
       "term": "root-tip",
       "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex",
-      "decisionExperts": "hong;bruce"
+      "decisionExperts": "hong;bruce",
+      "decisionDate": "2020-01-15"
     }
     ```
 
@@ -296,7 +298,8 @@
 	 "ontology":"exp",
       "bearerIRI": "http://biosemantics.arizona.edu/ontologies/carex#root",
       "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex",
-      "decisionExperts": "hong;bruce"
+      "decisionExperts": "hong;bruce",
+      "decisionDate": "2020-01-15"
     }
     ```
 
@@ -315,7 +318,8 @@
       "ontology":"exp",
       "bearerIRI": "http://biosemantics.arizona.edu/ontologies/carex#root",
       "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex",
-      "decisionExperts": "bruce:hong"
+      "decisionExperts": "bruce:hong",
+      "decisionDate": "2020-01-15"
     }
     ```
  
@@ -443,7 +447,8 @@
 	"subclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#attachment_%28structure%29", 
 	"superclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#anatomical_structure",
 	"subclassTerm": "attachment (structure)",
-	"decisionExperts": "hong;bruce"
+	"decisionExperts": "hong;bruce",
+	"decisionDate": "2020-01-15"
      }
     ```
 
@@ -525,16 +530,36 @@
         },
 	```
 * /deprecate: *add deprecate annotation to the class*
-  * HTTP POST <host>/save
+  * HTTP POST <host>/deprecate
   * Request body:If user value is empty, the shared ontology will be saved. Otherwise, a user-specific version of the ontology will be saved (See /createUserOntology).
  
     ```json
     {
       "user":"",
       "ontology":"exp",
-      "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#apical_tooth"
+      "decisionDate": "2020-01-15",
+      "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#front_apex",
+      "decisionExperts": "hong",
+      "reasons": "bad term",
+      "alternativeTerm": "http://biosemantics.arizona.edu/ontologies/carex#apex"
     }
     ```	
+* /detachFromSuperclass: *move a subclass term from its superclass term*
+  * HTTP POST <host>/detachFromSuperclass
+  * Request body:If user value is empty, the shared ontology will be saved. Otherwise, a user-specific version of the ontology will be saved (See /createUserOntology).
+ 
+    ```json
+    {
+      "user":"",
+      "ontology":"exp",
+      "superclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#toreview",
+      "subclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#front_apex",
+      "decisionDate": "2020-01-15",
+      "decisionExperts": "hong"
+       }
+    ```	
+	
+	
 	
 
 
