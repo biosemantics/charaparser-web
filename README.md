@@ -438,7 +438,7 @@
 	```
 * /moveFromToreviewToSuperclass: *add the term as a subclass of the superclass, deprecate the old term (subclass of toreview), remove (category) from the subclassTerm*
   * HTTP POST <host>/moveFromToreviewToSuperclass
-  * Request body:If user value is empty, the shared ontology will be saved. Otherwise, a user-specific version of the ontology will be saved (See /createUserOntology). All other fields are required of a non-empty value.
+  * Request body:If user value is empty, the shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). All other fields are required of a non-empty value.
  
     ```json
      {
@@ -531,7 +531,7 @@
 	```
 * /deprecate: *add deprecate annotation to the class*
   * HTTP POST <host>/deprecate
-  * Request body:If user value is empty, the shared ontology will be saved. Otherwise, a user-specific version of the ontology will be saved (See /createUserOntology).
+  * Request body:If user value is empty, the shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).
  
     ```json
     {
@@ -546,7 +546,7 @@
     ```	
 * /detachFromSuperclass: *move a subclass term from its superclass term*
   * HTTP POST <host>/detachFromSuperclass
-  * Request body:If user value is empty, the shared ontology will be saved. Otherwise, a user-specific version of the ontology will be saved (See /createUserOntology).
+  * Request body:If user value is empty, the shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).
  
     ```json
     {
