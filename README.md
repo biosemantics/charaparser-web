@@ -222,7 +222,8 @@
       "ontology":"exp",
       "term": "root-tip",
       "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex",
-      "decisionExperts": "hong;bruce"
+      "decisionExperts": "hong;bruce",
+      "decisionDate": "2020-01-15"
     }
     ```
 
@@ -240,7 +241,8 @@
      	"ontology":"exp",
       "term": "root-tip",
       "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex",
-      "decisionExperts": "hong;bruce"
+      "decisionExperts": "hong;bruce",
+      "decisionDate": "2020-01-15"
     }
     ```
 
@@ -296,7 +298,8 @@
 	 "ontology":"exp",
       "bearerIRI": "http://biosemantics.arizona.edu/ontologies/carex#root",
       "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex",
-      "decisionExperts": "hong;bruce"
+      "decisionExperts": "hong;bruce",
+      "decisionDate": "2020-01-15"
     }
     ```
 
@@ -315,7 +318,8 @@
       "ontology":"exp",
       "bearerIRI": "http://biosemantics.arizona.edu/ontologies/carex#root",
       "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex",
-      "decisionExperts": "bruce:hong"
+      "decisionExperts": "bruce:hong",
+      "decisionDate": "2020-01-15"
     }
     ```
  
@@ -432,10 +436,9 @@
             ]
         },
 	```
-	
 * /moveFromToreviewToSuperclass: *add the term as a subclass of the superclass, deprecate the old term (subclass of toreview), remove (category) from the subclassTerm*
   * HTTP POST <host>/moveFromToreviewToSuperclass
-  * Request body:If user value is empty, the shared ontology will be saved. Otherwise, a user-specific version of the ontology will be saved (See /createUserOntology). All other fields are required of a non-empty value.
+  * Request body:If user value is empty, the shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). All other fields are required of a non-empty value.
  
     ```json
      {
@@ -444,26 +447,13 @@
 	"subclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#attachment_%28structure%29", 
 	"superclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#anatomical_structure",
 	"subclassTerm": "attachment (structure)",
-	"decisionExperts": "hong;bruce"
+	"decisionExperts": "hong;bruce",
+	"decisionDate": "2020-01-15"
      }
     ```
+
     
-* /moveFromToreviewToSuperclass: *add the term as a subclass of the superclass, deprecate the old term (subclass of toreview), remove (category) from the subclassTerm*
-  * HTTP POST <host>/moveFromToreviewToSuperclass
-  * Request body:If user value is empty, the shared ontology will be saved. Otherwise, a user-specific version of the ontology will be saved (See /createUserOntology). All other fields are required of a non-empty value.
- 
-    ```json
-     {
-	"user": "",
-	"ontology": "carex",
-	"subclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#attachment_%28structure%29", 
-	"superclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#anatomical_structure",
-	"subclassTerm": "attachment (structure)",
-	"decisionExperts": "hong;bruce"
-     }
-    ```
-    
-* /{ontology}/getClassesWMSuperclasses: *Conflict type 1: Obtain classes with multiple superclasses*
+* /{ontology}/getClassesWMSuperclasses: *Conflict type 1: Obtain classes with multiple superclasses and with at least one example sentence*
   * HTTP GET http://{host}/{ontology}/getClassesWMSuperclasses?user={optional_user}
   * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
   * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
@@ -518,7 +508,7 @@
 	
 	```
 	
-* /{ontology}/getToreviewClasses: *Conflict type 3: Obtain classes that are subclasses of toreview*
+* /{ontology}/getToreviewClasses: *Conflict type 3: Obtain classes that are subclasses of toreview and have exactly one definition*
   * HTTP GET http://{host}/{ontology}/getToreviewClasses?user={optional_user}
   * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
   * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
@@ -539,5 +529,37 @@
             ]
         },
 	```
+* /deprecate: *add deprecate annotation to the class*
+  * HTTP POST <host>/deprecate
+  * Request body:If user value is empty, the shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).
+ 
+    ```json
+    {
+      "user":"",
+      "ontology":"exp",
+      "decisionDate": "2020-01-15",
+      "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#front_apex",
+      "decisionExperts": "hong",
+      "reasons": "bad term",
+      "alternativeTerm": "http://biosemantics.arizona.edu/ontologies/carex#apex"
+    }
+    ```	
+* /detachFromSuperclass: *move a subclass term from its superclass term*
+  * HTTP POST <host>/detachFromSuperclass
+  * Request body:If user value is empty, the shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).
+ 
+    ```json
+    {
+      "user":"",
+      "ontology":"exp",
+      "superclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#toreview",
+      "subclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#front_apex",
+      "decisionDate": "2020-01-15",
+      "decisionExperts": "hong"
+       }
+    ```	
+	
+	
+	
 
 
