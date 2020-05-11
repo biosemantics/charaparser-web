@@ -186,7 +186,7 @@ public class Test {
 			*/
 			
 			/** Try sample addition of synonym; same as in controller upon incoming request **/
-			Synonym synonym = new Synonym("", "test"+t, "", "http://biosemantics.arizona.edu/ontologies/exp#apex", "");
+			Synonym synonym = new Synonym("", "test"+t, "", "http://biosemantics.arizona.edu/ontologies/exp#apex", "", "");
 			String synonymTerm = synonym.getTerm();
 			OWLClass clazz = owlDataFactory.getOWLClass(synonym.getClassIRI());
 			OWLAnnotationProperty exactSynonymProperty = 

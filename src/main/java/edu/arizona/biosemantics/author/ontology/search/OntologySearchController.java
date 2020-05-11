@@ -43,6 +43,7 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyDomainAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveAxiom;
 import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 import org.semanticweb.owlapi.model.parameters.Imports;
@@ -69,6 +70,7 @@ import edu.arizona.biosemantics.author.ontology.search.model.Class;
 import edu.arizona.biosemantics.author.ontology.search.model.Comment;
 import edu.arizona.biosemantics.author.ontology.search.model.Definition;
 import edu.arizona.biosemantics.author.ontology.search.model.Deprecate;
+import edu.arizona.biosemantics.author.ontology.search.model.Detach;
 import edu.arizona.biosemantics.author.ontology.search.model.UserOntology;
 import edu.arizona.biosemantics.author.ontology.search.model.HasPart;
 import edu.arizona.biosemantics.author.ontology.search.model.OntologyIRI;
@@ -483,7 +485,7 @@ public class OntologySearchController {
 						owlDataFactory.getOWLAnnotationProperty(IRI.create("http://purl.obolibrary.org/obo/IAO_0000116")); //editor_note
 				OWLAnnotation noteAnnotation = owlDataFactory.getOWLAnnotation(
 						noteProperty, owlDataFactory.getOWLLiteral("Adding '"+synonym.getTerm() +"' as exact_synomyn to "+synonym.getClassIRI() + 
-								" by "+synonym.getExperts() + " triggered the change of making the term a broad_synonym on this class (as opposed to the initial extact_synonym)"));
+								" by "+synonym.getExperts() + " on " + synonym.getDecisionDate() + " triggered the change of making the term a broad_synonym on this class (as opposed to the initial extact_synonym)"));
 				OWLAxiom noteAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clz.getIRI(), noteAnnotation);
 				owlOntologyManager.addAxiom(owlOntology, noteAxiom);
 				
@@ -633,7 +635,73 @@ public class OntologySearchController {
 	@PostMapping(value = "/definition", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
 	public ChangeApplied addDefinition(@RequestBody Definition definition) {
 		String definitionIRI = AnnotationProperty.DEFINITION.getIRI();
-		return addAnnotation(definition, definitionIRI);
+		//which ontology to use
+		String usrid = "";
+		String ontoName = definition.getOntology();
+		if(!definition.getUser().isEmpty()){
+			usrid = definition.getUser();
+			ontoName = ontoName+"_"+usrid;
+		}
+		OntologyIRI oIRI = getOntologyIRI(ontoName);
+		////System.outprintln("####################createBSynonym ontoName="+ontoName);
+		////System.outprintln("####################Iri="+oIRI.getIri());
+
+		//use the selected ontology		
+		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName); //this.owlOntologyManagerMap.get(oIRI);
+		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
+		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
+
+		String def = definition.getAnnotationContent();
+		if(!definition.getExperts().trim().isEmpty()){
+			def = def + " by "+definition.getExperts() + " on "+ definition.getDate()+".";
+		}
+		OWLClass clazz = owlDataFactory.getOWLClass(definition.getClassIRI());
+		OWLAnnotationProperty definitionProperty = 
+				owlDataFactory.getOWLAnnotationProperty(IRI.create(definitionIRI));
+
+		//Put resolved defs as notes
+		if(def.contains("via Conflict Resolver")){
+			String date = definition.getDate();
+			ArrayList<String> defs = getAnnotationValues(clazz, definitionProperty, owlOntology);
+			String defString = "Past defintiions:";
+			for(String deff: defs){
+				if(!def.contains(date)){
+					//take def string
+					defString += "["+deff+"] ";
+					//remove this definition
+					OWLAnnotation defAnnotationRemove = owlDataFactory.getOWLAnnotation(
+							definitionProperty, owlDataFactory.getOWLLiteral(def));
+					OWLAxiom definitionAxiomRemove = owlDataFactory.getOWLAnnotationAssertionAxiom(clazz.getIRI(), defAnnotationRemove);
+					RemoveAxiom remove = new RemoveAxiom(owlOntology, definitionAxiomRemove);
+					owlOntologyManager.applyChange(remove);
+				}
+			}
+			//add notes
+			OWLAnnotationProperty noteProperty = 
+					owlDataFactory.getOWLAnnotationProperty(IRI.create("http://purl.obolibrary.org/obo/IAO_0000116")); //editor_note
+			OWLAnnotation noteAnnotation = owlDataFactory.getOWLAnnotation(
+					noteProperty, owlDataFactory.getOWLLiteral(defString +
+							"Moved to notes based on decision by "+definition.getExperts() + " on " + definition.getDate()));
+			OWLAxiom noteAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clazz.getIRI(), noteAnnotation);
+			owlOntologyManager.addAxiom(owlOntology, noteAxiom);
+		}
+		
+		//Add the new def
+		OWLAnnotation defAnnotation = owlDataFactory.getOWLAnnotation(
+				definitionProperty, owlDataFactory.getOWLLiteral(def));
+		OWLAxiom definitionAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clazz.getIRI(), defAnnotation);
+
+		ChangeApplied c = owlOntologyManager.addAxiom(owlOntology, definitionAxiom);
+		
+		//refresh ontology search environment after the addition
+		//FileSearcher searcher = this.searchersMap.get(ontoName);
+		//searcher.updateSearcher(oIRI);
+
+		//save ontology
+		//saveOntology(ontoName, oIRI);
+		
+		return c;
+		
 	}
 	
 	@PostMapping(value = "/comment", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
@@ -987,7 +1055,7 @@ public class OntologySearchController {
 				owlDataFactory.getOWLAnnotationProperty(IRI.create("http://purl.obolibrary.org/obo/IAO_0000116")); //editor_note
 		OWLAnnotation noteAnnotation = owlDataFactory.getOWLAnnotation(
 				noteProperty, owlDataFactory.getOWLLiteral("Moved "+superclass.getSubclassIRI() +" from class toreview to subclass of "+superclass.getSuperclassIRI() + 
-						" by "+superclass.getExperts() + " via the mobile app "));
+						" by "+superclass.getExperts() + " on " + superclass.getDecisionDate()+ " via the mobile app "));
 		OWLAxiom noteAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(sub.getIRI(), noteAnnotation);
 		owlOntologyManager.addAxiom(owlOntology, noteAxiom);
 		
@@ -1050,6 +1118,66 @@ public class OntologySearchController {
 		return null;
 	}
 
+	
+	@PostMapping(value = "/deprecate", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
+	public  ChangeApplied deprecate(@RequestBody Deprecate deprecate) throws Exception {
+		//which ontology to use
+		String usrid = "";
+		String ontoName = deprecate.getOntology();
+		if(!deprecate.getUser().isEmpty()){
+			usrid = deprecate.getUser();
+			ontoName = ontoName+"_"+usrid;
+		}
+	
+		OntologyIRI oIRI = getOntologyIRI(ontoName);
+		
+		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName); //this.owlOntologyManagerMap.get(oIRI);
+		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
+		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
+		
+		//add note about the change
+		OWLAnnotationProperty noteProperty = 
+				owlDataFactory.getOWLAnnotationProperty(IRI.create("http://purl.obolibrary.org/obo/IAO_0000116")); //editor_note
+		OWLAnnotation noteAnnotation = owlDataFactory.getOWLAnnotation(
+				noteProperty, owlDataFactory.getOWLLiteral("Deprecated by "+ deprecate.getExperts() + " on " + deprecate.getDecisionDate()+ " for reasons: "+deprecate.getReasons() +". Consider "+deprecate.getReplacementTerm()));
+		OWLAxiom noteAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(IRI.create(deprecate.getClassIRI()), noteAnnotation);
+		owlOntologyManager.addAxiom(owlOntology, noteAxiom);
+
+		
+		OWLAnnotationAssertionAxiom dAxiom = owlDataFactory.getDeprecatedOWLAnnotationAssertionAxiom(IRI.create(deprecate.getClassIRI())); //deprecate the old class
+		return owlOntologyManager.addAxiom(owlOntology, dAxiom);
+		
+	}
+	
+	@PostMapping(value = "/detachFromSuperclass", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
+	public  ChangeApplied detach(@RequestBody Detach detach) throws Exception {
+		//which ontology to use
+		String usrid = "";
+		String ontoName = detach.getOntology();
+		if(!detach.getUser().isEmpty()){
+			usrid = detach.getUser();
+			ontoName = ontoName+"_"+usrid;
+		}
+		OntologyIRI oIRI = getOntologyIRI(ontoName);
+
+		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName); //this.owlOntologyManagerMap.get(oIRI);
+		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
+		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
+		
+		//add note about the change
+		OWLAnnotationProperty noteProperty = 
+				owlDataFactory.getOWLAnnotationProperty(IRI.create("http://purl.obolibrary.org/obo/IAO_0000116")); //editor_note
+		OWLAnnotation noteAnnotation = owlDataFactory.getOWLAnnotation(
+				noteProperty, owlDataFactory.getOWLLiteral("The term was a subclass of "+ detach.getSuperclassIRI() + ", but detached by "+detach.getExperts()+ " on " + detach.getDecisionDate()));
+		OWLAxiom noteAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(IRI.create(detach.getSubclassIRI()), noteAnnotation);
+		owlOntologyManager.addAxiom(owlOntology, noteAxiom);
+		
+		OWLSubClassOfAxiom subAxiom = owlDataFactory.getOWLSubClassOfAxiom(owlDataFactory.getOWLClass(IRI.create(detach.getSubclassIRI())), 
+				owlDataFactory.getOWLClass(IRI.create(detach.getSuperclassIRI())));
+		RemoveAxiom remove = new RemoveAxiom(owlOntology, subAxiom);
+		return owlOntologyManager.applyChange(remove);
+		
+	}
 	/*private OntologyIRI getOntologyIRI(String o) {
 		for(OntologyIRI oIRI : entityOntologies) {
 			if(oIRI.getName().equalsIgnoreCase(o))
@@ -1101,25 +1229,6 @@ public class OntologySearchController {
 		return true;
 	}
 	
-	@PostMapping(value = "/deprecate", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
-	public  ChangeApplied deprecate(@RequestBody Deprecate deprecate) throws Exception {
-		//which ontology to use
-		String usrid = "";
-		String ontoName = deprecate.getOntology();
-		if(!deprecate.getUser().isEmpty()){
-			usrid = deprecate.getUser();
-			ontoName = ontoName+"_"+usrid;
-		}
-		OntologyIRI oIRI = getOntologyIRI(ontoName);
-
-		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName); //this.owlOntologyManagerMap.get(oIRI);
-		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
-		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
-		OWLAnnotationAssertionAxiom dAxiom = owlDataFactory.getDeprecatedOWLAnnotationAssertionAxiom(IRI.create(deprecate.getClassIRI())); //deprecate the old class
-		return owlOntologyManager.addAxiom(owlOntology, dAxiom);
-		
-	}
-	
 	
 	public boolean saveOntology(String ontoName, OntologyIRI oIRI){
 		boolean success = true;
@@ -1137,6 +1246,8 @@ public class OntologySearchController {
 		return success;
 		
 	}
+	
+
 
 	/*@GetMapping(value = "/{ontology}/getDefinition", produces = { MediaType.APPLICATION_JSON_VALUE })
 	public String getClassHierarchyInJSON(@PathVariable String ontology, @RequestParam Optional<String> user, 

@@ -10,6 +10,7 @@ public class Superclass {
 		private String ontology;
 		private String subclassIRI; //subclass has superclass
 		private String superclassIRI;
+		private String decisionDate;
 		
 
 		@JsonCreator
@@ -18,7 +19,8 @@ public class Superclass {
 				@JsonProperty("subclassIRI") String subclassIRI, 
 				@JsonProperty("superclassIRI") String superclassIRI,
 				@JsonProperty("subclassTerm") String subclassTerm,
-				@JsonProperty("decisionExperts") String experts) {
+				@JsonProperty("decisionExperts") String experts, 
+				@JsonProperty("decisionDate") String date) {
 			super();
 			this.subclassIRI = subclassIRI;
 			this.superclassIRI = superclassIRI;
@@ -26,6 +28,7 @@ public class Superclass {
 			this.user = user;
 			this.experts = experts;
 			this.subclassTerm = subclassTerm;
+			this.decisionDate = date;
 		}
 		
 		
@@ -74,6 +77,10 @@ public class Superclass {
 
 		public String getSubclassIRI() {
 			return subclassIRI;
+		}
+
+		public String getDecisionDate() {
+			return decisionDate;
 		}
 
 	}
