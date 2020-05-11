@@ -253,7 +253,7 @@
     
 * /definition: *add a defintion property to the class in the named ontology*
   * HTTP POST http://{host}/definition
-  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). All other fields are required of a non-empty value.
+  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). Fields "decisionExperts" and "decisionDate" are for Conflict Resolver user only. All other fields are required of a non-empty value.
     ```json
     {
      	"user":"",
@@ -261,7 +261,9 @@
       "definition": "the summit of a root",
       "providedBy": "hongcui",
       "exampleSentence": "root apex rounded",
-      "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex"
+      "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex",
+      	"decisionExperts": "hongcui via Conflict Resolver",
+	"decisionDate": "2020-05-11"
     }
     ```
 
