@@ -652,7 +652,7 @@ public class OntologySearchController {
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 
 		String def = definition.getAnnotationContent();
-		if(!definition.getExperts().trim().isEmpty()){
+		if(definition.getExperts()!=null && !definition.getExperts().trim().isEmpty()){
 			def = def + " by "+definition.getExperts() + " on "+ definition.getDate()+".";
 		}
 		OWLClass clazz = owlDataFactory.getOWLClass(definition.getClassIRI());
@@ -665,12 +665,12 @@ public class OntologySearchController {
 			ArrayList<String> defs = getAnnotationValues(clazz, definitionProperty, owlOntology);
 			String defString = "Past defintiions:";
 			for(String deff: defs){
-				if(!def.contains(date)){
+				if(!deff.contains(date)){
 					//take def string
 					defString += "["+deff+"] ";
 					//remove this definition
 					OWLAnnotation defAnnotationRemove = owlDataFactory.getOWLAnnotation(
-							definitionProperty, owlDataFactory.getOWLLiteral(def));
+							definitionProperty, owlDataFactory.getOWLLiteral(deff));
 					OWLAxiom definitionAxiomRemove = owlDataFactory.getOWLAnnotationAssertionAxiom(clazz.getIRI(), defAnnotationRemove);
 					RemoveAxiom remove = new RemoveAxiom(owlOntology, definitionAxiomRemove);
 					owlOntologyManager.applyChange(remove);
@@ -772,7 +772,12 @@ public class OntologySearchController {
 		////System.outprintln("/class ####################owlOntology axiom count (before)="+owlOntology.getAxiomCount());
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 
-		String subclassIRI = oIRI.getIri() + "#" + c.getTerm().trim().replaceAll("\\s+", "_").replaceAll("%20", "_");
+		String IRIpart = c.getTerm().toLowerCase().trim();
+		if(IRIpart.isEmpty() || ! IRIpart.matches("^[a-z0-9]") || ! IRIpart.matches("[a-z0-9]$")) 
+			return "NO_OPERATION: Term is empty or not start/end with an alphanum character.";
+		
+		IRIpart = IRIpart.replaceAll("(%2D|\\s|%20|%5F|%96|%97|-)+", "_"); //turn space and hyphen-like characters to underscore for IRI.
+		String subclassIRI = oIRI.getIri() + "#" + IRIpart;
 		OWLClass subclass = owlDataFactory.getOWLClass(subclassIRI);
 
 		OWLAnnotationProperty labelProperty =
