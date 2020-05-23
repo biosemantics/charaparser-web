@@ -560,6 +560,22 @@
       "decisionExperts": "hong"
        }
     ```	
+    
+    
+* /setSuperclass: *add a subclassof relation beween subclass and superclass*
+  * HTTP POST <host>/setSuperclass
+  * Request body:If user value is empty, the shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).    
+    
+    ```
+    {
+	"user": "",
+	"ontology": "exp",
+	"superclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#reflectance",
+	"decisionExperts": "hong",
+	"decisionDate": "2020-05-25",
+	"subclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#pale_hyaline"
+	}
+	```
 	
 	
 	
