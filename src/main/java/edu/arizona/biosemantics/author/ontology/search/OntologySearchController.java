@@ -993,7 +993,7 @@ public class OntologySearchController {
 	 * subclass: red
 	 * superclass: coloration
 	 * @param superclass
-	 * @return
+	 * @return remove red from /toreview, and move it to coloration
 	 */
 	@PostMapping(value = "/moveFromToreviewToSuperclass", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
 	public ChangeApplied moveFromToReviewToSuperclass(@RequestBody Superclass superclass) {
@@ -1064,6 +1064,7 @@ public class OntologySearchController {
 		OWLAxiom noteAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(sub.getIRI(), noteAnnotation);
 		owlOntologyManager.addAxiom(owlOntology, noteAxiom);
 		
+		//move to new superclass
 		OWLAxiom subclassAxiom = owlDataFactory.getOWLSubClassOfAxiom(sub, supr);
 		ChangeApplied c= owlOntologyManager.addAxiom(owlOntology, subclassAxiom);
 		
@@ -1078,6 +1079,45 @@ public class OntologySearchController {
 		
 		return c;
 	}
+	
+	/**
+	 * subclass: red
+	 * superclass: coloration
+	 * @param superclass
+	 * @return make coloration a superclass of red
+	 */
+	@PostMapping(value = "/setSuperclass", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
+	public ChangeApplied setSuperclass(@RequestBody Superclass superclass) {
+		//which ontology to use
+		String usrid = "";
+		String ontoName = superclass.getOntology();
+		if(!superclass.getUser().isEmpty()){
+			usrid = superclass.getUser();
+			ontoName = ontoName+"_"+usrid;
+		}
+		OntologyIRI oIRI = getOntologyIRI(ontoName);
+
+		//use the selected ontology		
+
+		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName); //this.owlOntologyManagerMap.get(oIRI);
+		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
+		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
+
+		OWLClass sub = owlDataFactory.getOWLClass(superclass.getSubclassIRI()); //created a new class
+		OWLClass supr = owlDataFactory.getOWLClass(superclass.getSuperclassIRI());
+		
+
+		//set new superclass
+		OWLAxiom subclassAxiom = owlDataFactory.getOWLSubClassOfAxiom(sub, supr);
+		ChangeApplied c= owlOntologyManager.addAxiom(owlOntology, subclassAxiom);
+		
+		//refresh ontology search environment after the addition
+		FileSearcher searcher = this.searchersMap.get(ontoName);
+		searcher.updateSearcher(IRI.create(oIRI.getIri()));
+
+		return c;
+	}
+	
 
 	private boolean isEntityOntology(String o) {
 		for(OntologyIRI on : allLiveEntityOntologies) {
