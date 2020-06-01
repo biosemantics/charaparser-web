@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -14,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -97,8 +99,6 @@ public class OntologySearchController {
 		ontologyIRIs.put("po", "http://purl.obolibrary.org/obo/po");
 		ontologyIRIs.put("pato", "http://purl.obolibrary.org/obo/pato");
 	}
-
-
 	private static String HAS_PART = "http://purl.obolibrary.org/obo/BFO_0000051"; 
 	private static String ELUCIDATION = "http://purl.oblibrary.org/obo/IAO_0000600";
 	private static String createdBy = "http://www.geneontology.org/formats/oboInOwl#created_by";
@@ -417,8 +417,10 @@ public class OntologySearchController {
 
 	/**
 	 * attempt to add an exact synonym to a class
-	 * if such synonym is not also a synonym of another class, add as exact synonym as requested
-	 * else add as a bsynonym to all related classes (change e to b for all classes)
+	 * if this synonym is already a class = set the two classes as equivalent classes
+	 * else add synonym as exact synonym
+	 * 
+	 * A term may be a exact synonym, broad synonym, or not recommended synonym. This could be conflict type 4.
 	 * @param synonym
 	 * @return
 	 */
@@ -439,12 +441,43 @@ public class OntologySearchController {
 		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName);// this.owlOntologyManagerMap.get(oIRI);
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
-
+		OWLClass clazz = owlDataFactory.getOWLClass(synonym.getClassIRI());
 		String synonymTerm = synonym.getTerm();
+		
+		ChangeApplied c = null;
+		
+		//is synonymTerm a class in the ontology?
+		Set<OWLClass> synClazz = getClassInOntology(synonymTerm, owlOntology, owlOntologyManager, owlDataFactory);
+		if(!synClazz.isEmpty()){
+			synClazz.add(clazz);
+			//prep for the annotation
+			OWLAnnotationProperty noteProperty = 
+					owlDataFactory.getOWLAnnotationProperty(IRI.create("http://purl.obolibrary.org/obo/IAO_0000116")); //editor_note
+			OWLAnnotation noteAnnotation = owlDataFactory.getOWLAnnotation(
+					noteProperty, owlDataFactory.getOWLLiteral("exact synonym "+ synonym.getTerm() + " to "+synonym.getClassIRI()+  " (by "+synonym.getExperts()+" "+synonym.getDecisionDate()+") is a class, therefore this and "+synonym.getClassIRI() + " are made equivalent classes."));		
+			
+			ArrayList<OWLAnnotation> notes = new ArrayList<OWLAnnotation> ();
+			notes.add(noteAnnotation);
+			OWLAxiom equAxiom = owlDataFactory.getOWLEquivalentClassesAxiom(synClazz, notes);
+			c = owlOntologyManager.addAxiom(owlOntology, equAxiom);
+	
+		}else{
+			//if not, add esynonym
+			OWLAnnotationProperty exactSynonymProperty = 
+					owlDataFactory.getOWLAnnotationProperty(IRI.create(AnnotationProperty.EXACT_SYNONYM.getIRI()));
+			OWLAnnotation synonymAnnotation = owlDataFactory.getOWLAnnotation(
+					exactSynonymProperty, owlDataFactory.getOWLLiteral(synonymTerm));
+			OWLAxiom synonymAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clazz.getIRI(), synonymAnnotation);
+	
+			c = owlOntologyManager.addAxiom(owlOntology, synonymAxiom);
+		}
+		
+		/*
 		ArrayList<OWLClass> classesWesynonym = new ArrayList<OWLClass>();//exact_syno
 		ArrayList<OWLClass> classesWnsynonym = new ArrayList<OWLClass>();//not_recommended_synonym
-		findClassesWithExactSynonym(owlOntology, owlDataFactory, synonymTerm, classesWesynonym, classesWnsynonym);
 		OWLClass clazz = owlDataFactory.getOWLClass(synonym.getClassIRI());
+		findOtherClassesWithExactNRecSynonym(owlOntology, owlDataFactory, synonymTerm, classesWesynonym, classesWnsynonym, clazz);
+		
 		ChangeApplied c = null;
 		
 		//if esynonym is a not_recommended_synonym, report error
@@ -492,6 +525,7 @@ public class OntologySearchController {
 			}
 			c = ChangeApplied.valueOf("SUCCESSFULLY"); 
 		}
+		*/
 		
 		//refresh ontology search environment after the addition
 		FileSearcher searcher = this.searchersMap.get(ontoName);
@@ -503,9 +537,40 @@ public class OntologySearchController {
 		return c; //return the last change
 	}
 	
-	
+	/**
+	 * 
+	 * @param label
+	 * @param owlOntology
+	 * @param owlOntologyManager
+	 * @param owlDataFactory 
+	 * @return the OWLClass with the label
+	 */
+	private Set<OWLClass> getClassInOntology(String label, OWLOntology owlOntology,
+			OWLOntologyManager owlOntologyManager, OWLDataFactory owlDataFactory) {
+		
+		OWLAnnotationProperty labelProperty = 
+				owlDataFactory.getOWLAnnotationProperty(IRI.create(AnnotationProperty.LABEL.getIRI()));
+		
+		Set<OWLClass> classesWLabel = new TreeSet<OWLClass>();
+		//loop through all classes to find matching classes
+		Set<OWLClass> set = owlOntology.classesInSignature().collect(Collectors.toSet());
+	    for(OWLClass clz: set){
+	    	Set<OWLAnnotation> annos = EntitySearcher.getAnnotationObjects(clz, owlOntology, labelProperty).collect(Collectors.toSet());
+	    	for(OWLAnnotation anno: annos){
+	    		if(anno.getValue().equals(owlDataFactory.getOWLLiteral(label))){
+	    			classesWLabel.add(clz);
+	    		}
+  		
+	    	}
+	    }
 
-	private void findClassesWithExactSynonym(OWLOntology owlOntology, OWLDataFactory owlDataFactory, String esynonym, ArrayList<OWLClass> classesWesynonym, ArrayList<OWLClass> classesWnsynonym) {
+		
+		return classesWLabel;
+	}
+
+	//HOng TODO: think through this, when to add a term as an exact, broad, and not recommended synomym.
+
+	/*private void findOtherClassesWithExactNRecSynonym(OWLOntology owlOntology, OWLDataFactory owlDataFactory, String esynonym, ArrayList<OWLClass> classesWesynonym, ArrayList<OWLClass> classesWnsynonym, OWLClass thisClass) {
 		
 		//esyn = "term"
 		OWLAnnotationProperty eSynonymProperty = 
@@ -534,8 +599,13 @@ public class OntologySearchController {
 	    	}
 	    }
 		
-	}
+	}*/
 
+	/**
+	 * 
+	 * @param synonym
+	 * @return if synonym is already a class, return NO_OPERATION, otherwise, add as a bsyn.
+	 */
 	@PostMapping(value = "/bsynonym", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
 	public ChangeApplied createBSynonym(@RequestBody Synonym synonym) {
 		//which ontology to use
@@ -555,20 +625,27 @@ public class OntologySearchController {
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 
 		String synonymTerm = synonym.getTerm();
-		OWLClass clazz = owlDataFactory.getOWLClass(synonym.getClassIRI());
-		OWLAnnotationProperty exactSynonymProperty = 
-				owlDataFactory.getOWLAnnotationProperty(IRI.create(AnnotationProperty.BROAD_SYNONYM.getIRI()));
-		OWLAnnotation synonymAnnotation = owlDataFactory.getOWLAnnotation(
-				exactSynonymProperty, owlDataFactory.getOWLLiteral(synonymTerm));
-		OWLAxiom synonymAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clazz.getIRI(), synonymAnnotation);
-
-		ChangeApplied c = owlOntologyManager.addAxiom(owlOntology, synonymAxiom);
 		
-		//refresh ontology search environment after the addition
-		FileSearcher searcher = this.searchersMap.get(ontoName);
-		searcher.updateSearcher(IRI.create(oIRI.getIri()));
-		//save ontology
-		//saveOntology(ontoName, oIRI);
+		Set<OWLClass> synClazz = getClassInOntology(synonymTerm, owlOntology, owlOntologyManager, owlDataFactory);
+		ChangeApplied c = null;
+		if(synClazz.isEmpty()){
+			OWLClass clazz = owlDataFactory.getOWLClass(synonym.getClassIRI());
+			OWLAnnotationProperty exactSynonymProperty = 
+					owlDataFactory.getOWLAnnotationProperty(IRI.create(AnnotationProperty.BROAD_SYNONYM.getIRI()));
+			OWLAnnotation synonymAnnotation = owlDataFactory.getOWLAnnotation(
+					exactSynonymProperty, owlDataFactory.getOWLLiteral(synonymTerm));
+			OWLAxiom synonymAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clazz.getIRI(), synonymAnnotation);
+	
+			c = owlOntologyManager.addAxiom(owlOntology, synonymAxiom);
+			
+			//refresh ontology search environment after the addition
+			FileSearcher searcher = this.searchersMap.get(ontoName);
+			searcher.updateSearcher(IRI.create(oIRI.getIri()));
+			//save ontology
+			//saveOntology(ontoName, oIRI);
+		}else{
+			c = ChangeApplied.NO_OPERATION;
+		}
 		
 		return c;
 	}
