@@ -213,7 +213,7 @@
     {IRI}|UNSUCCESSFULLY|NO_OPERATION
     ```
 
-* /esynonym: *Creates an exact synonym to the class in the named ontology*
+* /esynonym: *Creates an exact synonym to the class in the named ontology if term is not already a class. Otherwise, make two classes equivalent classes*
   * HTTP POST http://{host}/esynonym
   * Request body: If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). All other fields are required of a non-empty value.
     ```json
@@ -232,7 +232,7 @@
     SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
     ```
 
-* /bsynonym: *Creates a broader synonym to the class in the named ontology*
+* /bsynonym: *Creates a broader synonym to the class in the named ontology if term is not already a class, otherwise, no-operation*
   * HTTP POST http://{host}/bsynonym
   * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). All other fields are required of a non-empty value.
     ```json
