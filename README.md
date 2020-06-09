@@ -309,7 +309,25 @@
     ```json
     SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
     ```
+* /maybePartOf: *Creates a maybepart-of relation between the part and the bearer (part is 'part_of' bearer) in the named ontology*
+  * HTTP POST http://{host}/maybePartOf
+  * Request body: If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). All other fields are required of a non-empty value.
+    ```json
+    {
+    	 "user":"",
+	 "ontology":"exp",
+      "bearerIRI": "http://biosemantics.arizona.edu/ontologies/carex#root",
+      "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex",
+      "decisionExperts": "hong;bruce",
+      "decisionDate": "2020-01-15"
+    }
+    ```
 
+  * Response Body:
+    ```json
+    SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
+    ```
+    
 * /hasPart: *Creates a has-part relation between the bearer and the part (bearer 'has part' part) in the named ontology. *
   * HTTP POST <host>/hasPart
   * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). All other fields are required of a non-empty value.
