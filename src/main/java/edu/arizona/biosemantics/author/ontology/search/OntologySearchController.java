@@ -1266,11 +1266,11 @@ public class OntologySearchController {
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
 		
 		//add note about the change
-		OWLAnnotationProperty noteProperty = 
-				owlDataFactory.getOWLAnnotationProperty(IRI.create("http://purl.obolibrary.org/obo/IAO_0000116")); //editor_note
-		OWLAnnotation noteAnnotation = owlDataFactory.getOWLAnnotation(
-				noteProperty, owlDataFactory.getOWLLiteral("Deprecated by "+ deprecate.getExperts() + " on " + deprecate.getDecisionDate()+ " for reasons: "+deprecate.getReasons() +". Consider "+deprecate.getReplacementTerm()));
-		OWLAxiom noteAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(IRI.create(deprecate.getClassIRI()), noteAnnotation);
+		OWLAnnotationProperty reason = 
+				owlDataFactory.getOWLAnnotationProperty(IRI.create("http://biosemantics.arizona.edu/ontologies/carex#has_obsolescence_reason")); //editor_note
+		OWLAnnotation reasonAnnotation = owlDataFactory.getOWLAnnotation(
+				reason, owlDataFactory.getOWLLiteral("Deprecated by "+ deprecate.getExperts() + " on " + deprecate.getDecisionDate()+ " for reasons: "+deprecate.getReasons() +". Consider "+deprecate.getReplacementTerm()));
+		OWLAxiom noteAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(IRI.create(deprecate.getClassIRI()), reasonAnnotation);
 		owlOntologyManager.addAxiom(owlOntology, noteAxiom);
 
 		
@@ -2241,7 +2241,77 @@ public class OntologySearchController {
 			
 		}
 	
+		@GetMapping(value = "/{ontology}/getDeprecatedClasses", produces = { MediaType.APPLICATION_JSON_VALUE })
+		public String getDeprecatedClasses(@PathVariable String ontology, @RequestParam Optional<String> user) throws Exception {
+			String usrid = "";
+			String ontoName = ontology;
+			if(user.isPresent()){
+				usrid = user.get();
+				ontoName = ontology+"_"+usrid;
+			}
+			OntologyIRI oIRI = getOntologyIRI(ontoName);
 
+			OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName);
+			OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
+			OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
+			
+			JSONObject object = new JSONObject();
+			
+			writeJSON4DeprecatedClasses(owlOntology, owlDataFactory, object, owlOntologyManager);
+
+			return object.toJSONString(); 
+		
+			
+		}
+
+		@SuppressWarnings("unchecked")
+		private void writeJSON4DeprecatedClasses(OWLOntology owlOntology, OWLDataFactory owlDataFactory,
+				JSONObject object, OWLOntologyManager owlOntologyManager) {
+
+			JSONArray depTerms = new JSONArray();
+			OWLAnnotationProperty reason = owlDataFactory.getOWLAnnotationProperty(IRI.create("http://biosemantics.arizona.edu/ontologies/carex#has_obsolescence_reason"));
+			OWLAnnotationProperty replacement = owlDataFactory.getOWLAnnotationProperty(IRI.create("http://biosemantics.arizona.edu/ontologies/carex#term_replaced_by"));
+
+			//write out	
+			Set<OWLClass> set = owlOntology.classesInSignature().collect(Collectors.toSet());
+			for(OWLClass claz: set){
+				boolean isDeprecated = false;
+				JSONObject depTerm = new JSONObject();
+				Set<OWLAnnotation> annotations = EntitySearcher.getAnnotationObjects(claz, owlOntology).collect(Collectors.toSet());
+
+				for(OWLAnnotation annotation: annotations){
+					if(annotation.isDeprecatedIRIAnnotation()){
+						isDeprecated = true;
+					}
+					if(isDeprecated){	
+						//get label
+						depTerm.put("deprecate term", labelFor(claz, owlOntology, owlDataFactory));
+						depTerm.put("deprecated IRI", claz.getIRI().toString());
+
+						for(OWLAnnotation thisAnnotation: annotations){
+							if(thisAnnotation.getProperty().equals(replacement)){
+								OWLAnnotationValue value = thisAnnotation.getValue();
+								if(value instanceof OWLLiteral) {
+									depTerm.put("replacement term", ((OWLLiteral) value).getLiteral());   
+								}
+								if(value instanceof IRI){
+									depTerm.put("replacement term", labelFor(owlDataFactory.getOWLClass((IRI)(value)), owlOntology, owlDataFactory));
+									depTerm.put("replacement IRI", value.toString());
+								}
+							}
+							if(thisAnnotation.getProperty().equals(reason)){
+								OWLAnnotationValue value = thisAnnotation.getValue();
+								if(value instanceof OWLLiteral) {
+									depTerm.put("deprecated reason", ((OWLLiteral) value).getLiteral());   
+								}
+							}
+						}
+						depTerms.add(depTerm);
+					}	
+				}
+			}
+			object.put("deprecated classes", depTerms);
+		}
 	/*
 	 * 
 	 * 

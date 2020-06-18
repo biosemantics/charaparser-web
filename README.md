@@ -594,7 +594,30 @@
 	"subclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#pale_hyaline"
 	}
 	```
-	
+* /{ontology}/getDeprecatedClasses: *Obtain current set of classes with owl:deprecated true.
+  * HTTP  http://{host}/{ontology}/getDeprecatedClasses?user={optional_user}
+  * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., exp.
+  * {optional_user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
+
+  * Example: GET http://shark.sbs.arizona.edu:8080/carex/getDeprecatedClasses?
+  * Response body: response include at least deprecated IRI and term. May also include replament term/IRI and deprecated reason 
+      ```
+	{
+    "deprecated classes": [
+        {
+            "deprecated IRI": "http://biosemantics.arizona.edu/ontologies/carex#flattened",
+            "deprecate term": "flattened",
+            "deprecated reason": "The same as compressed. AntonReznicek 2020-04-30"
+        },
+        {
+            "deprecated IRI": "http://biosemantics.arizona.edu/ontologies/carex#inrolled",
+            "deprecate term": "inrolled",
+            "replacement IRI": "http://biosemantics.arizona.edu/ontologies/carex#involute",
+            "replacement term": "involute",
+            "deprecated reason": "same as involute. AntonReznicek 2020-04-30"
+        }]
+     }
+	```
 	
 	
 
