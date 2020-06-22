@@ -642,7 +642,7 @@
             "creation_date": "2018/02/01"
         }
     ]
-}
+	}
 	```	
 	
 * /{ontology}/getMovedClasses: *Obtain current set of classes that have moved to a new superclass since a date.
