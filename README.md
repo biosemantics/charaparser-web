@@ -620,7 +620,7 @@
 	```
 	
 	
-* /{ontology}/getClassesWithNewDefinitions: *Obtain current set of classes that have a new definition since a date.
+* /{ontology}/getClassesWithNewDefinition: *Obtain current set of classes that have a new definition since a date.
   * HTTP  http://{host}/{ontology}/getDeprecatedClasses?user={optional_user}&date={date}
   * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., exp.
   * {optional_user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
