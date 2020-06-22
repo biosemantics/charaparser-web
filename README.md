@@ -59,7 +59,7 @@
     ```
 * /createUserOntology: *Make a (set) of ontology ready. This service needs to be called before any of the requests listed below can be used*
   * HTTP POST http://{host}/createUserOntology
-  * Request body: user can take an empty string as its value, in this case, a shared ontology will be made ready for all requests with an empty user. If user has a non-empty value, such as an id, a copy of the ontology will be made ready for this specific user. Subsequent calls to access the ontology will need to use user field with the id. Ontologies can be exp or carex.
+  * Request body: user can take an empty string as its value, in this case, a shared ontology will be made ready for all requests with an empty user. If user has a non-empty value, such as an id, a copy of the ontology will be made ready for this specific user. Subsequent calls to access the ontology will need to use user field with the id. Ontologies can be exp or exp.
   ```json
   {
 	  "user":"2",
@@ -76,8 +76,8 @@
   * {optional_parent}: The optional parent the {term} is required to have
   * {optional_relation}: The optional relation the {term} is required to have
   * Example: 
-  GET http://shark.sbs.arizona.edu:8080/carex/search?term=reddish&ancestorIRI=http://biosemantics.arizona.edu/ontologies/carex%23colored
-  GET http://shark.sbs.arizona.edu:8080/carex/search?term=quaternary%20leaf%20vein (this works only after a call to /createUserOntology with an empty user and carex ontology as parameters)
+  GET http://shark.sbs.arizona.edu:8080/exp/search?term=reddish&ancestorIRI=http://biosemantics.arizona.edu/ontologies/exp%23colored
+  GET http://shark.sbs.arizona.edu:8080/exp/search?term=quaternary%20leaf%20vein (this works only after a call to /createUserOntology with an empty user and exp ontology as parameters)
   * Response body: returns classes related to the term in someway, such as a synonym, or other relationships.  
     ```json
     {
@@ -175,11 +175,11 @@
     ```
 * /getDefinition: *retrieve the defintion string of a matching class in the named ontology in /parse* 
   * HTTP GET  http://{host}/{ontology}/search?user={optional_user}&term={term}&baseIri={baseIri}
-  * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., carex.
+  * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., exp.
   * {optional_user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
   * {term}: The term to search the definition for
   * {baseIri}: The base iri of the ontology id for the term. The complete ontology id=base_iri#term.
-  * Example: GET http://shark.sbs.arizona.edu:8080/carex/getDefinition?baseIri=http://biosemantics.arizona.edu/ontologies/carex&term=apex (this works only after a call to /parse with an empty user and carex ontology as parameters, and term in /parse has an ontology id)
+  * Example: GET http://shark.sbs.arizona.edu:8080/exp/getDefinition?baseIri=http://biosemantics.arizona.edu/ontologies/exp&term=apex (this works only after a call to /parse with an empty user and exp ontology as parameters, and term in /parse has an ontology id)
   * Response Body: the definition as a tring
   
  
@@ -191,7 +191,7 @@
      	"user":"",
      	"ontology":"exp",
       "term": "root-apex",
-      "superclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex",
+      "superclassIRI": "http://biosemantics.arizona.edu/ontologies/exp#apex",
       "definition": "the apex of the root",
       "elucidation": "http://some.illustration.of/the/apex-root.jpg",
       "createdBy": "hongcui",
@@ -221,7 +221,7 @@
       "user":"",
       "ontology":"exp",
       "term": "root-tip",
-      "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex",
+      "classIRI": "http://biosemantics.arizona.edu/ontologies/exp#root-apex",
       "decisionExperts": "hong;bruce",
       "decisionDate": "2020-01-15"
     }
@@ -240,7 +240,7 @@
      	"user":"",
      	"ontology":"exp",
       "term": "root-tip",
-      "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex",
+      "classIRI": "http://biosemantics.arizona.edu/ontologies/exp#root-apex",
       "decisionExperts": "hong;bruce",
       "decisionDate": "2020-01-15"
     }
@@ -261,7 +261,7 @@
       "definition": "the summit of a root",
       "providedBy": "hongcui",
       "exampleSentence": "root apex rounded",
-      "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex",
+      "classIRI": "http://biosemantics.arizona.edu/ontologies/exp#root-apex",
       	"decisionExperts": "hongcui via Conflict Resolver",
 	"decisionDate": "2020-05-11"
     }
@@ -282,7 +282,7 @@
       "comment": "not sure this term covers my example",
       "providedBy": "hongcui",
       "exampleSentence": "root ends rounded",
-      "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#root-apex"
+      "classIRI": "http://biosemantics.arizona.edu/ontologies/exp#root-apex"
     }
     ```
 
@@ -298,8 +298,8 @@
     {
     	 "user":"",
 	 "ontology":"exp",
-      "bearerIRI": "http://biosemantics.arizona.edu/ontologies/carex#root",
-      "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex",
+      "bearerIRI": "http://biosemantics.arizona.edu/ontologies/exp#root",
+      "partIRI": "http://biosemantics.arizona.edu/ontologies/exp#apex",
       "decisionExperts": "hong;bruce",
       "decisionDate": "2020-01-15"
     }
@@ -316,8 +316,8 @@
     {
     	 "user":"",
 	 "ontology":"exp",
-      "bearerIRI": "http://biosemantics.arizona.edu/ontologies/carex#root",
-      "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex",
+      "bearerIRI": "http://biosemantics.arizona.edu/ontologies/exp#root",
+      "partIRI": "http://biosemantics.arizona.edu/ontologies/exp#apex",
       "decisionExperts": "hong;bruce",
       "decisionDate": "2020-01-15"
     }
@@ -336,8 +336,8 @@
     {
       "user":"",
       "ontology":"exp",
-      "bearerIRI": "http://biosemantics.arizona.edu/ontologies/carex#root",
-      "partIRI": "http://biosemantics.arizona.edu/ontologies/carex#apex",
+      "bearerIRI": "http://biosemantics.arizona.edu/ontologies/exp#root",
+      "partIRI": "http://biosemantics.arizona.edu/ontologies/exp#apex",
       "decisionExperts": "bruce:hong",
       "decisionDate": "2020-01-15"
     }
@@ -361,18 +361,18 @@
     
 * /{ontology}/getSubclasses: *Obtain the subclasses of the term as a JSON object*
   * HTTP  http://{host}/{ontology}/getSubclasses?user={optional_user}&baseIri={baseIri}&term={term}
-  * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., carex.
+  * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., exp.
   * {optional_user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
   * {term}: The term for which to find its subclasses
   * {baseIri}: The base iri of the ontology id for the term. The complete ontology id of the term =base_iri#term.
-  * Example: GET http://shark.sbs.arizona.edu:8080/carex/getSubclasses?baseIri=http://biosemantics.arizona.edu/ontologies/carex&term=coloration 
+  * Example: GET http://shark.sbs.arizona.edu:8080/exp/getSubclasses?baseIri=http://biosemantics.arizona.edu/ontologies/exp&term=coloration 
   * Response body:
   ```json
   {
     "data": {
         "details": [
             {
-                "IRI": "http://biosemantics.arizona.edu/ontologies/carex#coloration"
+                "IRI": "http://biosemantics.arizona.edu/ontologies/exp#coloration"
             }
         ]
     },
@@ -381,7 +381,7 @@
             "data": {
                 "details": [
                     {
-                        "IRI": "http://biosemantics.arizona.edu/ontologies/carex#reddish"
+                        "IRI": "http://biosemantics.arizona.edu/ontologies/exp#reddish"
                     }
                 ]
             },
@@ -390,7 +390,7 @@
                     "data": {
                         "details": [
                             {
-                                "IRI": "http://biosemantics.arizona.edu/ontologies/carex#dotted-reddish"
+                                "IRI": "http://biosemantics.arizona.edu/ontologies/exp#dotted-reddish"
                             }
                         ]
                     },
@@ -402,7 +402,7 @@
   * HTTP GET http://{host}/{ontology}/getTree?user={optional_user}
   * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
   * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
-  * Example: GET http://shark.sbs.arizona.edu:8080/carex/getTree (this works only after a call to /createUserOntology with an empty user and carex ontology as parameters)
+  * Example: GET http://shark.sbs.arizona.edu:8080/exp/getTree (this works only after a call to /createUserOntology with an empty user and exp ontology as parameters)
   * Response body: 
     ```json
     {
@@ -423,11 +423,11 @@
      ```
     
     
-* /{ontology}/getStandardCollection: *Obtain the standard carex characters*
+* /{ontology}/getStandardCollection: *Obtain the standard exp characters*
   * HTTP GET http://{host}/{ontology}/getStandardCollection?user={optional_user}
   * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
   * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
-  * Example: GET http://shark.sbs.arizona.edu:8080/carex/getStandardCollection? (this works only after a call to /createUserOntology with an empty user and carex ontology as parameters)
+  * Example: GET http://shark.sbs.arizona.edu:8080/exp/getStandardCollection? (this works only after a call to /createUserOntology with an empty user and exp ontology as parameters)
   * Response body: 
     ```json
     {
@@ -439,15 +439,15 @@
             "resultAnnotations": [
                 {
                     "property": "http://www.geneontology.org/formats/oboInOwl#id",
-                    "value": "http://biosemantics.arizona.edu/ontologies/carex#number_of_staminate_flowers"
+                    "value": "http://biosemantics.arizona.edu/ontologies/exp#number_of_staminate_flowers"
                 },
                 {
-                    "property": "http://biosemantics.arizona.edu/ontologies/carex#quality_of",
-                    "value": "http://biosemantics.arizona.edu/ontologies/carex#staminate_flower"
+                    "property": "http://biosemantics.arizona.edu/ontologies/exp#quality_of",
+                    "value": "http://biosemantics.arizona.edu/ontologies/exp#staminate_flower"
                 },
                 {
-                    "property": "http://biosemantics.arizona.edu/ontologies/carex#in_collection",
-                    "value": "http://biosemantics.arizona.edu/ontologies/carex#carex_standard_character_set"
+                    "property": "http://biosemantics.arizona.edu/ontologies/exp#in_collection",
+                    "value": "http://biosemantics.arizona.edu/ontologies/exp#exp_standard_character_set"
                 },
                 {
                     "property": "http://www.w3.org/2000/01/rdf-schema#label",
@@ -463,9 +463,9 @@
     ```json
      {
 	"user": "",
-	"ontology": "carex",
-	"subclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#attachment_%28structure%29", 
-	"superclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#anatomical_structure",
+	"ontology": "exp",
+	"subclassIRI": "http://biosemantics.arizona.edu/ontologies/exp#attachment_%28structure%29", 
+	"superclassIRI": "http://biosemantics.arizona.edu/ontologies/exp#anatomical_structure",
 	"subclassTerm": "attachment (structure)",
 	"decisionExperts": "hong;bruce",
 	"decisionDate": "2020-01-15"
@@ -477,18 +477,18 @@
   * HTTP GET http://{host}/{ontology}/getClassesWMSuperclasses?user={optional_user}
   * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
   * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
-  * Example: GET http://shark.sbs.arizona.edu:8080/carex/getClassesWMSuperclasses? (this works only after a call to /createUserOntology with an empty user and carex ontology as parameters)
+  * Example: GET http://shark.sbs.arizona.edu:8080/exp/getClassesWMSuperclasses? (this works only after a call to /createUserOntology with an empty user and exp ontology as parameters)
   * Response body: 
     ```json
     {
     "terms": {
         "term 80": {
-            "iri": "http://biosemantics.arizona.edu/ontologies/carex#purple_banded",
+            "iri": "http://biosemantics.arizona.edu/ontologies/exp#purple_banded",
             "sentences": [],
             "label": "purple banded",
             "categories": {
                 "category 2": {
-                    "iri": "http://biosemantics.arizona.edu/ontologies/carex#purple",
+                    "iri": "http://biosemantics.arizona.edu/ontologies/exp#purple",
                     "elucidation": [],
                     "name": "purple",
                     "definition": [
@@ -496,7 +496,7 @@
                     ]
                 },
                 "category 1": {
-                    "iri": "http://biosemantics.arizona.edu/ontologies/carex#banded",
+                    "iri": "http://biosemantics.arizona.edu/ontologies/exp#banded",
                     "elucidation": [],
                     "name": "banded",
                     "definition": [
@@ -510,13 +510,13 @@
   * HTTP GET http://{host}/{ontology}/getClassesWMZdefinitions?user={optional_user}
   * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
   * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
-  * Example: GET http://shark.sbs.arizona.edu:8080/carex/getClassesWMZdefinitions? (this works only after a call to /createUserOntology with an empty user and carex ontology as parameters)
+  * Example: GET http://shark.sbs.arizona.edu:8080/exp/getClassesWMZdefinitions? (this works only after a call to /createUserOntology with an empty user and exp ontology as parameters)
   * Response body: 
     ```json
     {
     "terms": {
         "term 80": {
-            "iri": "http://biosemantics.arizona.edu/ontologies/carex#sheath_front_apex",
+            "iri": "http://biosemantics.arizona.edu/ontologies/exp#sheath_front_apex",
             "elucidations": [],
             "sentences": [],
             "label": "sheath front apex",
@@ -532,13 +532,13 @@
   * HTTP GET http://{host}/{ontology}/getToreviewClasses?user={optional_user}
   * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
   * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
-  * Example: GET http://shark.sbs.arizona.edu:8080/carex/getToreviewClasses? (this works only after a call to /createUserOntology with an empty user and carex ontology as parameters)
+  * Example: GET http://shark.sbs.arizona.edu:8080/exp/getToreviewClasses? (this works only after a call to /createUserOntology with an empty user and exp ontology as parameters)
   * Response body: 
     ```json
     {
     "terms": {
         "term 2": {
-            "iri": "http://biosemantics.arizona.edu/ontologies/carex#apical_tooth",
+            "iri": "http://biosemantics.arizona.edu/ontologies/exp#apical_tooth",
             "elucidations": [],
             "sentences": [
                 "beak straight , pale green , not strongly 2_edged , 0 . 6 – 1 . 6 mm , ciliate_serrulate , apical teeth 0 . 2 – 0 . 5 mm ."
@@ -558,10 +558,10 @@
       "user":"",
       "ontology":"exp",
       "decisionDate": "2020-01-15",
-      "classIRI": "http://biosemantics.arizona.edu/ontologies/carex#front_apex",
+      "classIRI": "http://biosemantics.arizona.edu/ontologies/exp#front_apex",
       "decisionExperts": "hong",
       "reasons": "bad term",
-      "alternativeTerm": "http://biosemantics.arizona.edu/ontologies/carex#apex"
+      "alternativeTerm": "http://biosemantics.arizona.edu/ontologies/exp#apex"
     }
     ```	
 * /detachFromSuperclass: *move a subclass term from its superclass term*
@@ -572,8 +572,8 @@
     {
       "user":"",
       "ontology":"exp",
-      "superclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#toreview",
-      "subclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#front_apex",
+      "superclassIRI": "http://biosemantics.arizona.edu/ontologies/exp#toreview",
+      "subclassIRI": "http://biosemantics.arizona.edu/ontologies/exp#front_apex",
       "decisionDate": "2020-01-15",
       "decisionExperts": "hong"
        }
@@ -588,10 +588,10 @@
     {
 	"user": "",
 	"ontology": "exp",
-	"superclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#reflectance",
+	"superclassIRI": "http://biosemantics.arizona.edu/ontologies/exp#reflectance",
 	"decisionExperts": "hong",
 	"decisionDate": "2020-05-25",
-	"subclassIRI": "http://biosemantics.arizona.edu/ontologies/carex#pale_hyaline"
+	"subclassIRI": "http://biosemantics.arizona.edu/ontologies/exp#pale_hyaline"
 	}
 	```
 * /{ontology}/getDeprecatedClasses: *Obtain current set of classes with owl:deprecated true.
@@ -599,20 +599,20 @@
   * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., exp.
   * {optional_user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
 
-  * Example: GET http://shark.sbs.arizona.edu:8080/carex/getDeprecatedClasses?
+  * Example: GET http://shark.sbs.arizona.edu:8080/exp/getDeprecatedClasses?
   * Response body: response include at least deprecated IRI and term. May also include replament term/IRI and deprecated reason 
       ```
 	{
     "deprecated classes": [
         {
-            "deprecated IRI": "http://biosemantics.arizona.edu/ontologies/carex#flattened",
+            "deprecated IRI": "http://biosemantics.arizona.edu/ontologies/exp#flattened",
             "deprecate term": "flattened",
             "deprecated reason": "The same as compressed. AntonReznicek 2020-04-30"
         },
         {
-            "deprecated IRI": "http://biosemantics.arizona.edu/ontologies/carex#inrolled",
+            "deprecated IRI": "http://biosemantics.arizona.edu/ontologies/exp#inrolled",
             "deprecate term": "inrolled",
-            "replacement IRI": "http://biosemantics.arizona.edu/ontologies/carex#involute",
+            "replacement IRI": "http://biosemantics.arizona.edu/ontologies/exp#involute",
             "replacement term": "involute",
             "deprecated reason": "same as involute. AntonReznicek 2020-04-30"
         }]
@@ -620,5 +620,27 @@
 	```
 	
 	
+* /{ontology}/getClassesWithNewDefinitions: *Obtain current set of classes that have a new definition since a date.
+  * HTTP  http://{host}/{ontology}/getDeprecatedClasses?user={optional_user}&date={date}
+  * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., exp.
+  * {optional_user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
+  * {date}: in yyyy-mm-dd format
 
+  * Example: GET http://shark.sbs.arizona.edu:8080/exp/getClassesWithNewDefinitions?date=2020-01-01
+  * Response body: response include labels and IRIs of such classes, along with any annotation the class may have, such as synonym and notes. 
+      ```
+	
+	```	
+	
+* /{ontology}/getMovedClasses: *Obtain current set of classes that have moved to a new superclass since a date.
+  * HTTP  http://{host}/{ontology}/getMovedClasses?user={optional_user}&date={date}
+  * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., exp.
+  * {optional_user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
+  * {date}: in yyyy-mm-dd format
+
+  * Example: GET http://shark.sbs.arizona.edu:8080/exp/getMovedClasses?date=2020-01-01
+  * Response body: response include labels and IRIs of such classes, along with any annotation the class may have, such as synonym and notes. 
+      ```
+	
+	```	
 
