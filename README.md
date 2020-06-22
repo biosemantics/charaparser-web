@@ -621,26 +621,53 @@
 	
 	
 * /{ontology}/getClassesWithNewDefinition: *Obtain current set of classes that have a new definition since a date.
-  * HTTP  http://{host}/{ontology}/getDeprecatedClasses?user={optional_user}&date={date}
+  * HTTP  http://{host}/{ontology}/getDeprecatedClasses?user={optional_user}&dateString={date}
   * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., exp.
   * {optional_user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
-  * {date}: in yyyy-mm-dd format
+  * {dateString}: in yyyy-mm-dd format
 
   * Example: GET http://shark.sbs.arizona.edu:8080/exp/getClassesWithNewDefinitions?date=2020-01-01
   * Response body: response include labels and IRIs of such classes, along with any annotation the class may have, such as synonym and notes. 
       ```
-	
+	{
+    "classes with new definition": [
+        {
+            "example_of_usage": "beak straight , pale green , not strongly 2_edged , 0 . 6 – 1 . 6 mm , ciliate_serrulate , apical teeth 0 . 2 – 0 . 5 mm .",
+            "definition_source": "AR",
+            "term with new definition": "apical tooth",
+            "term with new def IRI": "http://biosemantics.arizona.edu/ontologies/carex#apical_tooth",
+            "definition": "Term is unclear but could refer to one of two projections (teeth) that are associaed with the beak of the perigynium or projections along the edge of a perigynium body",
+            "label": "apical tooth",
+            "editor_note": "Definition \"term unclear\" provided by Tony on date 2020-04-30.",
+            "creation_date": "2018/02/01"
+        }
+    ]
+}
 	```	
 	
 * /{ontology}/getMovedClasses: *Obtain current set of classes that have moved to a new superclass since a date.
-  * HTTP  http://{host}/{ontology}/getMovedClasses?user={optional_user}&date={date}
+  * HTTP  http://{host}/{ontology}/getMovedClasses?user={optional_user}&date={dateString}
   * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., exp.
   * {optional_user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
-  * {date}: in yyyy-mm-dd format
+  * {dateString}: in yyyy-mm-dd format
 
   * Example: GET http://shark.sbs.arizona.edu:8080/exp/getMovedClasses?date=2020-01-01
   * Response body: response include labels and IRIs of such classes, along with any annotation the class may have, such as synonym and notes. 
       ```
+      {
+    "moved classes": [
+        {
+            "example_of_usage": "beak straight , pale green , not strongly 2_edged , 0 . 6 – 1 . 6 mm , ciliate_serrulate , apical teeth 0 . 2 – 0 . 5 mm .",
+            "definition_source": "AR",
+            "moved term": "apical tooth",
+            "moved term IRI": "http://biosemantics.arizona.edu/ontologies/carex#apical_tooth",
+            "definition": "Term is unclear but could refer to one of two projections (teeth) that are associaed with the beak of the perigynium or projections along the edge of a perigynium body",
+            "label": "apical tooth",
+            "editor_note": "Moved class to be a subclass of tooth by hong on date 2020-06-11",
+            "creation_date": "2018/02/01"
+        }
+    ]
+	}
 	
 	```	
 

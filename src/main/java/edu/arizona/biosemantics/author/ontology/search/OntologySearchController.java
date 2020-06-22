@@ -6,8 +6,10 @@ import java.io.FileOutputStream;
 //import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -718,6 +720,8 @@ public class OntologySearchController {
 		OWLClass clazz = owlDataFactory.getOWLClass(definition.getClassIRI());
 		OWLAnnotationProperty definitionProperty = 
 				owlDataFactory.getOWLAnnotationProperty(IRI.create(definitionIRI));
+		OWLAnnotationProperty noteProperty = 
+				owlDataFactory.getOWLAnnotationProperty(IRI.create("http://purl.obolibrary.org/obo/IAO_0000116")); //editor_note
 
 		//Put resolved defs as notes
 		if(def.contains("via Conflict Resolver")){
@@ -737,12 +741,12 @@ public class OntologySearchController {
 				}
 			}
 			//add notes
+			//must use Definition(s), on date, and yyyy-mm-dd in the note!
+			//getNewDefinitions depend on these.
 			if(defString.compareTo("Past defintions:")!=0){
-				OWLAnnotationProperty noteProperty = 
-						owlDataFactory.getOWLAnnotationProperty(IRI.create("http://purl.obolibrary.org/obo/IAO_0000116")); //editor_note
 				OWLAnnotation noteAnnotation = owlDataFactory.getOWLAnnotation(
-						noteProperty, owlDataFactory.getOWLLiteral(defString +
-								"Moved to notes based on decision by "+definition.getExperts() + " on " + definition.getDate()));
+						noteProperty, owlDataFactory.getOWLLiteral("Definition(s) '" +defString +
+								"' moved to notes based on decision by "+definition.getExperts() + " on date " + definition.getDate()));
 				OWLAxiom noteAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clazz.getIRI(), noteAnnotation);
 				owlOntologyManager.addAxiom(owlOntology, noteAxiom);
 			}
@@ -754,6 +758,14 @@ public class OntologySearchController {
 		OWLAxiom definitionAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clazz.getIRI(), defAnnotation);
 
 		ChangeApplied c = owlOntologyManager.addAxiom(owlOntology, definitionAxiom);
+		
+		//must use Definition(s), on date, and yyyy-mm-dd in the note!
+		//getNewDefinitions depend on these.
+		OWLAnnotation noteAnnotation = owlDataFactory.getOWLAnnotation(
+				noteProperty, owlDataFactory.getOWLLiteral("Definition '" +def +
+						"' added based on the decision by "+definition.getExperts() + " on date " + definition.getDate()));
+		OWLAxiom noteAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clazz.getIRI(), noteAnnotation);
+		owlOntologyManager.addAxiom(owlOntology, noteAxiom);
 		
 		//refresh ontology search environment after the addition
 		//FileSearcher searcher = this.searchersMap.get(ontoName);
@@ -1141,11 +1153,12 @@ public class OntologySearchController {
 		}
 		
 		//add note about the change
+		//must use 'Moved class' and 'on' a date of format yyyy-MM-dd. getMovedClasses depends on these
 		OWLAnnotationProperty noteProperty = 
 				owlDataFactory.getOWLAnnotationProperty(IRI.create("http://purl.obolibrary.org/obo/IAO_0000116")); //editor_note
 		OWLAnnotation noteAnnotation = owlDataFactory.getOWLAnnotation(
-				noteProperty, owlDataFactory.getOWLLiteral("Moved "+superclass.getSubclassIRI() +" from class toreview to subclass of "+superclass.getSuperclassIRI() + 
-						" by "+superclass.getExperts() + " on " + superclass.getDecisionDate()+ " via the mobile app "));
+				noteProperty, owlDataFactory.getOWLLiteral("Moved class "+superclass.getSubclassIRI() +" from 'toreview' to subclass of "+superclass.getSuperclassIRI() + 
+						" by "+superclass.getExperts() + " on  date " + superclass.getDecisionDate()+ " via the mobile app "));
 		OWLAxiom noteAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(sub.getIRI(), noteAnnotation);
 		owlOntologyManager.addAxiom(owlOntology, noteAxiom);
 		
@@ -1195,6 +1208,14 @@ public class OntologySearchController {
 		//set new superclass
 		OWLAxiom subclassAxiom = owlDataFactory.getOWLSubClassOfAxiom(sub, supr);
 		ChangeApplied c= owlOntologyManager.addAxiom(owlOntology, subclassAxiom);
+		
+		OWLAnnotationProperty noteProperty = 
+				owlDataFactory.getOWLAnnotationProperty(IRI.create("http://purl.obolibrary.org/obo/IAO_0000116")); //editor_note
+		OWLAnnotation noteAnnotation = owlDataFactory.getOWLAnnotation(
+				noteProperty, owlDataFactory.getOWLLiteral("Moved class "+superclass.getSubclassIRI() +" to subclass of "+superclass.getSuperclassIRI() + 
+						" by "+superclass.getExperts() + " on date " + superclass.getDecisionDate())); //must use 'Moved class' and 'on' a date of format yyyy-MM-dd. getMovedClasses depends on these
+		OWLAxiom noteAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(sub.getIRI(), noteAnnotation);
+		owlOntologyManager.addAxiom(owlOntology, noteAxiom);
 		
 		//refresh ontology search environment after the addition
 		FileSearcher searcher = this.searchersMap.get(ontoName);
@@ -1664,15 +1685,15 @@ public class OntologySearchController {
 		return nSyns;
 	}
 
-	private String labelFor(OWLClass clazz, OWLOntology onto, OWLDataFactory owlDataFactory) {
-		for(OWLAnnotation a : EntitySearcher.getAnnotations(clazz, onto, owlDataFactory.getRDFSLabel()).collect(Collectors.toSet())) {
+	private String labelFor(OWLEntity entity, OWLOntology onto, OWLDataFactory owlDataFactory) {
+		for(OWLAnnotation a : EntitySearcher.getAnnotations(entity, onto, owlDataFactory.getRDFSLabel()).collect(Collectors.toSet())) {
 			OWLAnnotationValue value = a.getValue();
 			if(value instanceof OWLLiteral) {
 				return ((OWLLiteral) value).getLiteral();   
 			}
 		}
 		//else return the last segment of the IRI
-		String iri = clazz.getIRI().getIRIString();
+		String iri = entity.getIRI().getIRIString();
 		int i = iri.lastIndexOf("#") >0? iri.lastIndexOf("#") : iri.lastIndexOf("/");
 		return iri.substring(i+1);
 	}
@@ -2241,6 +2262,10 @@ public class OntologySearchController {
 			
 		}
 	
+		/*
+		 * get all deprecated classes from an ontology
+		 */
+		
 		@GetMapping(value = "/{ontology}/getDeprecatedClasses", produces = { MediaType.APPLICATION_JSON_VALUE })
 		public String getDeprecatedClasses(@PathVariable String ontology, @RequestParam Optional<String> user) throws Exception {
 			String usrid = "";
@@ -2282,8 +2307,10 @@ public class OntologySearchController {
 				for(OWLAnnotation annotation: annotations){
 					if(annotation.isDeprecatedIRIAnnotation()){
 						isDeprecated = true;
+						break;
 					}
-					if(isDeprecated){	
+				}
+				if(isDeprecated){	
 						//get label
 						depTerm.put("deprecate term", labelFor(claz, owlOntology, owlDataFactory));
 						depTerm.put("deprecated IRI", claz.getIRI().toString());
@@ -2308,10 +2335,217 @@ public class OntologySearchController {
 						}
 						depTerms.add(depTerm);
 					}	
-				}
 			}
 			object.put("deprecated classes", depTerms);
 		}
+		
+		
+		
+		/*
+		 * get all primary classes that have been asserted to be a subclass of a new superclass since a date
+		 */
+		
+		@GetMapping(value = "/{ontology}/getMovedClasses", produces = { MediaType.APPLICATION_JSON_VALUE })
+		public String getMovedClasses(@PathVariable String ontology, @RequestParam Optional<String> user, @RequestParam String dateString) throws Exception {
+			String usrid = "";
+			String ontoName = ontology;
+			if(user.isPresent()){
+				usrid = user.get();
+				ontoName = ontology+"_"+usrid;
+			}
+			OntologyIRI oIRI = getOntologyIRI(ontoName);
+			
+			SimpleDateFormat ft = new SimpleDateFormat ("yyyy-MM-dd"); 
+			Date date = ft.parse(dateString);
+
+			OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName);
+			OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
+			OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
+			
+			JSONObject object = new JSONObject();
+			
+			writeJSON4MovedClasses(owlOntology, owlDataFactory, object, owlOntologyManager, date);
+
+			return object.toJSONString(); 
+		
+			
+		}
+
+		@SuppressWarnings("unchecked")
+		private void writeJSON4MovedClasses(OWLOntology owlOntology, OWLDataFactory owlDataFactory,
+				JSONObject object, OWLOntologyManager owlOntologyManager, Date date) {
+
+			JSONArray movedTerms = new JSONArray();
+
+			//write out	
+			Set<OWLClass> set = owlOntology.classesInSignature().collect(Collectors.toSet());
+			for(OWLClass claz: set){
+				boolean isMoved = false;
+				JSONObject movedTerm = new JSONObject();
+				Set<OWLAnnotation> annotations = EntitySearcher.getAnnotationObjects(claz, owlOntology).collect(Collectors.toSet());
+
+				for(OWLAnnotation annotation: annotations){
+					if(isMoveClassNoteAnnotationSince (annotation, date, owlDataFactory)){
+						isMoved = true;
+						break;
+					}
+				}
+				
+				if(isMoved){	
+					//get label
+					movedTerm.put("moved term", labelFor(claz, owlOntology, owlDataFactory));
+					movedTerm.put("moved term IRI", claz.getIRI().toString());
+
+					for(OWLAnnotation thisAnnotation: annotations){
+						OWLAnnotationProperty prop = thisAnnotation.getProperty();
+						String label = labelFor(prop, owlOntology, owlDataFactory);
+						OWLAnnotationValue value = thisAnnotation.getValue();
+						if(value instanceof OWLLiteral) {
+							movedTerm.put(label, ((OWLLiteral) value).getLiteral());   
+						}
+						if(value instanceof IRI){
+							movedTerm.put("label", value.toString());
+						}
+					}
+					movedTerms.add(movedTerm);
+				}	
+			}
+			object.put("moved classes", movedTerms);
+		}
+
+		private boolean isMoveClassNoteAnnotationSince(OWLAnnotation annotation, Date date, OWLDataFactory owlDataFactory) {
+			OWLAnnotationProperty noteProperty = 
+					owlDataFactory.getOWLAnnotationProperty(IRI.create("http://purl.obolibrary.org/obo/IAO_0000116")); //editor_note
+			//OWLAnnotation noteAnnotation = owlDataFactory.getOWLAnnotation(
+			//		noteProperty, owlDataFactory.getOWLLiteral("Moved class "+superclass.getSubclassIRI() +" from class toreview to subclass of "+superclass.getSuperclassIRI() + 
+			//				" by "+superclass.getExperts() + " on date " + superclass.getDecisionDate()+ " via the mobile app "));
+
+			if(annotation.getProperty().equals(noteProperty)){
+				OWLAnnotationValue value = annotation.getValue();
+				if(value instanceof OWLLiteral) {
+					String note = ((OWLLiteral) value).getLiteral().toString();
+					if(note.startsWith("Moved class")){
+						String noteDate = note.replaceAll(".*? on date ([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]).*", "$1");
+						SimpleDateFormat ft = new SimpleDateFormat ("yyyy-MM-dd"); 
+						try{
+							Date nDate = ft.parse(noteDate);
+							if(nDate.after(date)){
+								return true;
+							}
+						}catch(Exception e){
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+			
+			return false;
+		}
+
+		/*
+		 * get all primary classes that have a new definition since a date
+		 */
+		
+		@GetMapping(value = "/{ontology}/getClassesWithNewDefinition", produces = { MediaType.APPLICATION_JSON_VALUE })
+		public String getClassesWithNewDefinition(@PathVariable String ontology, @RequestParam Optional<String> user, @RequestParam String dateString) throws Exception {
+			String usrid = "";
+			String ontoName = ontology;
+			if(user.isPresent()){
+				usrid = user.get();
+				ontoName = ontology+"_"+usrid;
+			}
+			OntologyIRI oIRI = getOntologyIRI(ontoName);
+			
+			SimpleDateFormat ft = new SimpleDateFormat ("yyyy-MM-dd"); 
+			Date date = ft.parse(dateString);
+
+			OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName);
+			OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
+			OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
+			
+			JSONObject object = new JSONObject();
+			
+			writeJSON4ClassesWithNewDef(owlOntology, owlDataFactory, object, owlOntologyManager, date);
+
+			return object.toJSONString(); 
+		
+			
+		}
+
+		@SuppressWarnings("unchecked")
+		private void writeJSON4ClassesWithNewDef(OWLOntology owlOntology, OWLDataFactory owlDataFactory,
+				JSONObject object, OWLOntologyManager owlOntologyManager, Date date) {
+
+			JSONArray termsWNewDef = new JSONArray();
+
+			//write out	
+			Set<OWLClass> set = owlOntology.classesInSignature().collect(Collectors.toSet());
+			for(OWLClass claz: set){
+				boolean hasNewDef = false;
+				JSONObject termWithNewDef = new JSONObject();
+				Set<OWLAnnotation> annotations = EntitySearcher.getAnnotationObjects(claz, owlOntology).collect(Collectors.toSet());
+
+				for(OWLAnnotation annotation: annotations){
+					if(hasNewDefSince (annotation, date, owlDataFactory)){
+						hasNewDef = true;
+						break;
+					}
+				}
+				
+				if(hasNewDef){	
+					//get label
+					termWithNewDef.put("term with new definition", labelFor(claz, owlOntology, owlDataFactory));
+					termWithNewDef.put("term with new def IRI", claz.getIRI().toString());
+
+					for(OWLAnnotation thisAnnotation: annotations){
+						OWLAnnotationProperty prop = thisAnnotation.getProperty();
+						String label = labelFor(prop, owlOntology, owlDataFactory);
+						OWLAnnotationValue value = thisAnnotation.getValue();
+						if(value instanceof OWLLiteral) {
+							termWithNewDef.put(label, ((OWLLiteral) value).getLiteral());   
+						}
+						if(value instanceof IRI){
+							termWithNewDef.put("label", value.toString());
+						}
+					}
+					termsWNewDef.add(termWithNewDef);
+				}	
+			}
+			object.put("classes with new definition", termsWNewDef);
+		}
+
+		private boolean hasNewDefSince(OWLAnnotation annotation, Date date, OWLDataFactory owlDataFactory) {
+
+			OWLAnnotationProperty noteProperty = 
+					owlDataFactory.getOWLAnnotationProperty(IRI.create("http://purl.obolibrary.org/obo/IAO_0000116")); //editor_note
+			//OWLAnnotation noteAnnotation = owlDataFactory.getOWLAnnotation(
+			//		noteProperty, owlDataFactory.getOWLLiteral("Moved class "+superclass.getSubclassIRI() +" from class toreview to subclass of "+superclass.getSuperclassIRI() + 
+			//				" by "+superclass.getExperts() + " on date " + superclass.getDecisionDate()+ " via the mobile app "));
+
+			if(annotation.getProperty().equals(noteProperty)){
+				OWLAnnotationValue value = annotation.getValue();
+				if(value instanceof OWLLiteral) {
+					String note = ((OWLLiteral) value).getLiteral().toString();
+					if(note.startsWith("Definition")){
+						String noteDate = note.replaceAll(".*? on date ([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]).*", "$1");
+						SimpleDateFormat ft = new SimpleDateFormat ("yyyy-MM-dd"); 
+						try{
+							Date nDate = ft.parse(noteDate);
+							if(nDate.after(date)){
+								return true;
+							}
+						}catch(Exception e){
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+			
+			return false;
+		}
+
+
+		
 	/*
 	 * 
 	 * 
