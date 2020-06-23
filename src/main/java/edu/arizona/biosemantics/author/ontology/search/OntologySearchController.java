@@ -1286,13 +1286,33 @@ public class OntologySearchController {
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
 		
+		String replace = deprecate.getReplacementTerm();
+		String n = "";
+		if(replace != null && ! replace.isEmpty()){
+			n = " Consider "+replace;
+		}
+		
 		//add note about the change
 		OWLAnnotationProperty reason = 
 				owlDataFactory.getOWLAnnotationProperty(IRI.create("http://biosemantics.arizona.edu/ontologies/carex#has_obsolescence_reason")); //editor_note
 		OWLAnnotation reasonAnnotation = owlDataFactory.getOWLAnnotation(
-				reason, owlDataFactory.getOWLLiteral("Deprecated by "+ deprecate.getExperts() + " on " + deprecate.getDecisionDate()+ " for reasons: "+deprecate.getReasons() +". Consider "+deprecate.getReplacementTerm()));
+				reason, owlDataFactory.getOWLLiteral("Deprecated by "+ deprecate.getExperts() + " on date " + deprecate.getDecisionDate()+ " for reasons: "+deprecate.getReasons() +"."+ n));
 		OWLAxiom noteAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(IRI.create(deprecate.getClassIRI()), reasonAnnotation);
 		owlOntologyManager.addAxiom(owlOntology, noteAxiom);
+		
+		//add replacement term for the deprecated term
+		OWLAnnotationProperty replacement = 
+				owlDataFactory.getOWLAnnotationProperty(IRI.create("http://biosemantics.arizona.edu/ontologies/carex#term_replaced_by")); //editor_note
+		OWLAnnotation replacementAnnotation = null;
+		if(replace!=null && ! replace.isEmpty() && replace.startsWith("http:")){
+				replacementAnnotation = owlDataFactory.getOWLAnnotation(
+				replacement, IRI.create(replace));
+		}else{
+			replacementAnnotation = owlDataFactory.getOWLAnnotation(
+					replacement, owlDataFactory.getOWLLiteral(replace));
+		}
+		OWLAxiom replacementAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(IRI.create(deprecate.getClassIRI()), replacementAnnotation);
+		owlOntologyManager.addAxiom(owlOntology, replacementAxiom);
 
 		
 		OWLAnnotationAssertionAxiom dAxiom = owlDataFactory.getDeprecatedOWLAnnotationAssertionAxiom(IRI.create(deprecate.getClassIRI())); //deprecate the old class
