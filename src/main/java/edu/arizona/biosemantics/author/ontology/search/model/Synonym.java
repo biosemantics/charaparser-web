@@ -11,16 +11,19 @@ public class Synonym {
 	private String ontology;
 	private String experts;
 	private String decisionDate;
+	private String reason;
 	
 	@JsonCreator
 	public Synonym(@JsonProperty(value="user", required=false) String user, @JsonProperty("term")String term, @JsonProperty("ontology") String ontology, 
-			@JsonProperty("classIRI") String classIRI, @JsonProperty(value="decisionExperts", required=false) String experts, @JsonProperty(value="decisionDate", required=false) String date) {
+			@JsonProperty("classIRI") String classIRI, @JsonProperty(value="decisionExperts", required=false) String experts, @JsonProperty(value="decisionDate", required=false) String date,
+			@JsonProperty(value="reason", required=false) String reason) {
 		this.synonym = term;
 		this.classIRI = classIRI;
 		this.user = user;
 		this.ontology = ontology;
 		this.experts = experts;
 		this.decisionDate = date;
+		this.reason = reason;
 	}
 	
 	
@@ -28,6 +31,9 @@ public class Synonym {
 		return experts;
 	}
 
+	public String getReason() {
+		return reason;
+	}
 
 	public void setExperts(String experts) {
 		this.experts = experts;
