@@ -626,7 +626,7 @@
   * {optional_user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
   * {dateString}: in yyyy-mm-dd format
 
-  * Example: GET http://shark.sbs.arizona.edu:8080/exp/getClassesWithNewDefinitions?date=2020-01-01
+  * Example: GET http://shark.sbs.arizona.edu:8080/exp/getClassesWithNewDefinition?dateString=2020-01-01
   * Response body: response include labels and IRIs of such classes, along with any annotation the class may have, such as synonym and notes. 
       ```
 	{
@@ -646,12 +646,12 @@
 	```	
 	
 * /{ontology}/getMovedClasses: *Obtain current set of classes that have moved to a new superclass since a date.
-  * HTTP  http://{host}/{ontology}/getMovedClasses?user={optional_user}&date={dateString}
+  * HTTP  http://{host}/{ontology}/getMovedClasses?user={optional_user}&dateString={dateString}
   * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., exp.
   * {optional_user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
   * {dateString}: in yyyy-mm-dd format
 
-  * Example: GET http://shark.sbs.arizona.edu:8080/exp/getMovedClasses?date=2020-01-01
+  * Example: GET http://shark.sbs.arizona.edu:8080/exp/getMovedClasses?dateString=2020-01-01
   * Response body: response include labels and IRIs of such classes, along with any annotation the class may have, such as synonym and notes. 
       ```
       {
