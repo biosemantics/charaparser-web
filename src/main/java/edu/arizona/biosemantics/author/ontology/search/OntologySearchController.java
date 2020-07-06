@@ -2571,7 +2571,7 @@ public class OntologySearchController {
 	 * /removeESynonym
 	 */
 	@PostMapping(value = "/removeESynonym", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
-	public boolean removeESynonym(@RequestBody Synonym synonym) throws Exception {
+	public ChangeApplied removeESynonym(@RequestBody Synonym synonym) throws Exception {
 		//which ontology to use
 		String usrid = "";
 		String ontoName = synonym.getOntology();
@@ -2592,29 +2592,29 @@ public class OntologySearchController {
 				exactSynonymProperty, owlDataFactory.getOWLLiteral(synonym.getTerm()));
 		OWLAxiom esynonymAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clz.getIRI(), esynonymAnnotation);
 		RemoveAxiom remove = new RemoveAxiom(owlOntology, esynonymAxiom);
-		owlOntologyManager.applyChange(remove);
+		ChangeApplied change = owlOntologyManager.applyChange(remove);
 
+		if(change == ChangeApplied.SUCCESSFULLY){
+			//add note about the change
+			String reason = synonym.getReason();
+			if(reason==null || reason.isEmpty()) reason = "not provided";
 
-		//add note about the change
-		String reason = synonym.getReason();
-		if(reason==null || reason.isEmpty()) reason = "not provided";
-
-		OWLAnnotationProperty noteProperty = 
-				owlDataFactory.getOWLAnnotationProperty(IRI.create("http://purl.obolibrary.org/obo/IAO_0000116")); //editor_note
-		OWLAnnotation noteAnnotation = owlDataFactory.getOWLAnnotation(
-				noteProperty, owlDataFactory.getOWLLiteral("Remove exact synonym: '"+synonym.getTerm() +"' from "+synonym.getClassIRI() + 
-						" by "+synonym.getExperts() + " on date " + synonym.getDecisionDate() + " for reason: "+reason));
-		OWLAxiom noteAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clz.getIRI(), noteAnnotation);
-		owlOntologyManager.addAxiom(owlOntology, noteAxiom);
-
-		return true;
+			OWLAnnotationProperty noteProperty = 
+					owlDataFactory.getOWLAnnotationProperty(IRI.create("http://purl.obolibrary.org/obo/IAO_0000116")); //editor_note
+			OWLAnnotation noteAnnotation = owlDataFactory.getOWLAnnotation(
+					noteProperty, owlDataFactory.getOWLLiteral("Remove exact synonym: '"+synonym.getTerm() +"' from "+synonym.getClassIRI() + 
+							" by "+synonym.getExperts() + " on date " + synonym.getDecisionDate() + " for reason: "+reason));
+			OWLAxiom noteAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clz.getIRI(), noteAnnotation);
+			owlOntologyManager.addAxiom(owlOntology, noteAxiom);
+		}
+		return change;
 	}
 
 	/*
-		/makeEquivalent
+		/breakEquivalent
 	 */
-	@PostMapping(value = "/makeEquivalent", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
-	public boolean makeEquivalent(@RequestBody EquivalentClasses equClasses) throws Exception {
+	@PostMapping(value = "/breakEquivalent", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
+	public ChangeApplied breakEquivalent(@RequestBody EquivalentClasses equClasses) throws Exception {
 		//which ontology to use
 		String usrid = "";
 		String ontoName = equClasses.getOntology();
@@ -2628,37 +2628,43 @@ public class OntologySearchController {
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));;
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 
-	
+		if(! owlOntology.containsClassInSignature(IRI.create(equClasses.getClassIRI1())) ||  
+				! owlOntology.containsClassInSignature(IRI.create(equClasses.getClassIRI2()))){
+				return ChangeApplied.UNSUCCESSFULLY;
+		}
+				
 		OWLClass clz1 = owlDataFactory.getOWLClass(IRI.create(equClasses.getClassIRI1()));
 		OWLClass clz2 = owlDataFactory.getOWLClass(IRI.create(equClasses.getClassIRI2()));
 
 		OWLAxiom equ = owlDataFactory.getOWLEquivalentClassesAxiom(clz1, clz2);
 		RemoveAxiom remove = new RemoveAxiom(owlOntology, equ);
-		owlOntologyManager.applyChange(remove);
+		ChangeApplied change = owlOntologyManager.applyChange(remove);
 
-		//add note about the change
-		String reason = equClasses.getReason();
-		if(reason==null || reason.isEmpty()) reason = "not provided";
-		OWLAnnotationProperty noteProperty = 
-				owlDataFactory.getOWLAnnotationProperty(IRI.create("http://purl.obolibrary.org/obo/IAO_0000116")); //editor_note
-		OWLAnnotation noteAnnotation = owlDataFactory.getOWLAnnotation(
-				noteProperty, owlDataFactory.getOWLLiteral("Remove equivalent btw: '"+ equClasses.getClassIRI1() + " and " + equClasses.getClassIRI1() + 
-						" by "+equClasses.getExperts() + " on date " + equClasses.getDecisionDate() + " for reason: "+reason));
-		OWLAxiom noteAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(IRI.create(equClasses.getClassIRI1()), noteAnnotation);
-		owlOntologyManager.addAxiom(owlOntology, noteAxiom);
+		if(change == ChangeApplied.SUCCESSFULLY){
+			//add note about the change
+			String reason = equClasses.getReason();
+			if(reason==null || reason.isEmpty()) reason = "not provided";
+			OWLAnnotationProperty noteProperty = 
+					owlDataFactory.getOWLAnnotationProperty(IRI.create("http://purl.obolibrary.org/obo/IAO_0000116")); //editor_note
+			OWLAnnotation noteAnnotation = owlDataFactory.getOWLAnnotation(
+					noteProperty, owlDataFactory.getOWLLiteral("Remove equivalent btw: '"+ equClasses.getClassIRI1() + " and " + equClasses.getClassIRI2() + 
+							" by "+equClasses.getExperts() + " on date " + equClasses.getDecisionDate() + " for reason: "+reason));
+			OWLAxiom noteAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(IRI.create(equClasses.getClassIRI1()), noteAnnotation);
+			owlOntologyManager.addAxiom(owlOntology, noteAxiom);
 
-		noteAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(IRI.create(equClasses.getClassIRI2()), noteAnnotation);
-		owlOntologyManager.addAxiom(owlOntology, noteAxiom);
-		return true;
+			noteAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(IRI.create(equClasses.getClassIRI2()), noteAnnotation);
+			owlOntologyManager.addAxiom(owlOntology, noteAxiom);
+		}
+		return change;
 		
 
 	}
 
 	/*
-	/breakEquivalent
+	/makeEquivalent
  */
 @PostMapping(value = "/makeEquivalent", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
-public boolean breakEquivalent(@RequestBody EquivalentClasses equClasses) throws Exception {
+public ChangeApplied makeEquivalent(@RequestBody EquivalentClasses equClasses) throws Exception {
 	//which ontology to use
 	String usrid = "";
 	String ontoName = equClasses.getOntology();
@@ -2672,36 +2678,38 @@ public boolean breakEquivalent(@RequestBody EquivalentClasses equClasses) throws
 	OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));;
 	OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 
-	//if set pair-wise equivalent success, proceed to add notes
-	boolean success = true;
 
+
+	//check to see if both classes exist
+	
+	if(! owlOntology.containsClassInSignature(IRI.create(equClasses.getClassIRI1())) ||  
+	! owlOntology.containsClassInSignature(IRI.create(equClasses.getClassIRI2()))){
+		return ChangeApplied.UNSUCCESSFULLY;
+	}
+	
 	OWLClass clz1 = owlDataFactory.getOWLClass(IRI.create(equClasses.getClassIRI1()));
 	OWLClass clz2 = owlDataFactory.getOWLClass(IRI.create(equClasses.getClassIRI2()));
 
 	OWLAxiom equ = owlDataFactory.getOWLEquivalentClassesAxiom(clz1, clz2);
 	ChangeApplied change = owlOntologyManager.addAxiom(owlOntology, equ);
-	if(change == ChangeApplied.UNSUCCESSFULLY){
-		success = false;
-	}
-
-	if(success){
+	if(change == ChangeApplied.SUCCESSFULLY){
 		//add note about the change
 		String reason = equClasses.getReason();
 		if(reason==null || reason.isEmpty()) reason = "not provided";
 		OWLAnnotationProperty noteProperty = 
 				owlDataFactory.getOWLAnnotationProperty(IRI.create("http://purl.obolibrary.org/obo/IAO_0000116")); //editor_note
 		OWLAnnotation noteAnnotation = owlDataFactory.getOWLAnnotation(
-				noteProperty, owlDataFactory.getOWLLiteral("Make equivalent btw: '"+ equClasses.getClassIRI1() + " and " + equClasses.getClassIRI1() + 
+				noteProperty, owlDataFactory.getOWLLiteral("Make equivalent btw: '"+ equClasses.getClassIRI1() + " and " + equClasses.getClassIRI2() + 
 						" by "+equClasses.getExperts() + " on date " + equClasses.getDecisionDate() + " for reason: "+reason));
 		OWLAxiom noteAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(IRI.create(equClasses.getClassIRI1()), noteAnnotation);
 		owlOntologyManager.addAxiom(owlOntology, noteAxiom);
 		
 		noteAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(IRI.create(equClasses.getClassIRI2()), noteAnnotation);
 		owlOntologyManager.addAxiom(owlOntology, noteAxiom);
-		return true;
+		
 	}
 
-	return false;
+	return change;
 }
 
 

@@ -357,8 +357,10 @@
       "ontology":"exp",
     }
     ```
-    
-    
+   * Response Body:
+    ```json
+    SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
+      ``` 
 * /{ontology}/getSubclasses: *Obtain the subclasses of the term as a JSON object*
   * HTTP  http://{host}/{ontology}/getSubclasses?user={optional_user}&baseIri={baseIri}&term={term}
   * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., exp.
@@ -471,7 +473,10 @@
 	"decisionDate": "2020-01-15"
      }
     ```
-
+   * Response Body:
+    ```json
+    SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
+      ``` 
     
 * /{ontology}/getClassesWMSuperclasses: *Conflict type 1: Obtain classes with multiple superclasses and with at least one example sentence*
   * HTTP GET http://{host}/{ontology}/getClassesWMSuperclasses?user={optional_user}
@@ -564,6 +569,10 @@
       "alternativeTerm": "http://biosemantics.arizona.edu/ontologies/exp#apex"
     }
     ```	
+   * Response Body:
+    ```json
+    SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
+      ``` 
 * /detachFromSuperclass: *move a subclass term from its superclass term*
   * HTTP POST <host>/detachFromSuperclass
   * Request body:If user value is empty, the shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).
@@ -578,7 +587,10 @@
       "decisionExperts": "hong"
        }
     ```	
-    
+   * Response Body:
+    ```json
+    SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
+      ``` 
     
 * /setSuperclass: *add a subclassof relation beween subclass and superclass*
   * HTTP POST <host>/setSuperclass
@@ -594,8 +606,12 @@
 	"subclassIRI": "http://biosemantics.arizona.edu/ontologies/exp#pale_hyaline"
 	}
 	```
+   * Response Body:
+    ```json
+    SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
+      ``` 
 * /{ontology}/getDeprecatedClasses: *Obtain current set of classes with owl:deprecated true.
-  * HTTP  http://{host}/{ontology}/getDeprecatedClasses?user={optional_user}
+  * HTTP GET http://{host}/{ontology}/getDeprecatedClasses?user={optional_user}
   * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., exp.
   * {optional_user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
 
@@ -621,7 +637,7 @@
 	
 	
 * /{ontology}/getClassesWithNewDefinition: *Obtain current set of classes that have a new definition since a date.
-  * HTTP  http://{host}/{ontology}/getDeprecatedClasses?user={optional_user}&dateString={date}
+  * HTTP GET http://{host}/{ontology}/getDeprecatedClasses?user={optional_user}&dateString={date}
   * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., exp.
   * {optional_user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
   * {dateString}: in yyyy-mm-dd format
@@ -646,7 +662,7 @@
 	```	
 	
 * /{ontology}/getMovedClasses: *Obtain current set of classes that have moved to a new superclass since a date.
-  * HTTP  http://{host}/{ontology}/getMovedClasses?user={optional_user}&dateString={dateString}
+  * HTTP GET http://{host}/{ontology}/getMovedClasses?user={optional_user}&dateString={dateString}
   * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., exp.
   * {optional_user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
   * {dateString}: in yyyy-mm-dd format
@@ -670,4 +686,63 @@
 	}
 	
 	```	
-
+* /makeEquivalent: *add equivalent class axiom between the two classes*
+  * HTTP POST <host>/makeEquivalent
+  * Request body:If user value is empty, the shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).    
+    
+    ```
+	{
+	"user":"", 
+	"classIRI1":"http://biosemantics.arizona.edu/ontologies/exp#mixed",
+	"classIRI2":"http://biosemantics.arizona.edu/ontologies/exp#tinge",
+	"ontology":"exp", 
+	"decisionExperts":"hong",
+	"decisionDate":"07-07-20",
+	"reason":""
+	}
+	```
+  * Response Body:
+    ```json
+    SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
+      ``` 
+	
+	
+* /breakEquivalent: *move equivalent class axiom between the two classes*
+  * HTTP POST <host>/breakEquivalent
+  * Request body:If user value is empty, the shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).    
+    
+    ```
+	{
+	"user":"", 
+	"classIRI1":"http://biosemantics.arizona.edu/ontologies/exp#mixed",
+	"classIRI2":"http://biosemantics.arizona.edu/ontologies/exp#tinge",
+	"ontology":"exp", 
+	"decisionExperts":"hong",
+	"decisionDate":"07-07-20",
+	"reason":""
+	}
+	```
+   * Response Body:
+    ```json
+    SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
+      ``` 
+      
+* /removeESynonym: *move exact synonym annotation from the class*
+  * HTTP POST <host>/removeESynonym
+  * Request body:If user value is empty, the shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).    
+    
+    ```
+    {
+	"user":"", 
+	"classIRI":"http://biosemantics.arizona.edu/ontologies/carex#leaflike",
+	"ontology":"carex", 
+	"term":"leaf-like", 
+	"decisionExperts":"hong",
+	"decisionDate":"07-07-20",
+	"reason": "spelling variance"
+    }
+	```
+   * Response Body:
+    ```json
+    SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
+      ``` 
