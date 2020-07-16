@@ -686,6 +686,107 @@
 	}
 	
 	```	
+
+* /{ontology}/getSynonymConflicts: *Obtain phrases that are exact synonyms to multiple classes, and classes involved in equivalent class relations.
+  * HTTP GET http://{host}/{ontology}/getSynonymConflicts?user={optional_user}
+  * {ontology}: The ontology to search for the {term}. Ontology must be in lower case, e.g., exp.
+  * {optional_user}: If present, the user specific version of the ontology will be used for the search. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
+  * Example: GET http://shark.sbs.arizona.edu:8080/exp/getSynonymConflicts?
+  * Response body: 
+      ```
+      {
+    "synonym conflicts": [
+        {
+            "exact synonym 1": "apexes",
+            "classes": [
+                {
+                    "iri": "http://biosemantics.arizona.edu/ontologies/carex#leaf",
+                    "elucidations": [],
+                    "sentences": [],
+                    "definition": "A phyllome (PO:0006001) that is not associated with a reproductive structure.",
+                    "label": "leaf",
+                    "termCreator": "carex team"
+                },
+                {
+                    "iri": "http://biosemantics.arizona.edu/ontologies/carex#apex",
+                    "elucidations": [],
+                    "sentences": [
+                        "terminal spike gynecandrous or staminate, 8–25 mm. Pistillate scales lanceolate, shorter and narrower than perigynia, apex acute or mucronate, spinulose. [FNA, Carex aboriginum]\n\nPerygynia veined, broadly ovate, (4.7–)5–6.6 × 2.2–3.4 mm, distal margins serrulate, spinulose, apex gradually beaked; beak 0.5–1 mm, bidentate, teeth spreading, spinulose. [FNA, Carex aboriginum]"
+                    ],
+                    "definition": "the upper surface of a structure",
+                    "label": "apex",
+                    "termCreator": "carex team"
+                }
+            ]
+        },
+        {
+            "exact synonym 2": "concealing",
+            "classes": [
+                {
+                    "iri": "http://biosemantics.arizona.edu/ontologies/carex#concealed",
+                    "elucidations": [],
+                    "sentences": [],
+                    "definition": "\"A positional quality inhering in a bearer by virtue of the bearer being hidden from view\"",
+                    "label": "concealed",
+                    "termCreator": "carex team"
+                },
+                {
+                    "iri": "http://biosemantics.arizona.edu/ontologies/carex#enclosing",
+                    "elucidations": [],
+                    "sentences": [],
+                    "definition": "\"A spatial quality inhering in a bearer by virtue of the bearer's being extended on all sides of another entity simultaneously\"",
+                    "label": "enclosing",
+                    "termCreator": "carex team"
+                }
+            ]
+        },
+        {
+            "exact synonym 3": "leaf sheath",
+            "classes": [
+                {
+                    "iri": "http://biosemantics.arizona.edu/ontologies/carex#leaf_sheath",
+                    "elucidations": [],
+                    "sentences": [],
+                    "definition": "The tubular portion of the leaf, wrapping the shoot and to which the blade is joined distally",
+                    "label": "leaf_sheath",
+                    "termCreator": "carex team"
+                },
+                {
+                    "iri": "http://biosemantics.arizona.edu/ontologies/carex#sheath",
+                    "elucidations": [],
+                    "sentences": [],
+                    "definition": "The tubular portion of the leaf, between the node and the blade",
+                    "label": "sheath",
+                    "termCreator": "carex team"
+                }
+            ]
+        },
+        {
+            "equ class 1": "http://biosemantics.arizona.edu/ontologies/carex#apical_tooth",
+            "elucidations": [],
+            "sentences": [
+                "beak straight , pale green , not strongly 2_edged , 0 . 6 – 1 . 6 mm , ciliate_serrulate , apical teeth 0 . 2 – 0 . 5 mm ."
+            ],
+            "equivalent classes": [
+                {
+                    "iri": "http://biosemantics.arizona.edu/ontologies/carex#apex",
+                    "elucidations": [],
+                    "sentences": [
+                        "terminal spike gynecandrous or staminate, 8–25 mm. Pistillate scales lanceolate, shorter and narrower than perigynia, apex acute or mucronate, spinulose. [FNA, Carex aboriginum]\n\nPerygynia veined, broadly ovate, (4.7–)5–6.6 × 2.2–3.4 mm, distal margins serrulate, spinulose, apex gradually beaked; beak 0.5–1 mm, bidentate, teeth spreading, spinulose. [FNA, Carex aboriginum]"
+                    ],
+                    "definition": "the upper surface of a structure",
+                    "label": "apex",
+                    "termCreator": "carex team"
+                }
+            ],
+            "definition": "Term is unclear but could refer to one of two projections (teeth) that are associaed with the beak of the perigynium or projections along the edge of a perigynium body",
+            "label": "apical tooth",
+            "termCreator": "carex team"
+        }
+    ]
+}
+	
+	```	
 * /makeEquivalent: *add equivalent class axiom between the two classes*
   * HTTP POST <host>/makeEquivalent
   * Request body:If user value is empty, the shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology).    
