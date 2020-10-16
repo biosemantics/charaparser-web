@@ -425,7 +425,7 @@
      ```
     
     
-* /{ontology}/getStandardCollection: *Obtain the standard exp characters*
+* /{ontology}/getStandardCollection: *Obtain the standard/recommended characters*
   * HTTP GET http://{host}/{ontology}/getStandardCollection?user={optional_user}
   * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
   * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
