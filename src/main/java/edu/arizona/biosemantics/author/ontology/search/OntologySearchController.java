@@ -116,6 +116,7 @@ public class OntologySearchController {
 	private static String definitions = "http://purl.obolibrary.org/obo/IAO_0000115";
 	private static String elucidations = "http://purl.obolibrary.org/obo/IAO_0000600";
 	private static String comment = "http://www.w3.org/2000/01/rdf-schema#comment";
+	private static String deprecated = "http://www.w3.org/2002/07/owl#deprecated";
 
 	private HashMap<String, OntologyAccess> ontologyAccessMap = new HashMap<String, OntologyAccess>();
 	private HashMap<String, FileSearcher> searchersMap = new HashMap<String, FileSearcher>();
@@ -680,19 +681,58 @@ public class OntologySearchController {
 
 		//property some valueIRI, for example in_collection some carex standard collection
 		OWLClassExpression queryExpression = owlDataFactory.getOWLObjectSomeValuesFrom(property, propValue); 
-		Set <OWLClass> subClzz = reasoner.getSubClasses(queryExpression, true).entities().collect(Collectors.toSet());
+		Set <OWLClass> subClzz = reasoner.getSubClasses(queryExpression, false).entities().collect(Collectors.toSet()); //false to include all subclasses
 		for(OWLClass c: subClzz){
+			if(!c.getIRI().isNothing()){
 			//public OntologyEntry(Ontology ontology, String iri, Type type, double score, String label, String definition, String parentLabel, String matchType) {
-			OWLClass parent = (reasoner.getSuperClasses(c, true).entities().collect(Collectors.toSet())).iterator().next();
-			String parentLabel = labelFor(parent, owlOntology, owlDataFactory);	
+			StringBuffer parentLabels = new StringBuffer();
+			Set<OWLClass> parent = (reasoner.getSuperClasses(c, true).entities().collect(Collectors.toSet()));
+			Iterator<OWLClass> it = parent.iterator();
+			while(it.hasNext()){ //could have multiple direct superclasses
+						 parentLabels.append(labelFor(it.next(), owlOntology, owlDataFactory));
+						 parentLabels.append("; ");
+			}
 			entries.add(new OntologyEntry(Ontology.carex, c.getIRI().toString(), Type.QUALITY, 1.0, labelFor(c, owlOntology, owlDataFactory),
-					"", parentLabel, "quality"));
+					"", parentLabels.toString(), "quality"));
+			}
 
 		}
 		return ontologySearchResultCreator.create(ontoName, entries, 
 				this.ontologyAccessMap.get(ontoName), 
 				this.owlOntologyManagerMap.get(ontoName).getOntology(IRI.create(oIRI.getIri())),
 				this.owlOntologyManagerMap.get(ontoName));
+	}
+	
+	/**
+	 * Obtain the order of the characters in the standard collection as a JSON object
+	 * 
+	 */
+	@GetMapping(value = "/{ontology}/getStandardCollectionOrder", produces = { MediaType.APPLICATION_JSON_VALUE })
+	public String getCharacterOrderInJSON(@PathVariable String ontology, @RequestParam Optional<String> user){
+		
+return "{'Habit':['Growth form of plant'],"+
+
+"'Rhizome':['Length of rhizome internode'],"+
+
+"'Stem':['Length of stem','Width of stem','Color of stem','Pubescence of stem','Shape of stem in transverse section','Texture of stem'],"+
+
+"'Leaf':['Number of leaves per stem','Length of leaf blade','Width of leaf blade','Color of leaf blade','Texture of margin of leaf blade','Pubescence of margin of leaf blade','Color of margin of leaf blade','Texture of abaxial leaf blade','Texture of adaxial leaf blade','Length of leaf sheath','Color of sheath','Color of inner band of sheath','Shape of apex of sheath inner band','Length of ligule','Shape of ligule','Texture of cataphyll','Color of cataphyll','Pattern of inner band of sheath'],"+
+
+"'Inflorescence':['Length of inflorescence','Length of terminal portion of inflorescence','Width of terminal portion of inflorescence','Length of distal internode of inflorescence','Texture of distal internode of inflorescence'],"+
+
+"'Staminate flower':['Number of staminate flowers','Shape of staminate scale','Length of staminate scale','Width of staminate scale','Color of staminate scale','Texture of staminate scale','Texture of margin of staminate scale','Pubescence of margin of staminate scale','Color of margin of staminate scale','Number of distinct veins in staminate scale','Number of total veins in staminate scale'],"+
+
+"'Inflorescence unit':['Number of inflorescence units','Length of proximal internode of inflorescence unit','Length of inflorescence unit','Width of inflorescence unit','Shape of inflorescence unit','Number of perigynia per inforescence unit','Length of proximal peduncle of inflorescence unit','Texture of proximal peduncle of inflorescence unit','Width of pistillate portion of inflorescence unit','Width of staminate portion of inflorescence unit'],"+
+
+"'Bract':['Width of bract blade','Length of bract blade','Texture of margin of bract blade','Pubescence of margin of bract blade','Color of margin of bract blade','Color of bract blade','Texture of abaxial bract blade','Length of bract sheath','Color of bract sheath','Color of inner band of bract sheath','Shape of apex of bract sheath inner band'],"+
+
+"'Perigynium':['Orientation of perigynium','Shape of perigynium in transverse section','Texture of perigynium','Number of total veins in perigynium','Number of distinct veins in perigynium','Inflation of perigynium','Length of perigynium','Width of perigynium','Length of perigynium body','Length of perigynium stipe','Length of perigynium beak','Length of perigynium beak (winged)','Texture of perigynium beak','Texture of margin of perigynium beak','Color of perigynium beak','Shape of orifice of perigynium beak','Length of tooth of perigynium beak','Color of tooth of perigynium beak','Orientation of perigynium beak'],"+
+
+"'Pistillate scale':['Shape of pistillate scale','Length of pistillate scale','Width of pistillate scale','Color of pistillate scale','Texture of pistillate scale','Texture of margin of pistillate scale','Pubescence of margin of pistillate scale','Color of margin of pistillate scale','Number of total veins in pistillate scale','Number of distinct veins in pistillate scale','Relative position of pistillate scale to perigynium'],"+
+
+"'Achene':['Length of achene','Width of achene','Shape of achene in transverse section','Shape of achene in longitudinal section','Shape of apex of achene','Color of achene','Number of stigmas','Persistence of style'],"+
+
+"'Anther':['Length of anther','Length of filament']}";
 	}
 
 
@@ -848,9 +888,9 @@ public class OntologySearchController {
 		////System.outprintln("/class ####################owlOntology axiom count (before)="+owlOntology.getAxiomCount());
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 
-		String IRIpart = c.getTerm().toLowerCase().trim();
-		if(IRIpart.isEmpty() || ! IRIpart.matches("^[a-z0-9]") || ! IRIpart.matches("[a-z0-9]$")) 
-			return "NO_OPERATION: Term is empty or not start/end with an alphanum character.";
+		String IRIpart = c.getTerm().trim();
+		if(IRIpart.isEmpty() || ! IRIpart.matches("^[a-z0-9].*") || ! IRIpart.matches(".*[a-z0-9]$")) 
+			return "NO_OPERATION: Term is empty, or not in lower case, or not start/end with an alphanum character.";
 
 		IRIpart = IRIpart.replaceAll("(%2D|\\s|%20|%5F|%96|%97|-)+", "_"); //turn space and hyphen-like characters to underscore for IRI.
 		String subclassIRI = oIRI.getIri() + "#" + IRIpart;
@@ -1291,7 +1331,7 @@ public class OntologySearchController {
 		String replace = deprecate.getReplacementTerm();
 		String n = "";
 		if(replace != null && ! replace.isEmpty()){
-			n = " Consider "+replace;
+			n = " Consider use "+replace;
 		}
 
 		//add note about the change
@@ -1468,8 +1508,9 @@ public class OntologySearchController {
 
 		OWLAnnotationProperty definition = owlDataFactory.getOWLAnnotationProperty(IRI.create(definitions));
 		OWLAnnotationProperty elucidation = owlDataFactory.getOWLAnnotationProperty(IRI.create(elucidations));
+		OWLAnnotationProperty isdeprecated =  owlDataFactory.getOWLAnnotationProperty(IRI.create(deprecated));
 
-		writeSimplifiedJSONObject(reasoner, owlDataFactory, clazz, object, owlOntologyManager, owlOntology, definition, elucidation);
+		writeSimplifiedJSONObject(reasoner, owlDataFactory, clazz, object, owlOntologyManager, owlOntology, definition, elucidation, isdeprecated);
 
 		return object.toJSONString(); 
 	}
@@ -1493,21 +1534,22 @@ public class OntologySearchController {
 		JSONObject object = new JSONObject();
 		OWLClass root;
 		OWLAnnotationProperty synonymE = owlDataFactory.getOWLAnnotationProperty(IRI.create(synonyme));
-		OWLAnnotationProperty synonymB = owlDataFactory.getOWLAnnotationProperty(IRI.create(synonyme));
-		OWLAnnotationProperty synonymNR =owlDataFactory.getOWLAnnotationProperty(IRI.create(synonyme));
+		OWLAnnotationProperty synonymB = owlDataFactory.getOWLAnnotationProperty(IRI.create(synonymb));
+		OWLAnnotationProperty synonymNR =owlDataFactory.getOWLAnnotationProperty(IRI.create(synonymnr));
 		OWLAnnotationProperty definition = owlDataFactory.getOWLAnnotationProperty(IRI.create(definitions));
 		OWLAnnotationProperty elucidation = owlDataFactory.getOWLAnnotationProperty(IRI.create(elucidations));
+		OWLAnnotationProperty isdeprecated =  owlDataFactory.getOWLAnnotationProperty(IRI.create(deprecated));
 
 		root = owlDataFactory.getOWLClass(IRI.create("http://www.w3.org/2002/07/owl#Thing"));
 		JFactFactory reasonerFactory = new JFactFactory();
 		OWLReasoner reasoner = reasonerFactory.createNonBufferingReasoner(owlOntology);
-		writeJSONObject(reasoner, owlDataFactory, root, object, owlOntologyManager, owlOntology, synonymE, synonymB, synonymNR, definition, elucidation);
+		writeJSONObject(reasoner, owlDataFactory, root, object, owlOntologyManager, owlOntology, synonymE, synonymB, synonymNR, definition, elucidation, isdeprecated);
 
 		return object.toJSONString(); 
 	}
 
 	@SuppressWarnings("unchecked")
-	private JSONObject writeSimplifiedJSONObject(OWLReasoner reasoner, OWLDataFactory owlDataFactory, OWLClass clazz, JSONObject object, OWLOntologyManager manager, OWLOntology onto, OWLAnnotationProperty definition, OWLAnnotationProperty elucidation) {
+	private JSONObject writeSimplifiedJSONObject(OWLReasoner reasoner, OWLDataFactory owlDataFactory, OWLClass clazz, JSONObject object, OWLOntologyManager manager, OWLOntology onto, OWLAnnotationProperty definition, OWLAnnotationProperty elucidation, OWLAnnotationProperty isdeprecated) {
 		if(reasoner.isSatisfiable(clazz)){
 			//print this  class
 			object.put("text", labelFor(clazz, onto, owlDataFactory));
@@ -1532,7 +1574,13 @@ public class OntologySearchController {
 				o.put("elucidation", elu);
 				//System.out.println("shared synonyms: "+synonymB4(clazz));
 			}
-
+			
+			result = getAnnotationValues(clazz, isdeprecated, onto);
+			for(String dep: result){
+				o.put("deprecated", dep);
+				//System.out.println("shared synonyms: "+synonymB4(clazz));
+			}
+			
 			details.add(o);
 			data.put("details", details);
 			object.put("data", data);
@@ -1546,7 +1594,7 @@ public class OntologySearchController {
 				while(it.hasNext()){
 					OWLClass c = it.next();
 					if(!c.equals(clazz))
-						children.add(/*i++,*/ writeSimplifiedJSONObject(reasoner, owlDataFactory, c, new JSONObject(), manager, onto, definition, elucidation));
+						children.add(/*i++,*/ writeSimplifiedJSONObject(reasoner, owlDataFactory, c, new JSONObject(), manager, onto, definition, elucidation, isdeprecated));
 				}
 				if(children.size()>0)
 					object.put("children", children);
@@ -1556,7 +1604,7 @@ public class OntologySearchController {
 	}
 
 	@SuppressWarnings("unchecked")
-	private JSONObject writeJSONObject(OWLReasoner reasoner, OWLDataFactory owlDataFactory, OWLClass clazz, JSONObject object, OWLOntologyManager manager, OWLOntology onto, OWLAnnotationProperty synonymE, OWLAnnotationProperty synonymB, OWLAnnotationProperty synonymNR, OWLAnnotationProperty definition, OWLAnnotationProperty elucidation) {
+	private JSONObject writeJSONObject(OWLReasoner reasoner, OWLDataFactory owlDataFactory, OWLClass clazz, JSONObject object, OWLOntologyManager manager, OWLOntology onto, OWLAnnotationProperty synonymE, OWLAnnotationProperty synonymB, OWLAnnotationProperty synonymNR, OWLAnnotationProperty definition, OWLAnnotationProperty elucidation, OWLAnnotationProperty isdeprecated) {
 
 		if(reasoner.isSatisfiable(clazz)){
 			//print one  class
@@ -1598,6 +1646,12 @@ public class OntologySearchController {
 				o.put("elucidation", eluc);
 				//System.out.println("shared synonyms: "+synonymB4(clazz));
 			}
+			
+			result = getAnnotationValues(clazz, isdeprecated, onto);
+			for(String dep: result){
+				o.put("deprecated", dep);
+				//System.out.println("shared synonyms: "+synonymB4(clazz));
+			}
 
 			details.add(o);
 			data.put("details", details);
@@ -1613,7 +1667,7 @@ public class OntologySearchController {
 				while(it.hasNext()){
 					OWLClass c = it.next();
 					if(!c.equals(clazz))
-						children.add(/*i++,*/ writeJSONObject(reasoner, owlDataFactory, c, new JSONObject(), manager, onto, synonymE, synonymB, synonymNR, definition, elucidation));
+						children.add(/*i++,*/ writeJSONObject(reasoner, owlDataFactory, c, new JSONObject(), manager, onto, synonymE, synonymB, synonymNR, definition, elucidation, isdeprecated));
 				}
 				object.put("children", children);
 			}
