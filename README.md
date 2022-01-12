@@ -425,7 +425,7 @@
      ```
     
     
-* /{ontology}/getStandardCollection: *Obtain the standard exp characters*
+* /{ontology}/getStandardCollection: *Obtain the standard/recommended characters*
   * HTTP GET http://{host}/{ontology}/getStandardCollection?user={optional_user}
   * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
   * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
@@ -458,6 +458,31 @@
             ]
         },
 	```
+* /{ontology}/getStandardCollectionOrder: *Display standard/recommended characters in the expert curated order. Characters are grouped under tags (e.g. Habit, Rhizome)*
+  * HTTP GET http://{host}/{ontology}/getStandardCollectionOrder?user={optional_user}
+  * {ontology}: The ontology content to obtain. Ontology name must be in lower case, e.g., exp.
+  * {user}: If present, the user-specific version of the ontology will be used. Otherwise, a shared version of the ontology will be used (See /createUserOntology).
+  * Example: GET http://shark.sbs.arizona.edu:8080/exp/getStandardCollectionOrder? (this works only after a call to /createUserOntology with an empty user and exp ontology as parameters)
+  * Response body: 
+    ```json
+    {
+  'Habit': [
+    'Growth form of plant'
+  ],
+  'Rhizome': [
+    'Length of rhizome internode'
+  ],
+  'Stem': [
+    'Length of stem',
+    'Width of stem',
+    'Color of stem',
+    'Pubescence of stem',
+    'Shape of stem in transverse section',
+    'Texture of stem'
+  ]
+	}
+	```
+	
 * /moveFromToreviewToSuperclass: *add the term as a subclass of the superclass, deprecate the old term (subclass of toreview), remove (category) from the subclassTerm*
   * HTTP POST <host>/moveFromToreviewToSuperclass
   * Request body:If user value is empty, the shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). All other fields are required of a non-empty value.
