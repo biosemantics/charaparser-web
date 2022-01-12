@@ -90,7 +90,7 @@
 		  <groupId>edu.arizona.biosemantics.oto</groupId>
 		  <artifactId>oto-common</artifactId>
 		  <!-- <version>0.0.32-author-SNAPSHOT</version>  -->
-		   <version>0.0.35-SNAPSHOT</version>
+		   <version>0.0.36-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>
@@ -159,6 +159,10 @@
 			<releases>
 				<enabled>false</enabled>
 			</releases>
+		</repository>
+		<repository>
+			<id>maven-repository</id>
+			<url>file:///C:/Users/hongcui/git/temp-repo/</url>
 		</repository>
 		<repository>
 			<id>playground-releases</id>
