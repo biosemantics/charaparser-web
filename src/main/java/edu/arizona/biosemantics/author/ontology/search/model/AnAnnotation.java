@@ -16,7 +16,9 @@ public class AnAnnotation {
 	protected String example;
 	protected String providedBy;
 
-	
+	/*
+	 * add annotation to class
+	 * */
 	public AnAnnotation(String user, 
 			String annotationContent, 
 			 String ontology, 
@@ -42,9 +44,9 @@ public class AnAnnotation {
 		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
 		Date date = new Date();
 		if(this.example!=null && this.example.trim().length()>0)
-		   return annotationContent +"(BY "+providedBy+" "+ dateFormat.format(date)+ ")";
+			 return annotationContent +"(BY "+providedBy+" "+ dateFormat.format(date)+" Usage Example: "+this.example+ ")";	
 		else
-		   return annotationContent +"(BY "+providedBy+" "+ dateFormat.format(date)+" Usage Example: "+this.example+ ")";	
+			return annotationContent +"(BY "+providedBy+" "+ dateFormat.format(date)+ ")";
 	}
 
 	public String getClassIRI() {
