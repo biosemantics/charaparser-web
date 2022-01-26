@@ -681,9 +681,9 @@ public class OntologySearchController {
 
 
 	/**
-	 * 
+	 * add a replacement to a class which is assumed to be deprecated
 	 * @param replaceterms
-	 * @return if synonym is already a class, return NO_OPERATION, otherwise, add as a bsyn.
+	 * @return Success or no_operation
 	 */
 	@PostMapping(value = "/addReplacementTerms", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
 	public ChangeApplied addReplacementTerms(@RequestBody ReplaceTerms replaceTerms) {
@@ -702,24 +702,24 @@ public class OntologySearchController {
 		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName); //this.owlOntologyManagerMap.get(oIRI);
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
+		
+		OWLClass depClass = owlDataFactory.getOWLClass(IRI.create(replaceTerms.getDepClassIRI()));
+		if(! isDeprecated(depClass, owlOntology)) return ChangeApplied.NO_OPERATION;
 
 		String[] repTerms = replaceTerms.getReplaceTerms();
 		ChangeApplied c = null;
 		for(String rt: repTerms) {
-			OWLAnnotationProperty replacement = 
+			/*OWLAnnotationProperty replacement = 
 					owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.replacedBy)); //editor_note
 			OWLAnnotation replacedBy = owlDataFactory.getOWLAnnotation(
 					replacement, IRI.create(rt)); //owlDataFactory.getOWLLiteral(rt));
 			OWLAxiom synonymAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(IRI.create(replaceTerms.getDepClassIRI()), replacedBy);
-
-			
 			c = owlOntologyManager.addAxiom(owlOntology, synonymAxiom);
+			*/
 			
-			//add comments
-			//AnAnotation aa = new AnAnotation();
-			//addComment(aa, OntologySearchController.comment);
-
-
+			//add replaced_by annotation 
+			AnAnnotation aa = new AnAnnotation(replaceTerms.getUser(), rt, ontoName, replaceTerms.getDepClassIRI(), null, String.join("; ", replaceTerms.getExperts()));
+			addAnnotation(aa, OntologySearchController.replacedBy);
 		}
 		//refresh ontology search environment after the addition
 		FileSearcher searcher = this.searchersMap.get(ontoName);
@@ -985,6 +985,7 @@ return "{'Habit':['Growth form of plant'],"+
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 
+		//add annotation
 		String annoContent = annotation.getAnnotationContent();
 		OWLClass clazz = owlDataFactory.getOWLClass(annotation.getClassIRI());
 		OWLAnnotationProperty annoProperty = 
@@ -994,6 +995,25 @@ return "{'Habit':['Growth form of plant'],"+
 		OWLAxiom annoAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clazz.getIRI(), anno);
 
 		ChangeApplied c = owlOntologyManager.addAxiom(owlOntology, annoAxiom);
+		
+		if(annotation.getExample().length()>0) {
+			OWLAnnotationProperty exampleProperty = 
+					owlDataFactory.getOWLAnnotationProperty(IRI.create(exampleOfUsage));
+			OWLAnnotation exampleAnnotation = owlDataFactory.getOWLAnnotation
+					(exampleProperty, owlDataFactory.getOWLLiteral(annotation.getExample())); 
+			OWLAxiom exampleAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(
+					clazz.getIRI(), exampleAnnotation); 
+			owlOntologyManager.addAxiom(owlOntology, exampleAxiom);
+		}
+		
+		
+		//add provanance of the annotation as note
+		anno = owlDataFactory.getOWLAnnotation(
+				annoProperty, owlDataFactory.getOWLLiteral(annotation.getProvanance()));
+		annoAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clazz.getIRI(), anno);
+		owlOntologyManager.addAxiom(owlOntology, annoAxiom);
+
+		
 
 		//refresh ontology search environment after the addition
 		//FileSearcher searcher = this.searchersMap.get(ontoName);
