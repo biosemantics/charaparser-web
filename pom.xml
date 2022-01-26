@@ -162,7 +162,7 @@
 		</repository>
 		<repository>
 			<id>maven-repository</id>
-			<url>file:///C:/Users/hongcui/git/temp-repo/</url>
+			<url>file:///C:/Users/updates/git/temp-repo/</url>
 		</repository>
 		<repository>
 			<id>playground-releases</id>

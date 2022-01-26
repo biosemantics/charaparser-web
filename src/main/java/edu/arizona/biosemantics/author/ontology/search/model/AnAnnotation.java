@@ -17,18 +17,22 @@ public class AnAnnotation {
 	protected String providedBy;
 
 	
+
+	/*
+	 * add annotation to class
+	 * */
 	public AnAnnotation(String user, 
 			String annotationContent, 
 			 String ontology, 
 			 String classIRI, 
 			String exampleSentence,
-			 String providedBy) {
+			 String experts) {
 		this.annotationContent = annotationContent;
 		this.classIRI = classIRI;
 		this.user = user;
 		this.ontology = ontology;
 		this.example = exampleSentence;
-		this.providedBy = providedBy;
+		this.providedBy = experts;
 	}
 	
 	public String getUser(){
@@ -38,16 +42,23 @@ public class AnAnnotation {
 	public String getOntology(){
 		return ontology==null? "":ontology;
 	}
-	public String getAnnotationContent() {
+	
+	public String getAnnotationContent(){
+		return annotationContent;
+	}
+	public String getProvanance() {
 		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
 		Date date = new Date();
-		if(this.example!=null && this.example.trim().length()>0)
-		   return annotationContent +"(BY "+providedBy+" "+ dateFormat.format(date)+ ")";
-		else
-		   return annotationContent +"(BY "+providedBy+" "+ dateFormat.format(date)+" Usage Example: "+this.example+ ")";	
+		return annotationContent +"(BY "+providedBy+" on "+ dateFormat.format(date)+ ")";
 	}
 
 	public String getClassIRI() {
 		return classIRI;
 	}
+	
+	public String getExample() {
+		if(this.example!=null) return "";
+		return example;
+	}
+	
 }
