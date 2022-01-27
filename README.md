@@ -830,7 +830,7 @@
   * Response Body:
     ```json
     SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
-      ``` 
+    ``` 
 	
 	
 * /breakEquivalent: *move equivalent class axiom between the two classes*
@@ -851,7 +851,7 @@
    * Response Body:
     ```json
     SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
-      ``` 
+    ``` 
       
 * /removeESynonym: *move exact synonym annotation from the class*
   * HTTP POST <host>/removeESynonym
@@ -871,7 +871,7 @@
    * Response Body:
     ```json
     SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
-      ``` 
+    ``` 
 	
 * /nrsynonym: *Creates a not recommended synonym to the class in the named ontology. If term is an active class, also move the class to toreview*
   * HTTP POST http://{host}/nrsynonym
@@ -899,9 +899,9 @@
     ```json
     {
 	"user":"",
-	"ontology":"carex", 
-	"replaceTerms": ["http://biosemantics.arizona.edu/ontologies/carex#compressed"], 
-	"depClassIRI": "http://biosemantics.arizona.edu/ontologies/carex#flattened", 
+	"ontology":"exp", 
+	"replaceTerms": ["http://biosemantics.arizona.edu/ontologies/exp#compressed"], 
+	"depClassIRI": "http://biosemantics.arizona.edu/ontologies/exp#flattened", 
 	"decisionExperts": ["hong"], 
 	"decisionDate": "2021-01-15",
 	"reason": ""
