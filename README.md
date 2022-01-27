@@ -872,3 +872,43 @@
     ```json
     SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
       ``` 
+	
+* /nrsynonym: *Creates a not recommended synonym to the class in the named ontology. If term is an active class, also move the class to toreview*
+  * HTTP POST http://{host}/nrsynonym
+  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). decisionData and reason are optional. All other fields are required of a non-empty value.
+    ```json
+    {
+     	"user":"",
+     	"ontology":"exp",
+      "term": "inrolled",
+      "classIRI": "http://biosemantics.arizona.edu/ontologies/exp#involute",
+      "decisionExperts": "hong;bruce",
+      "decisionDate": "2020-01-15",
+	"reason": "inrolled can lead users to involute"
+    }
+    ```
+
+  * Response Body:
+    ```json
+    SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
+    ```
+	
+* /addReplacementTerms: *Creates a set of term_replaced_by annotations to the deprecated class in the named ontology*
+  * HTTP POST http://{host}/addReplacementTerms
+  * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). Date and reason are optional. All other fields are required of a non-empty value.
+    ```json
+    {
+	"user":"",
+	"ontology":"carex", 
+	"replaceTerms": ["http://biosemantics.arizona.edu/ontologies/carex#compressed"], 
+	"depClassIRI": "http://biosemantics.arizona.edu/ontologies/carex#flattened", 
+	"decisionExperts": ["hong"], 
+	"decisionDate": "2021-01-15",
+	"reason": ""
+    }
+    ```
+
+  * Response Body:
+    ```json
+    SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
+    ```
