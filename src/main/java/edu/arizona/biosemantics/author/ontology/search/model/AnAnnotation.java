@@ -15,6 +15,7 @@ public class AnAnnotation {
 	protected String ontology;
 	protected String example;
 	protected String providedBy;
+	static 	DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
 	
 
@@ -31,8 +32,8 @@ public class AnAnnotation {
 		this.classIRI = classIRI;
 		this.user = user;
 		this.ontology = ontology;
-		this.example = exampleSentence;
-		this.providedBy = experts;
+		this.example = exampleSentence!=null? exampleSentence + "["+dateFormat.format(new Date())+"]" : "";
+		this.providedBy = "Annotation ("+annotationContent+")" + " and any examples dated ["+dateFormat.format(new Date())+ "] made by " + experts;
 	}
 	
 	public String getUser(){
@@ -46,10 +47,12 @@ public class AnAnnotation {
 	public String getAnnotationContent(){
 		return annotationContent;
 	}
-	public String getProvanance() {
-		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
-		Date date = new Date();
-		return annotationContent +"(BY "+providedBy+" on "+ dateFormat.format(date)+ ")";
+	
+	public void setAnnotationContent(String content){
+		annotationContent = content;
+	}
+	public String getExperts() {
+		return providedBy;
 	}
 
 	public String getClassIRI() {
@@ -57,7 +60,6 @@ public class AnAnnotation {
 	}
 	
 	public String getExample() {
-		if(this.example!=null) return "";
 		return example;
 	}
 	

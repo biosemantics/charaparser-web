@@ -554,10 +554,10 @@ public class OntologySearchController {
 	}
 	
 	/**
-	 * attempt to add a not recommended synonym to a class
-	 * if this synonym is already a deprecated class: do nothing
+	 * To add a not recommended synonym to a class
+	 * if this synonym is already a deprecated class: no action
 	 * else if this synonym is a valid class: add an editor note and move the class to toreview 
-	 * In any case, add synonym as a not recommended synonym
+	 * In any case, add synonym as a not recommended synonym to the class
 	 * 
 	 * A term may be a exact synonym, broad synonym, or not recommended synonym. This could be conflict type 4.
 	 * @param synonym
@@ -719,13 +719,14 @@ public class OntologySearchController {
 			
 			//add replaced_by annotation 
 			AnAnnotation aa = new AnAnnotation(replaceTerms.getUser(), rt, ontoName, replaceTerms.getDepClassIRI(), null, String.join("; ", replaceTerms.getExperts()));
-			addAnnotation(aa, OntologySearchController.replacedBy);
+			ChangeApplied c1 = addAnnotation(aa, OntologySearchController.replacedBy);
+			if(c1 == ChangeApplied.SUCCESSFULLY) c= c1;
 		}
 		//refresh ontology search environment after the addition
 		FileSearcher searcher = this.searchersMap.get(ontoName);
 		searcher.updateSearcher(IRI.create(oIRI.getIri()));
 		//save ontology
-		//saveOntology(ontoName, oIRI);
+		//saveOntology(ontoName, oIRI)
 		return c;
 	}
 
@@ -962,9 +963,10 @@ return "{'Habit':['Growth form of plant'],"+
 
 	}
 
-	@PostMapping(value = "/comment", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
+	@PostMapping(value = "/resolverComment", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
 	public ChangeApplied addComment(@RequestBody Comment comment) {
 		String commentIRI = OntologySearchController.comment;
+		comment.setAnnotationContent("From Conflict Resolver:"+comment.getAnnotationContent()); //no .
 		return addAnnotation(comment, commentIRI);
 	}
 
@@ -985,16 +987,23 @@ return "{'Habit':['Growth form of plant'],"+
 		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 
+		//check the existence of the class in the ontology
+		OWLClass clazz = owlDataFactory.getOWLClass(annotation.getClassIRI());
+		if(! owlOntology.containsClassInSignature(clazz.getIRI())){
+			return ChangeApplied.NO_OPERATION;
+		}
+		
 		//add annotation
 		String annoContent = annotation.getAnnotationContent();
-		OWLClass clazz = owlDataFactory.getOWLClass(annotation.getClassIRI());
+	
 		OWLAnnotationProperty annoProperty = 
 				owlDataFactory.getOWLAnnotationProperty(IRI.create(annotationIRI));
 		OWLAnnotation anno = owlDataFactory.getOWLAnnotation(
 				annoProperty, owlDataFactory.getOWLLiteral(annoContent));
 		OWLAxiom annoAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clazz.getIRI(), anno);
 
-		ChangeApplied c = owlOntologyManager.addAxiom(owlOntology, annoAxiom);
+		ChangeApplied c1 = owlOntologyManager.addAxiom(owlOntology, annoAxiom);
+		ChangeApplied c2 = null;
 		
 		if(annotation.getExample().length()>0) {
 			OWLAnnotationProperty exampleProperty = 
@@ -1003,15 +1012,17 @@ return "{'Habit':['Growth form of plant'],"+
 					(exampleProperty, owlDataFactory.getOWLLiteral(annotation.getExample())); 
 			OWLAxiom exampleAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(
 					clazz.getIRI(), exampleAnnotation); 
-			owlOntologyManager.addAxiom(owlOntology, exampleAxiom);
+			c2 = owlOntologyManager.addAxiom(owlOntology, exampleAxiom);
 		}
 		
 		
-		//add provanance of the annotation as note
+		//add provenance of the annotation as note
+		OWLAnnotationProperty commentProperty = 
+				owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.comment));
 		anno = owlDataFactory.getOWLAnnotation(
-				annoProperty, owlDataFactory.getOWLLiteral(annotation.getProvanance()));
+				commentProperty, owlDataFactory.getOWLLiteral(annotation.getExperts()));
 		annoAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(clazz.getIRI(), anno);
-		owlOntologyManager.addAxiom(owlOntology, annoAxiom);
+		ChangeApplied c3 = owlOntologyManager.addAxiom(owlOntology, annoAxiom);
 
 		
 
@@ -1021,8 +1032,10 @@ return "{'Habit':['Growth form of plant'],"+
 
 		//save ontology
 		//saveOntology(ontoName, oIRI);
-
-		return c;
+		if(c1==ChangeApplied.SUCCESSFULLY || c2 == ChangeApplied.SUCCESSFULLY || c3 == ChangeApplied.SUCCESSFULLY)
+			return ChangeApplied.SUCCESSFULLY;
+		else
+			return ChangeApplied.NO_OPERATION;
 	}
 
 	/**
