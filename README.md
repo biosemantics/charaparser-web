@@ -272,8 +272,8 @@
     SUCCESSFULLY|UNSUCCESSFULLY|NO_OPERATION
     ```
 
-* /comment: *add a rdfs:comment property to the class in the named ontology*
-  * HTTP POST http://{host}/comment
+* /resolverComment: *add a rdfs:comment property to the class in the named ontology*
+  * HTTP POST http://{host}/resolverComment
   * Request body:If user value is empty, a shared ontology will be used. Otherwise, a user-specific version of the ontology will be used (See /createUserOntology). All other fields are required of a non-empty value.
     ```json
     {
