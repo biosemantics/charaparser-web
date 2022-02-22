@@ -197,7 +197,7 @@
       "createdBy": "hongcui",
       "creationDate": "09-18-2017",
       "definitionSrc": "hongcui",
-      "examples": "root apex blah blah blah, used in taxon xyz",
+      "examples": "root apex blah blah blah, used in taxon xyz [applicable to taxon name]",
       "logicDefinition": "'root apex' and 'part of' some root"
     }
     ```
