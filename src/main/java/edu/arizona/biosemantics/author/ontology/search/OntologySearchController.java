@@ -92,7 +92,15 @@ import edu.arizona.biosemantics.common.ontology.search.model.Ontology;
 import edu.arizona.biosemantics.common.ontology.search.model.OntologyEntry;
 import edu.arizona.biosemantics.common.ontology.search.model.OntologyEntry.Type;
 import edu.arizona.biosemantics.semanticmarkup.enhance.know.AnnotationProperty;
+
 import uk.ac.manchester.cs.jfact.JFactFactory;
+
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 @RestController
 public class OntologySearchController {
@@ -1702,6 +1710,49 @@ return "{'Habit':['Growth form of plant'],"+
 
 		return object.toJSONString(); 
 	}
+	
+	
+	
+	/**
+	 * Obtain disputes related to the ontology from the Character Recorder Database
+	 * Since Character Recorder only has Carex ontology, only Carex is the acceptable ontology for this endpoint
+	 * 
+	 */
+	/*
+	 * @GetMapping(value = "/{ontology}/getDisputes", produces = {
+	 * MediaType.APPLICATION_JSON_VALUE }) public String
+	 * getDisputesInJSON(@PathVariable String ontology){
+	 * 
+	 * //TODO move secretes to a config file
+	 * 
+	 * 
+	 * JSONArray disputes = new JSONArray();
+	 * 
+	 * 
+	 * Class.forName("com.mysql.jdbc.Driver").newInstance; Connection connection =
+	 * DriverManager.getConnection( "jdbc:mysql://" + databaseHost + ":" +
+	 * databasePort + "?connectTimeout=0&socketTimeout=0&autoReconnect=true",
+	 * databaseUser, databasePassword);
+	 * 
+	 * String selectDisputes = "SELECT * FROM " + databaseName + ".disputes"; try {
+	 * Statement stat = connection.createStatement(); stat.execute(selectDisputes);
+	 * ResultSet disputesRS = stat.getResultSet(); while(disputesRS.next()) {
+	 * JSONObject dispute = new JSONObject(); dispute.put("id",
+	 * disputesRS.getString("id")); dispute.put("term label",
+	 * disputesRS.getString("label")); dispute.put("term definition",
+	 * disputesRS.getString("definition")); dispute.put("term IRI",
+	 * disputesRS.getString("IRI")); dispute.put("term deprecated reason",
+	 * disputesRS.getString("deprecated_reason")); dispute.put("disputed by",
+	 * disputesRS.getString("disputed_by")); dispute.put("dispute reason",
+	 * disputesRS.getString("disputed_reason"));
+	 * dispute.put("proposed new defintion",
+	 * disputesRS.getString("new_definition")); dispute.put("example sentece",
+	 * disputesRS.getString("example_sentence")); dispute.put("applicable taxa",
+	 * disputesRS.getString("taxa")); dispute.put("disputed date",
+	 * disputesRS.getString("created_at")); disputes.add(dispute); } stat.close();
+	 * connection.close(); return disputes.toJSONString(); }catch(Exception e) {
+	 * e.printStackTrace(); } }
+	 */
 
 
 	//Obtain the entire ontology as a JSON object
@@ -2957,6 +3008,161 @@ public ChangeApplied makeEquivalent(@RequestBody EquivalentClasses equClasses) t
 	}
 
 	return change;
+}
+
+//TODO
+@GetMapping(value = "/{ontology}/getTSdoubled", produces = { MediaType.APPLICATION_JSON_VALUE })
+public OntologySearchResult getDoubledTermAndSynonym(@PathVariable String ontology, @RequestParam String term, @RequestParam Optional<String> ancestorIRI,
+		@RequestParam Optional<String> parent, @RequestParam Optional<String> relation, @RequestParam Optional<String> user) throws Exception {
+	String usrid = "";
+	String ontoName = ontology;
+	if(user.isPresent()){
+		usrid = user.get();
+		ontoName = ontology+"_"+usrid;
+	}
+	OntologyIRI oIRI = getOntologyIRI(ontoName);
+	////System.outprintln("/search ####################search ontoName="+ontoName);
+
+	OWLReasoner reasoner = null;
+	OWLDataFactory owlDataFactory = null;
+	if(ancestorIRI.isPresent()){
+		//use selected ontology
+		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName);//this.owlOntologyManagerMap.get(oIRI);
+		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
+		JFactFactory reasonerFactory = new JFactFactory();
+		reasoner = reasonerFactory.createNonBufferingReasoner(owlOntology);
+		owlDataFactory = owlOntologyManager.getOWLDataFactory();
+		reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
+	}
+	//ontoName: EXP_1 or EXP, CAREX, etc.
+	if(!searchersMap.containsKey(ontoName)) 
+		throw new IllegalArgumentException();
+
+	List<OntologyEntry> entries = new ArrayList<OntologyEntry>();
+	FileSearcher searcher = this.searchersMap.get(ontoName);
+	//searcher.updateSearcher(oIRI);
+	if(this.isQualityOntology(ontoName)) {
+		//System.out.println("/search q "+ontoName +"####################searcher="+searcher);
+		//System.out.println("/search q "+ontoName +"####################ontology count ="+
+		//searcher.getOwlOntologyManager().getOntologies().size());
+		//System.out.println("/search q "+ontoName +"####################ontology axiom count ="+
+		//searcher.getOwlOntologyManager().getOntology(IRI.create(oIRI.getIri())).getAxiomCount());
+		//System.out.println("/search q "+ontoName +"####################ontology api  ="+
+		//searcher.getOntoLookupClient().ontoutil.OWLqualityOntoAPIs.get(0));
+		entries.addAll(searcher.getQualityEntries(term));
+	}
+	if(this.isEntityOntology(ontoName)) {
+		//System.out.println("/searcher ####################searcher="+searcher);
+		//System.out.println("/search e "+ontoName +"####################ontology count ="+
+		//searcher.getOwlOntologyManager().getOntologies().size());
+		//System.out.println("/search e "+ontoName +"####################ontology axiom count ="+
+		//searcher.getOwlOntologyManager().getOntology(IRI.create(oIRI.getIri())).getAxiomCount());
+		//System.out.println("/search e "+ontoName+ "####################ontology api  ="+
+		//searcher.getOntoLookupClient().ontoutil.OWLentityOntoAPIs.get(0));
+		entries.addAll(
+				searcher.getEntityEntries(term, parent.orElse(""), relation.orElse("")));
+	}
+
+
+	if(ancestorIRI.isPresent()){
+		//required superclass
+		OWLClass superClazz = owlDataFactory.getOWLClass(IRI.create(ancestorIRI.get().replaceAll("%23", "#").replaceAll("%20", "_").replaceAll("\\s+", "_"))); //use either # or / in iri
+		//filter the result entries
+		List<OntologyEntry> fentries = new ArrayList<OntologyEntry>();
+		for(OntologyEntry result: entries){
+			OWLClass thisClaz = owlDataFactory.getOWLClass(IRI.create(result.getClassIRI()));
+			//find all superclasses of this matching class
+			Set <OWLClass> superClzz = reasoner.getSuperClasses(thisClaz,false).entities().collect(Collectors.toSet());
+			for(OWLClass sup: superClzz){
+				//any super class matches the required?
+				if(sup.getIRI().toString().compareTo(superClazz.getIRI().toString())==0) fentries.add(result);
+			}
+		}
+		entries = fentries;
+	}
+	return ontologySearchResultCreator.create(ontoName, entries, 
+			this.ontologyAccessMap.get(ontoName), 
+			this.owlOntologyManagerMap.get(ontoName).getOntology(IRI.create(oIRI.getIri())),
+			this.owlOntologyManagerMap.get(ontoName));
+}
+
+
+
+
+//TODO
+@GetMapping(value = "/{ontology}/disputes", produces = { MediaType.APPLICATION_JSON_VALUE })
+public OntologySearchResult getAllDisputesFromDB(@PathVariable String ontology, @RequestParam String term, @RequestParam Optional<String> ancestorIRI,
+		@RequestParam Optional<String> parent, @RequestParam Optional<String> relation, @RequestParam Optional<String> user) throws Exception {
+	String usrid = "";
+	String ontoName = ontology;
+	if(user.isPresent()){
+		usrid = user.get();
+		ontoName = ontology+"_"+usrid;
+	}
+	OntologyIRI oIRI = getOntologyIRI(ontoName);
+	////System.outprintln("/search ####################search ontoName="+ontoName);
+
+	OWLReasoner reasoner = null;
+	OWLDataFactory owlDataFactory = null;
+	if(ancestorIRI.isPresent()){
+		//use selected ontology
+		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName);//this.owlOntologyManagerMap.get(oIRI);
+		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
+		JFactFactory reasonerFactory = new JFactFactory();
+		reasoner = reasonerFactory.createNonBufferingReasoner(owlOntology);
+		owlDataFactory = owlOntologyManager.getOWLDataFactory();
+		reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
+	}
+	//ontoName: EXP_1 or EXP, CAREX, etc.
+	if(!searchersMap.containsKey(ontoName)) 
+		throw new IllegalArgumentException();
+
+	List<OntologyEntry> entries = new ArrayList<OntologyEntry>();
+	FileSearcher searcher = this.searchersMap.get(ontoName);
+	//searcher.updateSearcher(oIRI);
+	if(this.isQualityOntology(ontoName)) {
+		//System.out.println("/search q "+ontoName +"####################searcher="+searcher);
+		//System.out.println("/search q "+ontoName +"####################ontology count ="+
+		//searcher.getOwlOntologyManager().getOntologies().size());
+		//System.out.println("/search q "+ontoName +"####################ontology axiom count ="+
+		//searcher.getOwlOntologyManager().getOntology(IRI.create(oIRI.getIri())).getAxiomCount());
+		//System.out.println("/search q "+ontoName +"####################ontology api  ="+
+		//searcher.getOntoLookupClient().ontoutil.OWLqualityOntoAPIs.get(0));
+		entries.addAll(searcher.getQualityEntries(term));
+	}
+	if(this.isEntityOntology(ontoName)) {
+		//System.out.println("/searcher ####################searcher="+searcher);
+		//System.out.println("/search e "+ontoName +"####################ontology count ="+
+		//searcher.getOwlOntologyManager().getOntologies().size());
+		//System.out.println("/search e "+ontoName +"####################ontology axiom count ="+
+		//searcher.getOwlOntologyManager().getOntology(IRI.create(oIRI.getIri())).getAxiomCount());
+		//System.out.println("/search e "+ontoName+ "####################ontology api  ="+
+		//searcher.getOntoLookupClient().ontoutil.OWLentityOntoAPIs.get(0));
+		entries.addAll(
+				searcher.getEntityEntries(term, parent.orElse(""), relation.orElse("")));
+	}
+
+
+	if(ancestorIRI.isPresent()){
+		//required superclass
+		OWLClass superClazz = owlDataFactory.getOWLClass(IRI.create(ancestorIRI.get().replaceAll("%23", "#").replaceAll("%20", "_").replaceAll("\\s+", "_"))); //use either # or / in iri
+		//filter the result entries
+		List<OntologyEntry> fentries = new ArrayList<OntologyEntry>();
+		for(OntologyEntry result: entries){
+			OWLClass thisClaz = owlDataFactory.getOWLClass(IRI.create(result.getClassIRI()));
+			//find all superclasses of this matching class
+			Set <OWLClass> superClzz = reasoner.getSuperClasses(thisClaz,false).entities().collect(Collectors.toSet());
+			for(OWLClass sup: superClzz){
+				//any super class matches the required?
+				if(sup.getIRI().toString().compareTo(superClazz.getIRI().toString())==0) fentries.add(result);
+			}
+		}
+		entries = fentries;
+	}
+	return ontologySearchResultCreator.create(ontoName, entries, 
+			this.ontologyAccessMap.get(ontoName), 
+			this.owlOntologyManagerMap.get(ontoName).getOntology(IRI.create(oIRI.getIri())),
+			this.owlOntologyManagerMap.get(ontoName));
 }
 
 
