@@ -31,4 +31,4 @@ hs_err_pid*
 /ontologiesTest/
 
 #properties
-application.properties
+*.properties
