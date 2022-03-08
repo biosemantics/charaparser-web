@@ -28,6 +28,7 @@ import javax.annotation.PreDestroy;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.obolibrary.macro.ManchesterSyntaxTool;
+import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -1080,42 +1081,34 @@ return "{'Habit':['Growth form of plant'],"+
 		String subclassIRI = oIRI.getIri() + "#" + IRITermpart;
 		OWLClass subclass = owlDataFactory.getOWLClass(subclassIRI); //class to be added
 
+		
+		 Set<OWLAxiom> axioms = new TreeSet<OWLAxiom>();
+		  
 		OWLAnnotationProperty labelProperty =
 				owlDataFactory.getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI());
 		OWLLiteral labelLiteral = owlDataFactory.getOWLLiteral(c.getTerm().trim().replaceAll("%20", " "));
 		OWLAnnotation labelAnnotation = owlDataFactory.getOWLAnnotation(labelProperty, labelLiteral);
-		OWLAxiom labelAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(subclass.getIRI(), labelAnnotation);
-		ChangeApplied change = owlOntologyManager.addAxiom(owlOntology, labelAxiom);
-		if(change != ChangeApplied.SUCCESSFULLY && change !=ChangeApplied.NO_OPERATION )
-			return change.name();
+		axioms.add(owlDataFactory.getOWLAnnotationAssertionAxiom(subclass.getIRI(), labelAnnotation));
 
+		
 		OWLClass superclass = owlDataFactory.getOWLClass(c.getSuperclassIRI().trim().replaceAll("\\s+", "_").replaceAll("%20", "_"));
-		OWLAxiom subclassAxiom = owlDataFactory.getOWLSubClassOfAxiom(subclass, superclass);
-		change = owlOntologyManager.addAxiom(owlOntology, subclassAxiom);
-		if(change != ChangeApplied.SUCCESSFULLY && change !=ChangeApplied.NO_OPERATION)
-			return change.name();
+		axioms.add(owlDataFactory.getOWLSubClassOfAxiom(subclass, superclass));
+
 
 		OWLAnnotationProperty definitionProperty = 
 				owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.definitions));
 		OWLAnnotation definitionAnnotation = owlDataFactory.getOWLAnnotation
 				(definitionProperty, owlDataFactory.getOWLLiteral(c.getDefinition())); 
-		OWLAxiom definitionAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(
-				subclass.getIRI(), definitionAnnotation); 
-		change = owlOntologyManager.addAxiom(owlOntology, definitionAxiom);
+		axioms.add(owlDataFactory.getOWLAnnotationAssertionAxiom(
+				subclass.getIRI(), definitionAnnotation)); 
 
-		if(change != ChangeApplied.SUCCESSFULLY && change !=ChangeApplied.NO_OPERATION)
-			return change.name();
 
 		if(c.getElucidation() != null && !c.getElucidation().isEmpty()) {
 			OWLAnnotationProperty elucidationProperty = 
 					owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.elucidations));
 			OWLAnnotation elucidationAnnotation = owlDataFactory.getOWLAnnotation
 					(elucidationProperty, owlDataFactory.getOWLLiteral(c.getElucidation())); 
-			OWLAxiom elucidationAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(
-					subclass.getIRI(), elucidationAnnotation); 
-			change = owlOntologyManager.addAxiom(owlOntology, elucidationAxiom);
-			if(change != ChangeApplied.SUCCESSFULLY && change !=ChangeApplied.NO_OPERATION)
-				return change.name();
+			axioms.add(owlDataFactory.getOWLAnnotationAssertionAxiom(subclass.getIRI(), elucidationAnnotation)); 
 		}
 
 
@@ -1124,11 +1117,7 @@ return "{'Habit':['Growth form of plant'],"+
 					owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.createdBy));
 			OWLAnnotation createdByAnnotation = owlDataFactory.getOWLAnnotation
 					(createdByProperty, owlDataFactory.getOWLLiteral(c.getCreatedBy())); 
-			OWLAxiom createdByAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(
-					subclass.getIRI(), createdByAnnotation); 
-			change = owlOntologyManager.addAxiom(owlOntology, createdByAxiom);
-			if(change != ChangeApplied.SUCCESSFULLY && change !=ChangeApplied.NO_OPERATION)
-				return change.name();
+			axioms.add(owlDataFactory.getOWLAnnotationAssertionAxiom(subclass.getIRI(), createdByAnnotation)); 
 		}
 
 		if(c.getCreationDate() != null && !c.getCreationDate().isEmpty()) {
@@ -1136,11 +1125,8 @@ return "{'Habit':['Growth form of plant'],"+
 					owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.creationDate));
 			OWLAnnotation CreationDateAnnotation = owlDataFactory.getOWLAnnotation
 					(CreationDateProperty, owlDataFactory.getOWLLiteral(c.getCreationDate())); 
-			OWLAxiom CreationDateAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(
-					subclass.getIRI(), CreationDateAnnotation); 
-			change = owlOntologyManager.addAxiom(owlOntology, CreationDateAxiom);
-			if(change != ChangeApplied.SUCCESSFULLY&& change !=ChangeApplied.NO_OPERATION)
-				return change.name();
+			axioms.add(owlDataFactory.getOWLAnnotationAssertionAxiom(subclass.getIRI(), CreationDateAnnotation)); 
+
 		}
 
 		if(c.getDefinitionSrc() != null && !c.getDefinitionSrc().isEmpty()) {
@@ -1148,11 +1134,8 @@ return "{'Habit':['Growth form of plant'],"+
 					owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.definitionSrc));
 			OWLAnnotation DefinitionSrcAnnotation = owlDataFactory.getOWLAnnotation
 					(DefinitionSrcProperty, owlDataFactory.getOWLLiteral(c.getDefinitionSrc())); 
-			OWLAxiom DefinitionSrcAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(
-					subclass.getIRI(), DefinitionSrcAnnotation); 
-			change = owlOntologyManager.addAxiom(owlOntology, DefinitionSrcAxiom);
-			if(change != ChangeApplied.SUCCESSFULLY&& change !=ChangeApplied.NO_OPERATION)
-				return change.name();
+			axioms.add(owlDataFactory.getOWLAnnotationAssertionAxiom(subclass.getIRI(), DefinitionSrcAnnotation)); 
+;
 		}
 
 		if(c.getExampleOfUsage() != null && !c.getExampleOfUsage().isEmpty()) {
@@ -1162,11 +1145,8 @@ return "{'Habit':['Growth form of plant'],"+
 			for(String example: exps){
 				OWLAnnotation DefinitionSrcAnnotation = owlDataFactory.getOWLAnnotation
 						(DefinitionSrcProperty, owlDataFactory.getOWLLiteral(example)); 
-				OWLAxiom DefinitionSrcAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(
-						subclass.getIRI(), DefinitionSrcAnnotation); 
-				change = owlOntologyManager.addAxiom(owlOntology, DefinitionSrcAxiom);
-				if(change != ChangeApplied.SUCCESSFULLY&& change !=ChangeApplied.NO_OPERATION)
-					return change.name();
+				axioms.add(owlDataFactory.getOWLAnnotationAssertionAxiom(subclass.getIRI(), DefinitionSrcAnnotation)); 
+				
 			}
 		}
 		//logic definition: 
@@ -1188,11 +1168,8 @@ return "{'Habit':['Growth form of plant'],"+
 				//////System.outprintln(msg);
 				return msg;
 			}
-			OWLAxiom def = owlDataFactory.getOWLEquivalentClassesAxiom(subclass, clsB);
-			change = owlOntologyManager.addAxiom(owlOntology, def);
-			if(change != ChangeApplied.SUCCESSFULLY && change !=ChangeApplied.NO_OPERATION)
-				return change.name();
-
+			axioms.add(owlDataFactory.getOWLEquivalentClassesAxiom(subclass, clsB));
+			
 			/*write out ontology for test
 			File file = new File("C:/Users/hongcui/Documents/research/AuthorOntology/Data/CarexOntology/carex_tiny.owl");            
 			OWLDocumentFormat format = manager.getOntologyFormat(carex);    
@@ -1203,7 +1180,13 @@ return "{'Habit':['Growth form of plant'],"+
 			}*/
 
 		}
+		
+		
 
+		  List<AddAxiom> addAxioms = axioms.stream().map(ax -> new AddAxiom(owlOntology, ax)).collect(Collectors.toList());
+		  ChangeApplied change = owlOntologyManager.applyChanges(addAxioms);
+  		  if(change != ChangeApplied.SUCCESSFULLY && change !=ChangeApplied.NO_OPERATION)
+				return change.name();
 		////System.outprintln("/class ####################owlOntology axiom count (after)="+owlOntology.getAxiomCount());
 
 		//refresh ontology search environment after the addition
