@@ -121,12 +121,13 @@ public class OntologySearchController {
 	private static String synonymnr = "http://biosemantics.arizona.edu/ontologies/carex#has_not_recommended_synonym";
 	private static String synonymb = "http://www.geneontology.org/formats/oboInOwl#hasBroadSynonym";
 	private static String synonyme = "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym";
+	private static String synonymn = "http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym";
 	private static String definitions = "http://purl.obolibrary.org/obo/IAO_0000115";
-	private static String elucidations = "http://purl.obolibrary.org/obo/IAO_0000600";
+	private static String elucidations = "http://biosemantics.arizona.edu/ontologies/carex#elucidation";
 	private static String comment = "http://www.w3.org/2000/01/rdf-schema#comment";
 	private static String deprecated = "http://www.w3.org/2002/07/owl#deprecated";
 	private static String replacedBy = "http://biosemantics.arizona.edu/ontologies/carex#term_replaced_by";
-	private static String reason ="";
+	private static String reason ="http://biosemantics.arizona.edu/ontologies/carex#has_obsolescence_reason";
 
 	private HashMap<String, OntologyAccess> ontologyAccessMap = new HashMap<String, OntologyAccess>();
 	private HashMap<String, FileSearcher> searchersMap = new HashMap<String, FileSearcher>();
@@ -919,7 +920,7 @@ return "{'Habit':['Growth form of plant'],"+
 		//Put resolved defs as notes
 		if(def.contains("via Conflict Resolver")){
 			String date = definition.getDate();
-			ArrayList<String> defs = getAnnotationValues(clazz, definitionProperty, owlOntology);
+			ArrayList<String> defs = getAnnotationValues(clazz, definitionProperty, owlOntology, owlDataFactory);
 			String defString = "Past defintions:";
 			for(String deff: defs){
 				if(!deff.contains(date)){
@@ -1071,13 +1072,13 @@ return "{'Habit':['Growth form of plant'],"+
 		////System.outprintln("/class ####################owlOntology axiom count (before)="+owlOntology.getAxiomCount());
 		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 
-		String IRIpart = c.getTerm().trim();
-		if(IRIpart.isEmpty() || ! IRIpart.matches("^[a-z0-9].*") || ! IRIpart.matches(".*[a-z0-9]$")) 
+		String IRITermpart = c.getTerm().trim(); //this is term, not IRIpart
+		if(IRITermpart.isEmpty() || ! IRITermpart.matches("^[a-z0-9].*") || ! IRITermpart.matches(".*[a-z0-9]$")) 
 			return "NO_OPERATION: Term is empty, or not in lower case, or not start/end with an alphanum character.";
 
-		IRIpart = IRIpart.replaceAll("(%2D|\\s|%20|%5F|%96|%97|-)+", "_"); //turn space and hyphen-like characters to underscore for IRI.
-		String subclassIRI = oIRI.getIri() + "#" + IRIpart;
-		OWLClass subclass = owlDataFactory.getOWLClass(subclassIRI);
+		IRITermpart = IRITermpart.replaceAll("(%2D|\\s|%20|%5F|%96|%97|-)+", "_"); //turn space and hyphen-like characters to underscore for IRI.
+		String subclassIRI = oIRI.getIri() + "#" + IRITermpart;
+		OWLClass subclass = owlDataFactory.getOWLClass(subclassIRI); //class to be added
 
 		OWLAnnotationProperty labelProperty =
 				owlDataFactory.getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI());
@@ -1095,7 +1096,7 @@ return "{'Habit':['Growth form of plant'],"+
 			return change.name();
 
 		OWLAnnotationProperty definitionProperty = 
-				owlDataFactory.getOWLAnnotationProperty(IRI.create(AnnotationProperty.DEFINITION.getIRI()));
+				owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.definitions));
 		OWLAnnotation definitionAnnotation = owlDataFactory.getOWLAnnotation
 				(definitionProperty, owlDataFactory.getOWLLiteral(c.getDefinition())); 
 		OWLAxiom definitionAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(
@@ -1107,7 +1108,7 @@ return "{'Habit':['Growth form of plant'],"+
 
 		if(c.getElucidation() != null && !c.getElucidation().isEmpty()) {
 			OWLAnnotationProperty elucidationProperty = 
-					owlDataFactory.getOWLAnnotationProperty(IRI.create(elucidations));
+					owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.elucidations));
 			OWLAnnotation elucidationAnnotation = owlDataFactory.getOWLAnnotation
 					(elucidationProperty, owlDataFactory.getOWLLiteral(c.getElucidation())); 
 			OWLAxiom elucidationAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(
@@ -1120,7 +1121,7 @@ return "{'Habit':['Growth form of plant'],"+
 
 		if(c.getCreatedBy() != null && !c.getCreatedBy().isEmpty()) {
 			OWLAnnotationProperty createdByProperty = 
-					owlDataFactory.getOWLAnnotationProperty(IRI.create(createdBy));
+					owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.createdBy));
 			OWLAnnotation createdByAnnotation = owlDataFactory.getOWLAnnotation
 					(createdByProperty, owlDataFactory.getOWLLiteral(c.getCreatedBy())); 
 			OWLAxiom createdByAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(
@@ -1132,7 +1133,7 @@ return "{'Habit':['Growth form of plant'],"+
 
 		if(c.getCreationDate() != null && !c.getCreationDate().isEmpty()) {
 			OWLAnnotationProperty CreationDateProperty = 
-					owlDataFactory.getOWLAnnotationProperty(IRI.create(creationDate));
+					owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.creationDate));
 			OWLAnnotation CreationDateAnnotation = owlDataFactory.getOWLAnnotation
 					(CreationDateProperty, owlDataFactory.getOWLLiteral(c.getCreationDate())); 
 			OWLAxiom CreationDateAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(
@@ -1144,7 +1145,7 @@ return "{'Habit':['Growth form of plant'],"+
 
 		if(c.getDefinitionSrc() != null && !c.getDefinitionSrc().isEmpty()) {
 			OWLAnnotationProperty DefinitionSrcProperty = 
-					owlDataFactory.getOWLAnnotationProperty(IRI.create(definitionSrc));
+					owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.definitionSrc));
 			OWLAnnotation DefinitionSrcAnnotation = owlDataFactory.getOWLAnnotation
 					(DefinitionSrcProperty, owlDataFactory.getOWLLiteral(c.getDefinitionSrc())); 
 			OWLAxiom DefinitionSrcAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(
@@ -1156,9 +1157,9 @@ return "{'Habit':['Growth form of plant'],"+
 
 		if(c.getExampleOfUsage() != null && !c.getExampleOfUsage().isEmpty()) {
 			String[] exps = c.getExampleOfUsage().split("#");
+			OWLAnnotationProperty DefinitionSrcProperty = 
+					owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.exampleOfUsage));
 			for(String example: exps){
-				OWLAnnotationProperty DefinitionSrcProperty = 
-						owlDataFactory.getOWLAnnotationProperty(IRI.create(exampleOfUsage));
 				OWLAnnotation DefinitionSrcAnnotation = owlDataFactory.getOWLAnnotation
 						(DefinitionSrcProperty, owlDataFactory.getOWLLiteral(example)); 
 				OWLAxiom DefinitionSrcAxiom = owlDataFactory.getOWLAnnotationAssertionAxiom(
@@ -1772,17 +1773,22 @@ return "{'Habit':['Growth form of plant'],"+
 
 		JSONObject object = new JSONObject();
 		OWLClass root;
-		OWLAnnotationProperty synonymE = owlDataFactory.getOWLAnnotationProperty(IRI.create(synonyme));
-		OWLAnnotationProperty synonymB = owlDataFactory.getOWLAnnotationProperty(IRI.create(synonymb));
-		OWLAnnotationProperty synonymNR =owlDataFactory.getOWLAnnotationProperty(IRI.create(synonymnr));
-		OWLAnnotationProperty definition = owlDataFactory.getOWLAnnotationProperty(IRI.create(definitions));
-		OWLAnnotationProperty elucidation = owlDataFactory.getOWLAnnotationProperty(IRI.create(elucidations));
-		OWLAnnotationProperty isdeprecated =  owlDataFactory.getOWLAnnotationProperty(IRI.create(deprecated));
+		OWLAnnotationProperty synonymE = owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.synonyme));
+		OWLAnnotationProperty synonymB = owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.synonymb));
+		OWLAnnotationProperty synonymNR =owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.synonymnr));
+		OWLAnnotationProperty definition = owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.definitions));
+		OWLAnnotationProperty elucidation = owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.elucidations));
+		OWLAnnotationProperty isdeprecated =  owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.deprecated));
+		
+		OWLAnnotationProperty replace =  owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.replacedBy));
+		OWLAnnotationProperty reason =  owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.reason));
+		
+		
 
 		root = owlDataFactory.getOWLClass(IRI.create("http://www.w3.org/2002/07/owl#Thing"));
 		JFactFactory reasonerFactory = new JFactFactory();
 		OWLReasoner reasoner = reasonerFactory.createNonBufferingReasoner(owlOntology);
-		writeJSONObject(reasoner, owlDataFactory, root, object, owlOntologyManager, owlOntology, synonymE, synonymB, synonymNR, definition, elucidation, isdeprecated);
+		writeJSONObject(reasoner, owlDataFactory, root, object, owlOntologyManager, owlOntology, synonymE, synonymB, synonymNR, definition, elucidation, isdeprecated, replace, reason);
 
 		return object.toJSONString(); 
 	}
@@ -1801,20 +1807,20 @@ return "{'Habit':['Growth form of plant'],"+
 
 			o.put("IRI", clazz.getIRI().getIRIString());
 
-			ArrayList<String> result = getAnnotationValues(clazz, definition, onto);
+			ArrayList<String> result = getAnnotationValues(clazz, definition, onto, owlDataFactory);
 			for(String def: result){
 				o.put("definition", def);
 				//termDefinitionCache.put(clazz.getIRI().toString(), result);
 				//System.out.println("shared synonyms: "+synonymB4(clazz));
 			}
 
-			result = getAnnotationValues(clazz, elucidation, onto);
+			result = getAnnotationValues(clazz, elucidation, onto, owlDataFactory);
 			for(String elu: result){
 				o.put("elucidation", elu);
 				//System.out.println("shared synonyms: "+synonymB4(clazz));
 			}
 			
-			result = getAnnotationValues(clazz, isdeprecated, onto);
+			result = getAnnotationValues(clazz, isdeprecated, onto, owlDataFactory);
 			for(String dep: result){
 				o.put("deprecated", dep);
 				//System.out.println("shared synonyms: "+synonymB4(clazz));
@@ -1843,7 +1849,9 @@ return "{'Habit':['Growth form of plant'],"+
 	}
 
 	@SuppressWarnings("unchecked")
-	private JSONObject writeJSONObject(OWLReasoner reasoner, OWLDataFactory owlDataFactory, OWLClass clazz, JSONObject object, OWLOntologyManager manager, OWLOntology onto, OWLAnnotationProperty synonymE, OWLAnnotationProperty synonymB, OWLAnnotationProperty synonymNR, OWLAnnotationProperty definition, OWLAnnotationProperty elucidation, OWLAnnotationProperty isdeprecated) {
+	private JSONObject writeJSONObject(OWLReasoner reasoner, OWLDataFactory owlDataFactory, OWLClass clazz, JSONObject object, OWLOntologyManager manager,
+			OWLOntology onto, OWLAnnotationProperty synonymE, OWLAnnotationProperty synonymB, OWLAnnotationProperty synonymNR, OWLAnnotationProperty definition, 
+			OWLAnnotationProperty elucidation, OWLAnnotationProperty isdeprecated, OWLAnnotationProperty replace, OWLAnnotationProperty reason2) {
 
 		if(reasoner.isSatisfiable(clazz)){
 			//print one  class
@@ -1855,43 +1863,55 @@ return "{'Habit':['Growth form of plant'],"+
 			JSONObject o = new JSONObject();
 
 			o.put("IRI", clazz.getIRI().getIRIString());
-			ArrayList<String> result = synonymE4(clazz, synonymE, onto);
+			ArrayList<String> result = getAnnotationValues(clazz, synonymE, onto, owlDataFactory);
 			for(String esyn: result){
 				o.put("exact synonyms", esyn);
 				//System.out.println("exact synonyms: "+result));
 			}
 
-			result = synonymB4(clazz, synonymB, onto);
+			result = getAnnotationValues(clazz, synonymB, onto, owlDataFactory);
 			for(String bsyn: result){
 				o.put("shared broad synonyms",bsyn);
 				//System.out.println("shared synonyms: "+result);
 			}
 
-			result = synonymNotR4(clazz, synonymNR, onto);
+			result = getAnnotationValues(clazz, synonymNR, onto, owlDataFactory);
 			for(String nsyn: result){
 				o.put("not recommended synonyms", nsyn);
 				//System.out.println("shared synonyms: "+result);
 			}
 
-			result = getAnnotationValues(clazz, definition, onto);
+			result = getAnnotationValues(clazz, definition, onto, owlDataFactory);
 			for(String def: result){
 				o.put("definition", def);
 				//termDefinitionCache.put(clazz.getIRI().toString(), result);
 				//System.out.println("shared synonyms: "+synonymB4(clazz));
 			}
 
-			result = getAnnotationValues(clazz, elucidation, onto);
+			result = getAnnotationValues(clazz, elucidation, onto, owlDataFactory);
 			for(String eluc: result){
 				o.put("elucidation", eluc);
 				//System.out.println("shared synonyms: "+synonymB4(clazz));
 			}
 			
-			result = getAnnotationValues(clazz, isdeprecated, onto);
+			result = getAnnotationValues(clazz, isdeprecated, onto, owlDataFactory);
 			for(String dep: result){
 				o.put("deprecated", dep);
 				//System.out.println("shared synonyms: "+synonymB4(clazz));
 			}
 
+			result = getAnnotationValues(clazz, reason2, onto, owlDataFactory);
+			for(String res: result){
+				o.put("deprecated reason", res);
+				//System.out.println("shared synonyms: "+synonymB4(clazz));
+			}
+			
+			result = getAnnotationValues(clazz, replace, onto, owlDataFactory);
+			for(String rep: result){
+				o.put("replacement term", rep);
+				//System.out.println("shared synonyms: "+synonymB4(clazz));
+			}
+			
 			details.add(o);
 			data.put("details", details);
 			object.put("data", data);
@@ -1906,7 +1926,7 @@ return "{'Habit':['Growth form of plant'],"+
 				while(it.hasNext()){
 					OWLClass c = it.next();
 					if(!c.equals(clazz))
-						children.add(/*i++,*/ writeJSONObject(reasoner, owlDataFactory, c, new JSONObject(), manager, onto, synonymE, synonymB, synonymNR, definition, elucidation, isdeprecated));
+						children.add(/*i++,*/ writeJSONObject(reasoner, owlDataFactory, c, new JSONObject(), manager, onto, synonymE, synonymB, synonymNR, definition, elucidation, isdeprecated, replace, reason2));
 				}
 				object.put("children", children);
 			}
@@ -1920,18 +1940,7 @@ return "{'Habit':['Growth form of plant'],"+
 	}
 
 
-	private ArrayList<String> getAnnotationValues(OWLClass clazz, OWLAnnotationProperty annotationProperty, OWLOntology onto) {
-		ArrayList<String> values = new ArrayList<String>();
 
-		for(OWLAnnotation a : EntitySearcher.getAnnotations(clazz, onto, annotationProperty).collect(Collectors.toSet())) {
-			OWLAnnotationValue value = a.getValue();
-			if(value instanceof OWLLiteral) {
-				values.add(((OWLLiteral) value).getLiteral());   
-			}
-		}
-
-		return values;
-	}
 
 
 
@@ -1961,9 +1970,23 @@ return "{'Habit':['Growth form of plant'],"+
 		return definition + " added!";
 	}*/
 
+	private ArrayList<String> getAnnotationValues(OWLClass clazz, OWLAnnotationProperty annotationProperty, OWLOntology onto, OWLDataFactory owlDataFactory) {
+		ArrayList<String> values = new ArrayList<String>();
+
+		for(OWLAnnotation a : EntitySearcher.getAnnotations(clazz, onto, annotationProperty).collect(Collectors.toSet())) {
+			OWLAnnotationValue value = a.getValue();
+			if(value instanceof OWLLiteral) {
+				values.add(((OWLLiteral) value).getLiteral());   
+			}else if(value instanceof IRI) {
+				OWLClass cls = owlDataFactory.getOWLClass((IRI)value);
+				values.add(labelFor(cls, onto, owlDataFactory)); //get the last fragement, the term
+			}
+		}
+		return values;
+	}
 
 
-	private ArrayList<String> synonymE4(OWLClass clazz, OWLAnnotationProperty synonymE, OWLOntology onto) {
+	/*private ArrayList<String> synonymE4(OWLClass clazz, OWLAnnotationProperty synonymE, OWLOntology onto) {
 		ArrayList<String> eSyns = new ArrayList<String>();
 		for(OWLAnnotation a : EntitySearcher.getAnnotations(clazz, onto, synonymE).collect(Collectors.toSet())) {
 			OWLAnnotationValue value = a.getValue();
@@ -1998,7 +2021,7 @@ return "{'Habit':['Growth form of plant'],"+
 		}
 
 		return nSyns;
-	}
+	}*/
 
 	private String labelFor(OWLEntity entity, OWLOntology onto, OWLDataFactory owlDataFactory) {
 		for(OWLAnnotation a : EntitySearcher.getAnnotations(entity, onto, owlDataFactory.getRDFSLabel()).collect(Collectors.toSet())) {
@@ -2073,7 +2096,7 @@ return "{'Habit':['Growth form of plant'],"+
 					term.put("label", labelFor(clz, owlOntology, owlDataFactory));
 
 					//createdBy for term
-					List<String> acreator = getAnnotationValues(clz, creator, owlOntology);
+					List<String> acreator = getAnnotationValues(clz, creator, owlOntology, owlDataFactory);
 					if(acreator.size()>0)
 						term.put("termCreator", acreator.get(0));
 					else
@@ -2091,8 +2114,8 @@ return "{'Habit':['Growth form of plant'],"+
 						JSONObject category = new JSONObject();
 						category.put("iri", supr.getIRI().toString());
 						category.put("name", labelFor(supr, owlOntology, owlDataFactory));
-						category.put("definition", getAnnotationValues(supr, definition, owlOntology));
-						category.put("elucidation", getAnnotationValues(supr, elucidation, owlOntology));
+						category.put("definition", getAnnotationValues(supr, definition, owlOntology, owlDataFactory));
+						category.put("elucidation", getAnnotationValues(supr, elucidation, owlOntology, owlDataFactory));
 						categories.put("category " + c, category);
 						c++;
 						term.put("categories", categories);
@@ -2173,7 +2196,7 @@ return "{'Habit':['Growth form of plant'],"+
 		JSONObject terms = new JSONObject();
 		int t = 1;
 		for(OWLClass clz: set){
-			ArrayList<String> defs = getAnnotationValues(clz, definition, owlOntology);
+			ArrayList<String> defs = getAnnotationValues(clz, definition, owlOntology, owlDataFactory);
 			if(defs.isEmpty() || defs.size()>1){
 				//write JSON for this class
 				//https://www.screencast.com/t/yMyt9VzmS
@@ -2182,7 +2205,7 @@ return "{'Habit':['Growth form of plant'],"+
 				term.put("iri", clz.getIRI().toString());
 				term.put("label", labelFor(clz, owlOntology, owlDataFactory));
 				//createdBy for term
-				List<String> acreator = getAnnotationValues(clz, creator, owlOntology);
+				List<String> acreator = getAnnotationValues(clz, creator, owlOntology, owlDataFactory);
 				if(acreator.size()>0)
 					term.put("termCreator", acreator.get(0));
 				else
@@ -2212,7 +2235,7 @@ return "{'Habit':['Growth form of plant'],"+
 				term.put("definitions", definitions);
 
 				JSONArray elucidations = new JSONArray();
-				List<String> elus = getAnnotationValues(clz, elucidation, owlOntology);
+				List<String> elus = getAnnotationValues(clz, elucidation, owlOntology, owlDataFactory);
 				for(String elu: elus){
 					elucidations.add(elu);
 				}
@@ -2277,7 +2300,7 @@ return "{'Habit':['Growth form of plant'],"+
 				//write JSON for this class
 				//https://www.screencast.com/t/yMyt9VzmS
 				OWLClass clz = (OWLClass)clzx;
-				List<String> defs = getAnnotationValues(clz, definition, owlOntology);
+				List<String> defs = getAnnotationValues(clz, definition, owlOntology, owlDataFactory);
 				if(defs.size()==1){ //exactly one definition
 					String adefinition = defs.get(0);
 					JSONObject term = new JSONObject();
@@ -2285,7 +2308,7 @@ return "{'Habit':['Growth form of plant'],"+
 					term.put("label", labelFor(clz, owlOntology, owlDataFactory));
 
 					//createdBy for term
-					List<String> acreator = getAnnotationValues(clz, creator, owlOntology);
+					List<String> acreator = getAnnotationValues(clz, creator, owlOntology, owlDataFactory);
 					if(acreator.size()>0)
 						term.put("termCreator", acreator.get(0));
 					else
@@ -2303,7 +2326,7 @@ return "{'Habit':['Growth form of plant'],"+
 
 
 					JSONArray elucidations = new JSONArray();
-					List<String> elus = getAnnotationValues(clz, elucidation, owlOntology);
+					List<String> elus = getAnnotationValues(clz, elucidation, owlOntology, owlDataFactory);
 					for(String elu: elus){
 						elucidations.add(elu);
 					}
@@ -2426,7 +2449,7 @@ return "{'Habit':['Growth form of plant'],"+
 			int c = 0;
 			for(String iri: iris){ //at least two IRIs need to have exactly one def.
 				OWLClass clz = owlDataFactory.getOWLClass(iri);
-				List<String> defs = getAnnotationValues(clz, definition, owlOntology);
+				List<String> defs = getAnnotationValues(clz, definition, owlOntology, owlDataFactory);
 				if(defs.size()==1){ //exactly one definition
 					oneDefClasses.put(clz, defs.get(0));
 					c++;
@@ -2447,7 +2470,7 @@ return "{'Habit':['Growth form of plant'],"+
 					aclass.put("label", labelFor(clz, owlOntology, owlDataFactory));
 
 					//createdBy for term
-					List<String> acreator = getAnnotationValues(clz, creator, owlOntology);
+					List<String> acreator = getAnnotationValues(clz, creator, owlOntology, owlDataFactory);
 					if(acreator.size()>0)
 						aclass.put("termCreator", acreator.get(0));
 					else
@@ -2463,7 +2486,7 @@ return "{'Habit':['Growth form of plant'],"+
 					aclass.put("definition", adefinition);
 
 					JSONArray elucidations = new JSONArray();
-					List<String> elus = getAnnotationValues(clz, elucidation, owlOntology);
+					List<String> elus = getAnnotationValues(clz, elucidation, owlOntology, owlDataFactory);
 					for(String elu: elus){
 						elucidations.add(elu);
 					}
@@ -2487,12 +2510,12 @@ return "{'Habit':['Growth form of plant'],"+
 			thisTerm.put("equ class "+t, equTerm);
 			OWLClass thisClz = owlDataFactory.getOWLClass(equTerm);
 
-			ArrayList<String> defs = getAnnotationValues(thisClz, definition, owlOntology);
+			ArrayList<String> defs = getAnnotationValues(thisClz, definition, owlOntology, owlDataFactory);
 			if(defs.size()!=1) continue;
 			//list thisTerm's info
 			thisTerm.put("label", labelFor(thisClz, owlOntology, owlDataFactory));
 			//createdBy for term
-			List<String> acreator = getAnnotationValues(thisClz, creator, owlOntology);
+			List<String> acreator = getAnnotationValues(thisClz, creator, owlOntology, owlDataFactory);
 			if(acreator.size()>0)
 				thisTerm.put("termCreator", acreator.get(0));
 			else
@@ -2508,7 +2531,7 @@ return "{'Habit':['Growth form of plant'],"+
 			thisTerm.put("definition", defs.get(0));
 
 			JSONArray elucidations = new JSONArray();
-			List<String> elus = getAnnotationValues(thisClz, elucidation, owlOntology);
+			List<String> elus = getAnnotationValues(thisClz, elucidation, owlOntology, owlDataFactory);
 			for(String elu: elus){
 				elucidations.add(elu);
 			}
@@ -2523,7 +2546,7 @@ return "{'Habit':['Growth form of plant'],"+
 			Hashtable<OWLClass, String> oneDefClasses = new Hashtable<OWLClass, String> ();
 			for(String iri: iris){
 				OWLClass clz = owlDataFactory.getOWLClass(iri);
-				defs = getAnnotationValues(clz, definition, owlOntology);
+				defs = getAnnotationValues(clz, definition, owlOntology, owlDataFactory);
 				if(defs.size()==1){ //exactly one definition
 					oneDefClasses.put(clz, defs.get(0));
 				}
@@ -2539,7 +2562,7 @@ return "{'Habit':['Growth form of plant'],"+
 				aclass.put("label", labelFor(clz, owlOntology, owlDataFactory));
 
 				//createdBy for term
-				acreator = getAnnotationValues(clz, creator, owlOntology);
+				acreator = getAnnotationValues(clz, creator, owlOntology, owlDataFactory);
 				if(acreator.size()>0)
 					aclass.put("termCreator", acreator.get(0));
 				else
@@ -2557,7 +2580,7 @@ return "{'Habit':['Growth form of plant'],"+
 
 
 				elucidations = new JSONArray();
-				elus = getAnnotationValues(clz, elucidation, owlOntology);
+				elus = getAnnotationValues(clz, elucidation, owlOntology, owlDataFactory);
 				for(String elu: elus){
 					elucidations.add(elu);
 				}
@@ -3010,10 +3033,20 @@ public ChangeApplied makeEquivalent(@RequestBody EquivalentClasses equClasses) t
 	return change;
 }
 
-//TODO
+//sanity check of the ontology
+/**
+ * find terms that are also synonyms
+ * @param ontology
+ * @param term
+ * @param ancestorIRI
+ * @param parent
+ * @param relation
+ * @param user
+ * @return
+ * @throws Exception
+ */
 @GetMapping(value = "/{ontology}/getTSdoubled", produces = { MediaType.APPLICATION_JSON_VALUE })
-public OntologySearchResult getDoubledTermAndSynonym(@PathVariable String ontology, @RequestParam String term, @RequestParam Optional<String> ancestorIRI,
-		@RequestParam Optional<String> parent, @RequestParam Optional<String> relation, @RequestParam Optional<String> user) throws Exception {
+public String getDoubledTermAndSynonym(@PathVariable String ontology, @RequestParam Optional<String> user) throws Exception {
 	String usrid = "";
 	String ontoName = ontology;
 	if(user.isPresent()){
@@ -3023,147 +3056,60 @@ public OntologySearchResult getDoubledTermAndSynonym(@PathVariable String ontolo
 	OntologyIRI oIRI = getOntologyIRI(ontoName);
 	////System.outprintln("/search ####################search ontoName="+ontoName);
 
-	OWLReasoner reasoner = null;
-	OWLDataFactory owlDataFactory = null;
-	if(ancestorIRI.isPresent()){
-		//use selected ontology
-		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName);//this.owlOntologyManagerMap.get(oIRI);
-		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
-		JFactFactory reasonerFactory = new JFactFactory();
-		reasoner = reasonerFactory.createNonBufferingReasoner(owlOntology);
-		owlDataFactory = owlOntologyManager.getOWLDataFactory();
-		reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
-	}
-	//ontoName: EXP_1 or EXP, CAREX, etc.
-	if(!searchersMap.containsKey(ontoName)) 
-		throw new IllegalArgumentException();
+	OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName);
+	OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
+	OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 
-	List<OntologyEntry> entries = new ArrayList<OntologyEntry>();
-	FileSearcher searcher = this.searchersMap.get(ontoName);
-	//searcher.updateSearcher(oIRI);
-	if(this.isQualityOntology(ontoName)) {
-		//System.out.println("/search q "+ontoName +"####################searcher="+searcher);
-		//System.out.println("/search q "+ontoName +"####################ontology count ="+
-		//searcher.getOwlOntologyManager().getOntologies().size());
-		//System.out.println("/search q "+ontoName +"####################ontology axiom count ="+
-		//searcher.getOwlOntologyManager().getOntology(IRI.create(oIRI.getIri())).getAxiomCount());
-		//System.out.println("/search q "+ontoName +"####################ontology api  ="+
-		//searcher.getOntoLookupClient().ontoutil.OWLqualityOntoAPIs.get(0));
-		entries.addAll(searcher.getQualityEntries(term));
-	}
-	if(this.isEntityOntology(ontoName)) {
-		//System.out.println("/searcher ####################searcher="+searcher);
-		//System.out.println("/search e "+ontoName +"####################ontology count ="+
-		//searcher.getOwlOntologyManager().getOntologies().size());
-		//System.out.println("/search e "+ontoName +"####################ontology axiom count ="+
-		//searcher.getOwlOntologyManager().getOntology(IRI.create(oIRI.getIri())).getAxiomCount());
-		//System.out.println("/search e "+ontoName+ "####################ontology api  ="+
-		//searcher.getOntoLookupClient().ontoutil.OWLentityOntoAPIs.get(0));
-		entries.addAll(
-				searcher.getEntityEntries(term, parent.orElse(""), relation.orElse("")));
-	}
+	OWLAnnotationProperty bSyn = owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.synonymb));
+	OWLAnnotationProperty eSyn = owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.synonyme));
+	OWLAnnotationProperty nrSyn = owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.synonymnr));
+	OWLAnnotationProperty nSyn = owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.synonymn));
 
+	//get all synonym annotations and built synonym => class label mapping
+	
 
-	if(ancestorIRI.isPresent()){
-		//required superclass
-		OWLClass superClazz = owlDataFactory.getOWLClass(IRI.create(ancestorIRI.get().replaceAll("%23", "#").replaceAll("%20", "_").replaceAll("\\s+", "_"))); //use either # or / in iri
-		//filter the result entries
-		List<OntologyEntry> fentries = new ArrayList<OntologyEntry>();
-		for(OntologyEntry result: entries){
-			OWLClass thisClaz = owlDataFactory.getOWLClass(IRI.create(result.getClassIRI()));
-			//find all superclasses of this matching class
-			Set <OWLClass> superClzz = reasoner.getSuperClasses(thisClaz,false).entities().collect(Collectors.toSet());
-			for(OWLClass sup: superClzz){
-				//any super class matches the required?
-				if(sup.getIRI().toString().compareTo(superClazz.getIRI().toString())==0) fentries.add(result);
+	Hashtable<String, String> syn2term = new Hashtable<String, String>();
+	
+	TreeSet<String> labels = new TreeSet<String>();
+	
+	Set<OWLClass> set = owlOntology.classesInSignature().collect(Collectors.toSet());
+	for(OWLClass claz: set){
+		String label = labelFor(claz, owlOntology, owlDataFactory);
+		labels.add(label);
+		Set<OWLAnnotation> annotations = EntitySearcher.getAnnotationObjects(claz, owlOntology).collect(Collectors.toSet());
+		for(OWLAnnotation thisAnnotation: annotations){
+			if(thisAnnotation.getProperty().equals(bSyn) || 
+					thisAnnotation.getProperty().equals(eSyn) ||
+					thisAnnotation.getProperty().equals(nrSyn) ||
+					thisAnnotation.getProperty().equals(nSyn) ){
+				
+				OWLAnnotationValue value = thisAnnotation.getValue();
+				if(value instanceof OWLLiteral) {
+					syn2term.put(((OWLLiteral) value).getLiteral(), label);   
+				}
+				
+				
 			}
 		}
-		entries = fentries;
 	}
-	return ontologySearchResultCreator.create(ontoName, entries, 
-			this.ontologyAccessMap.get(ontoName), 
-			this.owlOntologyManagerMap.get(ontoName).getOntology(IRI.create(oIRI.getIri())),
-			this.owlOntologyManagerMap.get(ontoName));
+	
+	//test all synonyms to find that are also labels 
+
+	JSONArray dbTerms = new JSONArray();
+	Enumeration<String> syns = syn2term.keys();
+	while(syns.hasMoreElements()) {
+		String syn = syns.nextElement();
+		if(labels.contains(syn)) {
+			JSONObject obj = new JSONObject();
+			obj.put(syn, syn2term.get(syn));
+			dbTerms.add(obj);
+		}
+	}
+
+	return dbTerms.toJSONString(); 
 }
 
 
-
-
-//TODO
-@GetMapping(value = "/{ontology}/disputes", produces = { MediaType.APPLICATION_JSON_VALUE })
-public OntologySearchResult getAllDisputesFromDB(@PathVariable String ontology, @RequestParam String term, @RequestParam Optional<String> ancestorIRI,
-		@RequestParam Optional<String> parent, @RequestParam Optional<String> relation, @RequestParam Optional<String> user) throws Exception {
-	String usrid = "";
-	String ontoName = ontology;
-	if(user.isPresent()){
-		usrid = user.get();
-		ontoName = ontology+"_"+usrid;
-	}
-	OntologyIRI oIRI = getOntologyIRI(ontoName);
-	////System.outprintln("/search ####################search ontoName="+ontoName);
-
-	OWLReasoner reasoner = null;
-	OWLDataFactory owlDataFactory = null;
-	if(ancestorIRI.isPresent()){
-		//use selected ontology
-		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName);//this.owlOntologyManagerMap.get(oIRI);
-		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
-		JFactFactory reasonerFactory = new JFactFactory();
-		reasoner = reasonerFactory.createNonBufferingReasoner(owlOntology);
-		owlDataFactory = owlOntologyManager.getOWLDataFactory();
-		reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
-	}
-	//ontoName: EXP_1 or EXP, CAREX, etc.
-	if(!searchersMap.containsKey(ontoName)) 
-		throw new IllegalArgumentException();
-
-	List<OntologyEntry> entries = new ArrayList<OntologyEntry>();
-	FileSearcher searcher = this.searchersMap.get(ontoName);
-	//searcher.updateSearcher(oIRI);
-	if(this.isQualityOntology(ontoName)) {
-		//System.out.println("/search q "+ontoName +"####################searcher="+searcher);
-		//System.out.println("/search q "+ontoName +"####################ontology count ="+
-		//searcher.getOwlOntologyManager().getOntologies().size());
-		//System.out.println("/search q "+ontoName +"####################ontology axiom count ="+
-		//searcher.getOwlOntologyManager().getOntology(IRI.create(oIRI.getIri())).getAxiomCount());
-		//System.out.println("/search q "+ontoName +"####################ontology api  ="+
-		//searcher.getOntoLookupClient().ontoutil.OWLqualityOntoAPIs.get(0));
-		entries.addAll(searcher.getQualityEntries(term));
-	}
-	if(this.isEntityOntology(ontoName)) {
-		//System.out.println("/searcher ####################searcher="+searcher);
-		//System.out.println("/search e "+ontoName +"####################ontology count ="+
-		//searcher.getOwlOntologyManager().getOntologies().size());
-		//System.out.println("/search e "+ontoName +"####################ontology axiom count ="+
-		//searcher.getOwlOntologyManager().getOntology(IRI.create(oIRI.getIri())).getAxiomCount());
-		//System.out.println("/search e "+ontoName+ "####################ontology api  ="+
-		//searcher.getOntoLookupClient().ontoutil.OWLentityOntoAPIs.get(0));
-		entries.addAll(
-				searcher.getEntityEntries(term, parent.orElse(""), relation.orElse("")));
-	}
-
-
-	if(ancestorIRI.isPresent()){
-		//required superclass
-		OWLClass superClazz = owlDataFactory.getOWLClass(IRI.create(ancestorIRI.get().replaceAll("%23", "#").replaceAll("%20", "_").replaceAll("\\s+", "_"))); //use either # or / in iri
-		//filter the result entries
-		List<OntologyEntry> fentries = new ArrayList<OntologyEntry>();
-		for(OntologyEntry result: entries){
-			OWLClass thisClaz = owlDataFactory.getOWLClass(IRI.create(result.getClassIRI()));
-			//find all superclasses of this matching class
-			Set <OWLClass> superClzz = reasoner.getSuperClasses(thisClaz,false).entities().collect(Collectors.toSet());
-			for(OWLClass sup: superClzz){
-				//any super class matches the required?
-				if(sup.getIRI().toString().compareTo(superClazz.getIRI().toString())==0) fentries.add(result);
-			}
-		}
-		entries = fentries;
-	}
-	return ontologySearchResultCreator.create(ontoName, entries, 
-			this.ontologyAccessMap.get(ontoName), 
-			this.owlOntologyManagerMap.get(ontoName).getOntology(IRI.create(oIRI.getIri())),
-			this.owlOntologyManagerMap.get(ontoName));
-}
 
 
 
