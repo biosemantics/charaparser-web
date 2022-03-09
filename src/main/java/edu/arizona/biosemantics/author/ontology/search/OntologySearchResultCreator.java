@@ -9,8 +9,10 @@ import java.util.stream.Collectors;
 
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLObjectAllValuesFrom;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
@@ -37,12 +39,13 @@ public class OntologySearchResultCreator {
 			OntologyAccess ontologyAccess, OWLOntology owlOntology, OWLOntologyManager owlOntologyManager) {
 		OntologySearchResult result = new OntologySearchResult();
 		ArrayList<OntologyEntry> processed = new ArrayList<OntologyEntry>();
-		
+		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
 		for(OntologyEntry e : entries) {
 			String iri = e.getClassIRI();
 			if(inProcessed(processed, e)) continue;
 			if(iri==null) continue; //spatial terms such as left side will matched to a fixed spatial term pattern in ontology search, but without an iri because BSPO is not used.
 			OWLClass owlClass = owlOntologyManager.getOWLDataFactory().getOWLClass(IRI.create(iri));
+			
 			
 			List<Annotation> resultAnnotations = new ArrayList<Annotation>();
 			//add oboInOwl:id property
@@ -68,12 +71,13 @@ public class OntologySearchResultCreator {
 			//annotation properties
 			Set<OWLAnnotation> annotations = EntitySearcher.getAnnotations(owlClass, owlOntology).collect(Collectors.toSet());
 			for(OWLAnnotation a : annotations) {
-				Optional<OWLLiteral> literal = a.getValue().annotationValue().asLiteral();
-				if(literal.isPresent()) {
-					resultAnnotations.add(new Annotation(a.getProperty().getIRI().getIRIString(), literal.get().getLiteral()));
-				} /*else {
-					resultAnnotations.add(new Annotation(a.getProperty().getIRI().getIRIString(), ""));
-				}*/
+				OWLAnnotationValue value = a.getValue().annotationValue();
+				if(value instanceof OWLLiteral) {
+					Optional<OWLLiteral> literal = a.getValue().annotationValue().asLiteral();
+				    resultAnnotations.add(new Annotation(a.getProperty().getIRI().getIRIString(), literal.get().getLiteral()));
+				} else if(value instanceof IRI){
+					resultAnnotations.add(new Annotation(a.getProperty().getIRI().getIRIString(), OntologySearchController.labelFor(owlDataFactory.getOWLClass((IRI)(value)), owlOntology, owlDataFactory)));
+				}
 			}
 			
 
@@ -81,7 +85,8 @@ public class OntologySearchResultCreator {
 			/*String elucidation = this.getElucidation(owlClass, owlOntology);
 			if(elucidation != null)
 				resultAnnotations.add(new Annotation("elucidation", elucidation));*/
-			Set<OWLClass> bearers = ontologyAccess.getBearers(owlClass);
+			
+			/*Set<OWLClass> bearers = ontologyAccess.getBearers(owlClass);
 			Set<OWLClass> parts = ontologyAccess.getParts(owlClass);
 			for(OWLClass bearer : bearers){
 				if(!bearer.equals(owlClass))
@@ -90,7 +95,9 @@ public class OntologySearchResultCreator {
 			for(OWLClass part : parts){
 				if(!part.equals(owlClass))
 				resultAnnotations.add(new Annotation("has part", part.getIRI().getIRIString()));
-			}
+			}*/
+			
+			
 			processed.add(e);
 			result.getEntries().add(new OntologySearchResultEntry(e.getLabel(), e.getScore(), e.getParentLabel(), resultAnnotations));
 		}

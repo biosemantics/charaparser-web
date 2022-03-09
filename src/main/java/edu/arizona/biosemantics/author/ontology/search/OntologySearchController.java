@@ -2048,7 +2048,7 @@ return "{'Habit':['Growth form of plant'],"+
 		return nSyns;
 	}*/
 
-	private String labelFor(OWLEntity entity, OWLOntology onto, OWLDataFactory owlDataFactory) {
+	static String labelFor(OWLEntity entity, OWLOntology onto, OWLDataFactory owlDataFactory) {
 		for(OWLAnnotation a : EntitySearcher.getAnnotations(entity, onto, owlDataFactory.getRDFSLabel()).collect(Collectors.toSet())) {
 			OWLAnnotationValue value = a.getValue();
 			if(value instanceof OWLLiteral) {
