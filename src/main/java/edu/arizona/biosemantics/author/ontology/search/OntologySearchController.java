@@ -129,6 +129,9 @@ public class OntologySearchController {
 	private static String deprecated = "http://www.w3.org/2002/07/owl#deprecated";
 	private static String replacedBy = "http://biosemantics.arizona.edu/ontologies/carex#term_replaced_by";
 	private static String reason ="http://biosemantics.arizona.edu/ontologies/carex#has_obsolescence_reason";
+	private static Hashtable<String, String> syn2term;
+	private static  TreeSet<String> labels;
+	private static List<OWLAnnotationProperty> synps;
 
 	private HashMap<String, OntologyAccess> ontologyAccessMap = new HashMap<String, OntologyAccess>();
 	private HashMap<String, FileSearcher> searchersMap = new HashMap<String, FileSearcher>();
@@ -288,7 +291,7 @@ public class OntologySearchController {
 		}
 
 		//add shared
-		for(OntologyIRI o : shared) {
+		for(OntologyIRI o : shared) { //carex, added in MapOntologyIds.java in edu.arizona.biosemantics.author.parse;
 			HashSet<String> entityOntologyNames = new HashSet<String>();
 			HashSet<String> qualityOntologyNames = new HashSet<String>();
 			qualityOntologyNames.add(o.getName());
@@ -310,6 +313,16 @@ public class OntologySearchController {
 			this.ontologyAccessMap.put(o.getName(), ontologyAccess);
 			this.owlOntologyManagerMap.put(o.getName(), owlOntologyManager);
 			//this.termDefinitionMap.put(o.getName(), new Hashtable<String, String>());
+			
+			OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
+			synps = new ArrayList<OWLAnnotationProperty>();
+			synps.add(owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.synonymb)));
+			synps.add(owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.synonyme)));
+			synps.add(owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.synonymnr)));
+			synps.add(owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.synonymn)));
+			OntologySearchController.syn2term = new Hashtable<String, String>();
+			OntologySearchController.labels = new TreeSet<String>();
+			syn2term(owlOntology, owlDataFactory);
 		}
 
 		//add the rest
@@ -353,6 +366,9 @@ public class OntologySearchController {
 			this.owlOntologyManagerMap.put(o.getName(), owlOntologyManager);
 			//this.termDefinitionMap.put(o.getName(), new Hashtable<String, String>());
 		}
+		
+
+		
 	}
 
 
@@ -371,46 +387,33 @@ public class OntologySearchController {
 		////System.outprintln("/search ####################search ontoName="+ontoName);
 
 		OWLReasoner reasoner = null;
-		OWLDataFactory owlDataFactory = null;
+		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName);//this.owlOntologyManagerMap.get(oIRI);
+		OWLDataFactory 	owlDataFactory = owlOntologyManager.getOWLDataFactory();
+		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
+		
 		if(ancestorIRI.isPresent()){
 			//use selected ontology
-			OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName);//this.owlOntologyManagerMap.get(oIRI);
-			OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
 			JFactFactory reasonerFactory = new JFactFactory();
 			reasoner = reasonerFactory.createNonBufferingReasoner(owlOntology);
-			owlDataFactory = owlOntologyManager.getOWLDataFactory();
 			reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
 		}
 		//ontoName: EXP_1 or EXP, CAREX, etc.
 		if(!searchersMap.containsKey(ontoName)) 
 			throw new IllegalArgumentException();
 
-		List<OntologyEntry> entries = new ArrayList<OntologyEntry>();
-		FileSearcher searcher = this.searchersMap.get(ontoName);
+		List<OntologyEntry> entries = simpleSearch(owlDataFactory, owlOntology, owlOntologyManager, oIRI, term); 
+		//simple search replaces fancy search where match score could be < 1.0
+		/*FileSearcher searcher = this.searchersMap.get(ontoName);
 		//searcher.updateSearcher(oIRI);
 		if(this.isQualityOntology(ontoName)) {
-			//System.out.println("/search q "+ontoName +"####################searcher="+searcher);
-			//System.out.println("/search q "+ontoName +"####################ontology count ="+
-			//searcher.getOwlOntologyManager().getOntologies().size());
-			//System.out.println("/search q "+ontoName +"####################ontology axiom count ="+
-			//searcher.getOwlOntologyManager().getOntology(IRI.create(oIRI.getIri())).getAxiomCount());
-			//System.out.println("/search q "+ontoName +"####################ontology api  ="+
-			//searcher.getOntoLookupClient().ontoutil.OWLqualityOntoAPIs.get(0));
 			entries.addAll(searcher.getQualityEntries(term));
 		}
 		if(this.isEntityOntology(ontoName)) {
-			//System.out.println("/searcher ####################searcher="+searcher);
-			//System.out.println("/search e "+ontoName +"####################ontology count ="+
-			//searcher.getOwlOntologyManager().getOntologies().size());
-			//System.out.println("/search e "+ontoName +"####################ontology axiom count ="+
-			//searcher.getOwlOntologyManager().getOntology(IRI.create(oIRI.getIri())).getAxiomCount());
-			//System.out.println("/search e "+ontoName+ "####################ontology api  ="+
-			//searcher.getOntoLookupClient().ontoutil.OWLentityOntoAPIs.get(0));
 			entries.addAll(
 					searcher.getEntityEntries(term, parent.orElse(""), relation.orElse("")));
-		}
+		}*/
 
-
+		//filter results based on the requested ancestorIRI
 		if(ancestorIRI.isPresent()){
 			//required superclass
 			OWLClass superClazz = owlDataFactory.getOWLClass(IRI.create(ancestorIRI.get().replaceAll("%23", "#").replaceAll("%20", "_").replaceAll("\\s+", "_"))); //use either # or / in iri
@@ -431,6 +434,42 @@ public class OntologySearchController {
 				this.ontologyAccessMap.get(ontoName), 
 				this.owlOntologyManagerMap.get(ontoName).getOntology(IRI.create(oIRI.getIri())),
 				this.owlOntologyManagerMap.get(ontoName));
+	}
+
+	private List<OntologyEntry> simpleSearch(OWLDataFactory owlDataFactory, OWLOntology owlOntology, OWLOntologyManager owlOntolgyManager, OntologyIRI oIRI, String term) {
+		
+		List<OntologyEntry> entries = new ArrayList<OntologyEntry> ();
+		
+		String classIRI = oIRI.getIri() + "#" + term;
+		OWLClass claz = owlDataFactory.getOWLClass(classIRI); //class to be added
+	
+		//class search
+		Set<OWLClass> matches = findClassesWithLabel(term, owlOntology, owlOntolgyManager, owlDataFactory);
+		if(!matches.isEmpty()) { 
+			String parentlabel = "";
+			for(OWLClass aclass: matches) {
+				List<OWLClassExpression> superclasses = EntitySearcher.getSuperClasses(aclass, owlOntology).collect(Collectors.toList());
+				parentlabel = labelFor((OWLEntity) superclasses.get(0), owlOntology, owlDataFactory);
+				OntologyEntry entry = new OntologyEntry(null, classIRI, null, 1.0, term, null, parentlabel, null);
+				entries.add(entry);
+			}
+			return entries;
+		}else { //synonym search
+			//get all synonym annotations and built synonym => class label mapping
+			String classlabel = OntologySearchController.syn2term.get(term);
+			if(classlabel !=null) {
+				Set<OWLClass> classes = findClassesWithLabel(classlabel, owlOntology, owlOntolgyManager, owlDataFactory);
+				String parentlabel = "";
+				for(OWLClass aclass: classes) {
+					List<OWLClassExpression> superclasses = EntitySearcher.getSuperClasses(aclass, owlOntology).collect(Collectors.toList());
+					parentlabel = labelFor((OWLEntity) superclasses.get(0), owlOntology, owlDataFactory);
+					OntologyEntry entry = new OntologyEntry(null, aclass.getIRI().toString(), null, 1.0, classlabel, null, parentlabel, null);
+					entries.add(entry);
+				}
+				return entries;
+			}
+		}
+		return entries;
 	}
 
 	/**
@@ -554,9 +593,10 @@ public class OntologySearchController {
 		 */
 
 		//refresh ontology search environment after the addition
-		FileSearcher searcher = this.searchersMap.get(ontoName);
-		searcher.updateSearcher(IRI.create(oIRI.getIri()));
-
+		//FileSearcher searcher = this.searchersMap.get(ontoName);
+		//searcher.updateSearcher(IRI.create(oIRI.getIri()));
+		syn2term(owlOntology, owlDataFactory);
+		
 		//save ontology
 		//saveOntology(ontoName, oIRI);
 
@@ -647,9 +687,9 @@ public class OntologySearchController {
 		c = owlOntologyManager.addAxiom(owlOntology, synonymAxiom);
 		
 		//refresh ontology search environment after the addition
-		FileSearcher searcher = this.searchersMap.get(ontoName);
-		searcher.updateSearcher(IRI.create(oIRI.getIri()));
-
+		//FileSearcher searcher = this.searchersMap.get(ontoName);
+		//searcher.updateSearcher(IRI.create(oIRI.getIri()));
+		syn2term(owlOntology, owlDataFactory);
 		//save ontology
 		//saveOntology(ontoName, oIRI);
 
@@ -733,8 +773,8 @@ public class OntologySearchController {
 			if(c1 == ChangeApplied.SUCCESSFULLY) c= c1;
 		}
 		//refresh ontology search environment after the addition
-		FileSearcher searcher = this.searchersMap.get(ontoName);
-		searcher.updateSearcher(IRI.create(oIRI.getIri()));
+		//FileSearcher searcher = this.searchersMap.get(ontoName);
+		//searcher.updateSearcher(IRI.create(oIRI.getIri()));
 		//save ontology
 		//saveOntology(ontoName, oIRI)
 		return c;
@@ -780,8 +820,9 @@ public class OntologySearchController {
 			c = owlOntologyManager.addAxiom(owlOntology, synonymAxiom);
 
 			//refresh ontology search environment after the addition
-			FileSearcher searcher = this.searchersMap.get(ontoName);
-			searcher.updateSearcher(IRI.create(oIRI.getIri()));
+			//FileSearcher searcher = this.searchersMap.get(ontoName);
+			//searcher.updateSearcher(IRI.create(oIRI.getIri()));
+			syn2term(owlOntology, owlDataFactory);
 			//save ontology
 			//saveOntology(ontoName, oIRI);
 		}else{
@@ -1190,8 +1231,9 @@ return "{'Habit':['Growth form of plant'],"+
 		////System.outprintln("/class ####################owlOntology axiom count (after)="+owlOntology.getAxiomCount());
 
 		//refresh ontology search environment after the addition
-		FileSearcher searcher = this.searchersMap.get(ontoName);
-		searcher.updateSearcher(IRI.create(oIRI.getIri()));
+		//FileSearcher searcher = this.searchersMap.get(ontoName);
+		//searcher.updateSearcher(IRI.create(oIRI.getIri()));
+  		syn2term(owlOntology, owlDataFactory); 
 		////System.outprintln("/class ####################refreshed searcher="+searcher);
 
 		//save ontology
@@ -1212,8 +1254,8 @@ return "{'Habit':['Growth form of plant'],"+
 		OntologyIRI oIRI = getOntologyIRI(ontoName);
 		ChangeApplied c = addPartOfAxiom(partOf, "part of", ontoName, oIRI); 
 		//refresh ontology search environment after the addition
-		FileSearcher searcher = this.searchersMap.get(ontoName);
-		searcher.updateSearcher(IRI.create(oIRI.getIri()));
+		//FileSearcher searcher = this.searchersMap.get(ontoName);
+		//searcher.updateSearcher(IRI.create(oIRI.getIri()));
 		//save ontology
 		//saveOntology(ontoName, oIRI);
 		return c;
@@ -1231,8 +1273,8 @@ return "{'Habit':['Growth form of plant'],"+
 		OntologyIRI oIRI = getOntologyIRI(ontoName);
 		ChangeApplied c = addPartOfAxiom(partOf, "maybe part of", ontoName, oIRI); 
 		//refresh ontology search environment after the addition
-		FileSearcher searcher = this.searchersMap.get(ontoName);
-		searcher.updateSearcher(IRI.create(oIRI.getIri()));
+		//FileSearcher searcher = this.searchersMap.get(ontoName);
+		//searcher.updateSearcher(IRI.create(oIRI.getIri()));
 		//save ontology
 		//saveOntology(ontoName, oIRI);
 		return c;
@@ -1287,8 +1329,8 @@ return "{'Habit':['Growth form of plant'],"+
 		OWLAxiom partOfAxiom = owlDataFactory.getOWLSubClassOfAxiom(bearer, partOfExpression);
 		ChangeApplied c = owlOntologyManager.addAxiom(owlOntology, partOfAxiom);
 		//refresh ontology search environment after the addition
-		FileSearcher searcher = this.searchersMap.get(ontoName);
-		searcher.updateSearcher(IRI.create(oIRI.getIri()));
+		//FileSearcher searcher = this.searchersMap.get(ontoName);
+		//searcher.updateSearcher(IRI.create(oIRI.getIri()));
 		//save ontology
 		//saveOntology(ontoName, oIRI);
 
@@ -1338,9 +1380,9 @@ return "{'Habit':['Growth form of plant'],"+
 
 
 		//refresh ontology search environment after the addition
-		FileSearcher searcher = this.searchersMap.get(ontoName);
-		searcher.updateSearcher(IRI.create(oIRI.getIri()));
-
+		//FileSearcher searcher = this.searchersMap.get(ontoName);
+		//searcher.updateSearcher(IRI.create(oIRI.getIri()));
+		syn2term(owlOntology, owlOntologyManager.getOWLDataFactory());
 		//save ontology
 		//saveOntology(ontoName, oIRI);
 
@@ -1440,9 +1482,9 @@ return "{'Habit':['Growth form of plant'],"+
 		owlOntologyManager.addAxiom(owlOntology, noteAxiom);
 
 		//refresh ontology search environment after the addition
-		FileSearcher searcher = this.searchersMap.get(ontoName);
-		searcher.updateSearcher(IRI.create(oIRI.getIri()));
-
+		//FileSearcher searcher = this.searchersMap.get(ontoName);
+		//searcher.updateSearcher(IRI.create(oIRI.getIri()));
+		syn2term(owlOntology, owlDataFactory);
 		return c;
 	}
 
@@ -3042,42 +3084,8 @@ public String getDoubledTermAndSynonym(@PathVariable String ontology, @RequestPa
 	OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName);
 	OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
 	OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
-
-	OWLAnnotationProperty bSyn = owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.synonymb));
-	OWLAnnotationProperty eSyn = owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.synonyme));
-	OWLAnnotationProperty nrSyn = owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.synonymnr));
-	OWLAnnotationProperty nSyn = owlDataFactory.getOWLAnnotationProperty(IRI.create(OntologySearchController.synonymn));
-
-	//get all synonym annotations and built synonym => class label mapping
-	
-
-	Hashtable<String, String> syn2term = new Hashtable<String, String>();
-	
-	TreeSet<String> labels = new TreeSet<String>();
-	
-	Set<OWLClass> set = owlOntology.classesInSignature().collect(Collectors.toSet());
-	for(OWLClass claz: set){
-		String label = labelFor(claz, owlOntology, owlDataFactory);
-		labels.add(label);
-		Set<OWLAnnotation> annotations = EntitySearcher.getAnnotationObjects(claz, owlOntology).collect(Collectors.toSet());
-		for(OWLAnnotation thisAnnotation: annotations){
-			if(thisAnnotation.getProperty().equals(bSyn) || 
-					thisAnnotation.getProperty().equals(eSyn) ||
-					thisAnnotation.getProperty().equals(nrSyn) ||
-					thisAnnotation.getProperty().equals(nSyn) ){
-				
-				OWLAnnotationValue value = thisAnnotation.getValue();
-				if(value instanceof OWLLiteral) {
-					syn2term.put(((OWLLiteral) value).getLiteral(), label);   
-				}
-				
-				
-			}
-		}
-	}
 	
 	//test all synonyms to find that are also labels 
-
 	JSONArray dbTerms = new JSONArray();
 	Enumeration<String> syns = syn2term.keys();
 	while(syns.hasMoreElements()) {
@@ -3095,6 +3103,25 @@ public String getDoubledTermAndSynonym(@PathVariable String ontology, @RequestPa
 
 
 
+private void syn2term (OWLOntology owlOntology, OWLDataFactory owlDataFactory){
+
+	Set<OWLClass> set = owlOntology.classesInSignature().collect(Collectors.toSet());
+	for(OWLClass claz: set){
+		String label = labelFor(claz, owlOntology, owlDataFactory);
+		labels.add(label);
+		Set<OWLAnnotation> annotations = EntitySearcher.getAnnotationObjects(claz, owlOntology).collect(Collectors.toSet());
+		for(OWLAnnotation thisAnnotation: annotations){
+			if(synps.contains(thisAnnotation.getProperty())){
+				OWLAnnotationValue value = thisAnnotation.getValue();
+				if(value instanceof OWLLiteral) {
+					syn2term.put(((OWLLiteral) value).getLiteral(), label);   
+				}
+			}
+		}
+	}
+}
+
+	
 
 	/*
 	 * 
