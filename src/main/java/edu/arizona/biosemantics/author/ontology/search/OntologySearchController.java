@@ -401,6 +401,7 @@ public class OntologySearchController {
 		if(!searchersMap.containsKey(ontoName)) 
 			throw new IllegalArgumentException();
 
+		term = term.replaceAll("%23", "#").replaceAll("%20", " ").replaceAll("\\s+", " ").replaceAll("[_]+", " "); //use either # or / in iri
 		List<OntologyEntry> entries = simpleSearch(owlDataFactory, owlOntology, owlOntologyManager, oIRI, term); 
 		//simple search replaces fancy search where match score could be < 1.0
 		/*FileSearcher searcher = this.searchersMap.get(ontoName);
@@ -437,19 +438,24 @@ public class OntologySearchController {
 	}
 
 	private List<OntologyEntry> simpleSearch(OWLDataFactory owlDataFactory, OWLOntology owlOntology, OWLOntologyManager owlOntolgyManager, OntologyIRI oIRI, String term) {
-		
+
 		List<OntologyEntry> entries = new ArrayList<OntologyEntry> ();
-		
+
 		String classIRI = oIRI.getIri() + "#" + term;
-		OWLClass claz = owlDataFactory.getOWLClass(classIRI); //class to be added
-	
+		OWLClass claz = owlDataFactory.getOWLClass(classIRI.replaceAll("%23", "#").replaceAll("%20", "_").replaceAll("\\s+", "_")); //class to be added
+
 		//class search
 		Set<OWLClass> matches = findClassesWithLabel(term, owlOntology, owlOntolgyManager, owlDataFactory);
 		if(!matches.isEmpty()) { 
 			String parentlabel = "";
 			for(OWLClass aclass: matches) {
 				List<OWLClassExpression> superclasses = EntitySearcher.getSuperClasses(aclass, owlOntology).collect(Collectors.toList());
-				parentlabel = labelFor((OWLEntity) superclasses.get(0), owlOntology, owlDataFactory);
+				for(OWLClassExpression sup: superclasses) {
+					if(sup instanceof OWLEntity) {
+						parentlabel = labelFor((OWLEntity) sup, owlOntology, owlDataFactory); //get first one is sufficient
+						break;
+					}
+				}
 				OntologyEntry entry = new OntologyEntry(null, classIRI, null, 1.0, term, null, parentlabel, null);
 				entries.add(entry);
 			}
@@ -462,7 +468,12 @@ public class OntologySearchController {
 				String parentlabel = "";
 				for(OWLClass aclass: classes) {
 					List<OWLClassExpression> superclasses = EntitySearcher.getSuperClasses(aclass, owlOntology).collect(Collectors.toList());
-					parentlabel = labelFor((OWLEntity) superclasses.get(0), owlOntology, owlDataFactory);
+					for(OWLClassExpression sup: superclasses) {
+						if(sup instanceof OWLEntity) {
+							parentlabel = labelFor((OWLEntity) sup, owlOntology, owlDataFactory);
+							break;
+						}
+					}
 					OntologyEntry entry = new OntologyEntry(null, aclass.getIRI().toString(), null, 1.0, classlabel, null, parentlabel, null);
 					entries.add(entry);
 				}
