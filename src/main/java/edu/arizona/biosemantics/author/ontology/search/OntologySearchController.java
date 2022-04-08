@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -25,6 +26,7 @@ import java.util.stream.Stream;
 
 import javax.annotation.PreDestroy;
 
+//import org.eclipse.persistence.internal.oxm.record.json.JSONParser.object_return;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.obolibrary.macro.ManchesterSyntaxTool;
@@ -148,6 +150,22 @@ public class OntologySearchController {
 	private ArrayList<OntologyIRI> allLiveEntityOntologies = new ArrayList<OntologyIRI> ();
 	private ArrayList<OntologyIRI> allLiveQualityOntologies = new ArrayList<OntologyIRI>();
 
+	private static LinkedHashMap <String, OntologySearchResult> searchHash = new LinkedHashMap<String, OntologySearchResult>();
+	private static OntologySearchResult standardCollection = null;
+	private static String tree = null;
+	private static LinkedHashMap <String, String> getSubclassHash =  new LinkedHashMap<String, String>();
+	private static LinkedHashMap <String, String> getValidSubclassHash =  new LinkedHashMap<String, String>();
+	private static String classesWMSupers = null;
+	private static String classesWMZdeinitions = null;
+	private static String toReviewClasses = null;
+	private static String synonymConflicts = null;
+	private static String deprecatdClasses = null;
+	private static String movedClasses = null;
+	private static String classesWNDefinitions = null;
+	private static String tsdoubled = null;
+	private boolean cache = true;
+	
+	
 	/*@Autowired
 	public OntologySearchController(@Value("${ontologySearch.ontologyDir}") String ontologyDir,
 			@Value("${ontologySearch.wordNetDir}") String wordNetDir, 
@@ -377,6 +395,12 @@ public class OntologySearchController {
 	@GetMapping(value = "/{ontology}/search", produces = { MediaType.APPLICATION_JSON_VALUE })
 	public OntologySearchResult search(@PathVariable String ontology, @RequestParam String term, @RequestParam Optional<String> ancestorIRI,
 			@RequestParam Optional<String> parent, @RequestParam Optional<String> relation, @RequestParam Optional<String> user) throws Exception {
+		String key = null;
+		if(cache) {
+			 key = (term + ancestorIRI + parent + relation).trim();
+			if(searchHash.containsKey(key)) return searchHash.get(key);
+		}
+				
 		String usrid = "";
 		String ontoName = ontology;
 		if(user.isPresent()){
@@ -431,18 +455,25 @@ public class OntologySearchController {
 			}
 			entries = fentries;
 		}
-		return ontologySearchResultCreator.create(ontoName, entries, 
+
+		OntologySearchResult r = ontologySearchResultCreator.create(ontoName, entries, 
 				this.ontologyAccessMap.get(ontoName), 
 				this.owlOntologyManagerMap.get(ontoName).getOntology(IRI.create(oIRI.getIri())),
 				this.owlOntologyManagerMap.get(ontoName));
+		
+		if(cache && !entries.isEmpty()) searchHash.put(key, r);
+		
+		return r;
 	}
+	
 
 	private List<OntologyEntry> simpleSearch(OWLDataFactory owlDataFactory, OWLOntology owlOntology, OWLOntologyManager owlOntolgyManager, OntologyIRI oIRI, String term) {
 
 		List<OntologyEntry> entries = new ArrayList<OntologyEntry> ();
 
-		String classIRI = oIRI.getIri() + "#" + term;
-		OWLClass claz = owlDataFactory.getOWLClass(classIRI.replaceAll("%23", "#").replaceAll("%20", "_").replaceAll("\\s+", "_")); //class to be added
+		//String classIRI = oIRI.getIri() + "#" + term; //TODO: should search for label = term
+		//classIRI = classIRI.replaceAll("%23", "#").replaceAll("%20", "_").replaceAll("\\s+", "_");
+		//OWLClass claz = owlDataFactory.getOWLClass(classIRI); //class to be searched
 
 		//class search
 		Set<OWLClass> matches = findClassesWithLabel(term, owlOntology, owlOntolgyManager, owlDataFactory);
@@ -450,17 +481,29 @@ public class OntologySearchController {
 			String parentlabel = "";
 			for(OWLClass aclass: matches) {
 				List<OWLClassExpression> superclasses = EntitySearcher.getSuperClasses(aclass, owlOntology).collect(Collectors.toList());
+				String classIRI = aclass.getIRI().toString();
+				//boolean keep = true;
+				ArrayList<String> parentlabels = new ArrayList<String>();
 				for(OWLClassExpression sup: superclasses) {
-					if(sup instanceof OWLEntity) {
+					if(sup instanceof OWLEntity) {						
 						parentlabel = labelFor((OWLEntity) sup, owlOntology, owlDataFactory); //get first one is sufficient
-						break;
+						//if(parentlabel.compareTo("toreview")==0) {
+						//	keep = false;
+						//}else {
+							parentlabels.add(parentlabel); 
+						//}
+						
 					}
 				}
-				OntologyEntry entry = new OntologyEntry(null, classIRI, null, 1.0, term, null, parentlabel, null);
-				entries.add(entry);
+				//if(keep) {
+					OntologyEntry entry = new OntologyEntry(null, classIRI, null, 1.0, term, null, parentlabels.get(0), null); //use any parentlabel
+					entries.add(entry);
+				//}
 			}
-			return entries;
-		}else { //synonym search
+		}
+		
+		//if(entries.isEmpty()) {
+		     //synonym search
 			//get all synonym annotations and built synonym => class label mapping
 			String classlabel = OntologySearchController.syn2term.get(term);
 			if(classlabel !=null) {
@@ -477,9 +520,8 @@ public class OntologySearchController {
 					OntologyEntry entry = new OntologyEntry(null, aclass.getIRI().toString(), null, 1.0, classlabel, null, parentlabel, null);
 					entries.add(entry);
 				}
-				return entries;
 			}
-		}
+		//}
 		return entries;
 	}
 
@@ -852,6 +894,8 @@ public class OntologySearchController {
 	 */
 	@GetMapping(value = "/{ontology}/getStandardCollection", produces = { MediaType.APPLICATION_JSON_VALUE })
 	public OntologySearchResult getClassesWithProperty(@PathVariable String ontology, @RequestParam Optional<String> user) throws Exception {
+		
+		if(cache && OntologySearchController.standardCollection != null) return OntologySearchController.standardCollection;
 
 		String usrid = "";
 		String ontoName = ontology;
@@ -902,10 +946,17 @@ public class OntologySearchController {
 			}
 
 		}
-		return ontologySearchResultCreator.create(ontoName, entries, 
+		
+		OntologySearchResult r = ontologySearchResultCreator.create(ontoName, entries, 
 				this.ontologyAccessMap.get(ontoName), 
 				this.owlOntologyManagerMap.get(ontoName).getOntology(IRI.create(oIRI.getIri())),
 				this.owlOntologyManagerMap.get(ontoName));
+		
+		if(cache && ! entries.isEmpty()) {
+			OntologySearchController.standardCollection =  r;
+		}
+		
+		return r;
 	}
 	
 	/**
@@ -923,11 +974,11 @@ return "{'Habit':['Growth form of plant'],"+
 
 "'Leaf':['Number of leaves per stem','Length of leaf blade','Width of leaf blade','Color of leaf blade','Texture of margin of leaf blade','Pubescence of margin of leaf blade','Color of margin of leaf blade','Texture of abaxial leaf blade','Texture of adaxial leaf blade','Length of leaf sheath','Color of sheath','Color of inner band of sheath','Shape of apex of sheath inner band','Length of ligule','Shape of ligule','Texture of cataphyll','Color of cataphyll','Pattern of inner band of sheath'],"+
 
-"'Inflorescence':['Length of inflorescence','Length of terminal portion of inflorescence','Width of terminal portion of inflorescence','Length of distal internode of inflorescence','Texture of distal internode of inflorescence'],"+
+"'Inflorescence':['Length of inflorescence', 'Length of distal internode of inflorescence','Texture of distal internode of inflorescence'],"+
 
 "'Staminate flower':['Number of staminate flowers','Shape of staminate scale','Length of staminate scale','Width of staminate scale','Color of staminate scale','Texture of staminate scale','Texture of margin of staminate scale','Pubescence of margin of staminate scale','Color of margin of staminate scale','Number of distinct veins in staminate scale','Number of total veins in staminate scale'],"+
 
-"'Inflorescence unit':['Number of inflorescence units','Length of proximal internode of inflorescence unit','Length of inflorescence unit','Width of inflorescence unit','Shape of inflorescence unit','Number of perigynia per inforescence unit','Length of proximal peduncle of inflorescence unit','Texture of proximal peduncle of inflorescence unit','Width of pistillate portion of inflorescence unit','Width of staminate portion of inflorescence unit'],"+
+"'Inflorescence unit':['Number of inflorescence units','Length of proximal internode of inflorescence unit','Length of inflorescence unit','Width of inflorescence unit','Shape of inflorescence unit','Number of perigynia per inforescence unit','Length of proximal peduncle of inflorescence unit','Texture of proximal peduncle of inflorescence unit','Length of terminal portion of inflorescence','Width of terminal portion of inflorescence','Width of pistillate portion of inflorescence unit','Width of staminate portion of inflorescence unit'],"+
 
 "'Bract':['Width of bract blade','Length of bract blade','Texture of margin of bract blade','Pubescence of margin of bract blade','Color of margin of bract blade','Color of bract blade','Texture of abaxial bract blade','Length of bract sheath','Color of bract sheath','Color of inner band of bract sheath','Shape of apex of bract sheath inner band'],"+
 
@@ -1715,7 +1766,69 @@ return "{'Habit':['Growth form of plant'],"+
 	@GetMapping(value = "/{ontology}/getSubclasses", produces = { MediaType.APPLICATION_JSON_VALUE })
 	public String getSubclassesInJSON(@PathVariable String ontology, @RequestParam Optional<String> user, 
 			@RequestParam String baseIri, @RequestParam String term){
-		//@RequestParam String termIri){ //use %23 for #, allows both forms:/term #term 
+				
+		String key = null;
+		if(cache) {
+			key = (term + baseIri).trim();
+			if(getSubclassHash.containsKey(key)) return getSubclassHash.get(key);
+		}
+
+		
+
+		String usrid = "";
+		String ontoName = ontology;
+		if(user.isPresent()){
+			usrid = user.get();
+			ontoName = ontology+"_"+usrid;
+		}
+		if(term.contains(" ")) term = term.trim().replaceAll("\\s+", "_"); //carex ontology: use _ in multiple words phrases, such as life_cycle, in class IRI. 
+		//termIri = termIri.replaceAll("%23", "#");
+		OntologyIRI oIRI = getOntologyIRI(ontoName);
+
+
+		//use the selected ontology		
+		OWLOntologyManager owlOntologyManager = this.owlOntologyManagerMap.get(ontoName);//this.owlOntologyManagerMap.get(oIRI);
+		OWLOntology owlOntology = owlOntologyManager.getOntology(IRI.create(oIRI.getIri()));
+		JFactFactory reasonerFactory = new JFactFactory();
+		OWLReasoner reasoner = reasonerFactory.createNonBufferingReasoner(owlOntology);
+		reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
+		OWLDataFactory owlDataFactory = owlOntologyManager.getOWLDataFactory();
+		OWLClass clazz = owlDataFactory.getOWLClass(IRI.create(baseIri+"#"+term)); //must use # in the ontology
+		//OWLClass clazz = owlDataFactory.getOWLClass(IRI.create(termIri)); //must use # in the ontology
+
+		JSONObject object = new JSONObject();
+		
+		OWLAnnotationProperty definition = owlDataFactory.getOWLAnnotationProperty(IRI.create(definitions));
+		OWLAnnotationProperty elucidation = owlDataFactory.getOWLAnnotationProperty(IRI.create(elucidations));
+		OWLAnnotationProperty isdeprecated =  owlDataFactory.getOWLAnnotationProperty(IRI.create(deprecated));
+		boolean validOnly = false;
+
+		writeSimplifiedJSONObject(reasoner, owlDataFactory, clazz, object, owlOntologyManager, owlOntology, definition, elucidation, isdeprecated, validOnly);
+
+		String r = object.toJSONString(); 
+		
+		if(cache && !object.isEmpty()) getSubclassHash.put(key, r);
+		
+		return r;
+		
+		//return object.toJSONString(); 
+	}
+	
+	/**
+	 * Obtain the subclasses of the termIri as a JSON object
+	 * 
+	 */
+	@GetMapping(value = "/{ontology}/getValidSubclasses", produces = { MediaType.APPLICATION_JSON_VALUE })
+	public String getValidSubclassesInJSON(@PathVariable String ontology, @RequestParam Optional<String> user, 
+			@RequestParam String baseIri, @RequestParam String term){
+		
+		String key = null;
+		if(cache) {
+			key = (term + baseIri).trim();
+			if(getValidSubclassHash.containsKey(key)) return getValidSubclassHash.get(key);
+		}
+
+						
 		String usrid = "";
 		String ontoName = ontology;
 		if(user.isPresent()){
@@ -1742,13 +1855,18 @@ return "{'Habit':['Growth form of plant'],"+
 		OWLAnnotationProperty definition = owlDataFactory.getOWLAnnotationProperty(IRI.create(definitions));
 		OWLAnnotationProperty elucidation = owlDataFactory.getOWLAnnotationProperty(IRI.create(elucidations));
 		OWLAnnotationProperty isdeprecated =  owlDataFactory.getOWLAnnotationProperty(IRI.create(deprecated));
+		boolean validOnly = true;
+		
+		writeSimplifiedJSONObject(reasoner, owlDataFactory, clazz, object, owlOntologyManager, owlOntology, definition, elucidation, isdeprecated, validOnly);
 
-		writeSimplifiedJSONObject(reasoner, owlDataFactory, clazz, object, owlOntologyManager, owlOntology, definition, elucidation, isdeprecated);
-
-		return object.toJSONString(); 
+		String r= object.toJSONString(); 
+		
+		if(cache && ! object.isEmpty()) getValidSubclassHash.put(key, r);
+		
+		return r;
+		
+		//return object.toJSONString(); 
 	}
-	
-	
 	
 	/**
 	 * Obtain disputes related to the ontology from the Character Recorder Database
@@ -1795,6 +1913,9 @@ return "{'Habit':['Growth form of plant'],"+
 	//Obtain the entire ontology as a JSON object
 	@GetMapping(value = "/{ontology}/getTree", produces = { MediaType.APPLICATION_JSON_VALUE })
 	public String getClassHierarchyInJSON(@PathVariable String ontology, @RequestParam Optional<String> user) throws Exception {
+		
+		if(cache && OntologySearchController.tree != null) return OntologySearchController.tree;
+		
 		String usrid = "";
 		String ontoName = ontology;
 		if(user.isPresent()){
@@ -1826,11 +1947,16 @@ return "{'Habit':['Growth form of plant'],"+
 		OWLReasoner reasoner = reasonerFactory.createNonBufferingReasoner(owlOntology);
 		writeJSONObject(reasoner, owlDataFactory, root, object, owlOntologyManager, owlOntology, synonymE, synonymB, synonymNR, definition, elucidation, isdeprecated, replace, reason);
 
+		if(cache && ! object.isEmpty()) {
+			OntologySearchController.tree = object.toJSONString(); 
+		}
+		
 		return object.toJSONString(); 
+		
 	}
 
 	@SuppressWarnings("unchecked")
-	private JSONObject writeSimplifiedJSONObject(OWLReasoner reasoner, OWLDataFactory owlDataFactory, OWLClass clazz, JSONObject object, OWLOntologyManager manager, OWLOntology onto, OWLAnnotationProperty definition, OWLAnnotationProperty elucidation, OWLAnnotationProperty isdeprecated) {
+	private JSONObject writeSimplifiedJSONObject(OWLReasoner reasoner, OWLDataFactory owlDataFactory, OWLClass clazz, JSONObject object, OWLOntologyManager manager, OWLOntology onto, OWLAnnotationProperty definition, OWLAnnotationProperty elucidation, OWLAnnotationProperty isdeprecated, boolean validOnly) {
 		if(reasoner.isSatisfiable(clazz)){
 			//print this  class
 			object.put("text", labelFor(clazz, onto, owlDataFactory));
@@ -1858,6 +1984,7 @@ return "{'Habit':['Growth form of plant'],"+
 			
 			result = getAnnotationValues(clazz, isdeprecated, onto, owlDataFactory);
 			for(String dep: result){
+				if(validOnly && dep.compareTo("true")==0) break;
 				o.put("deprecated", dep);
 				//System.out.println("shared synonyms: "+synonymB4(clazz));
 			}
@@ -1875,7 +2002,7 @@ return "{'Habit':['Growth form of plant'],"+
 				while(it.hasNext()){
 					OWLClass c = it.next();
 					if(!c.equals(clazz))
-						children.add(/*i++,*/ writeSimplifiedJSONObject(reasoner, owlDataFactory, c, new JSONObject(), manager, onto, definition, elucidation, isdeprecated));
+						children.add(/*i++,*/ writeSimplifiedJSONObject(reasoner, owlDataFactory, c, new JSONObject(), manager, onto, definition, elucidation, isdeprecated, validOnly));
 				}
 				if(children.size()>0)
 					object.put("children", children);
@@ -2084,6 +2211,7 @@ return "{'Habit':['Growth form of plant'],"+
 	@GetMapping(value = "/{ontology}/getClassesWMSuperclasses", produces = { MediaType.APPLICATION_JSON_VALUE })
 	public String getClassesWMSupersInJSON(@PathVariable String ontology, @RequestParam Optional<String> user){
 
+		if(cache && OntologySearchController.classesWMSupers != null) return OntologySearchController.classesWMSupers;
 		String usrid = "";
 		String ontoName = ontology;
 		if(user.isPresent()){
@@ -2101,9 +2229,14 @@ return "{'Habit':['Growth form of plant'],"+
 
 		JSONObject object = new JSONObject();
 		writeJSON4ClassesWMSupers(reasoner, owlDataFactory, object, owlOntologyManager, owlOntology);
-
-		return object.toJSONString(); 
+		
+		if(cache && ! object.isEmpty()) {
+			OntologySearchController.classesWMSupers = object.toJSONString(); 
+		}
+		
+		return  object.toJSONString(); 
 	}
+		
 
 
 	@SuppressWarnings("unchecked")
@@ -2198,6 +2331,8 @@ return "{'Habit':['Growth form of plant'],"+
 	 */
 	@GetMapping(value = "/{ontology}/getClassesWMZdefinitions", produces = { MediaType.APPLICATION_JSON_VALUE })
 	public String getClassesWMZdefinitionsInJSON(@PathVariable String ontology, @RequestParam Optional<String> user){
+		
+		if(cache && OntologySearchController.classesWMZdeinitions != null) return OntologySearchController.classesWMZdeinitions;
 
 		String usrid = "";
 		String ontoName = ontology;
@@ -2216,8 +2351,12 @@ return "{'Habit':['Growth form of plant'],"+
 
 		JSONObject object = new JSONObject();
 		writeJSON4ClassesWMZdefintions(owlOntology, owlDataFactory, object, owlOntologyManager);
+		
+		if(cache && ! object.isEmpty()) {
+			OntologySearchController.classesWMZdeinitions = object.toJSONString(); 
 
-		return object.toJSONString(); 
+		}
+		 return object.toJSONString(); 
 	}
 
 
@@ -2296,6 +2435,8 @@ return "{'Habit':['Growth form of plant'],"+
 	 */
 	@GetMapping(value = "/{ontology}/getToreviewClasses", produces = { MediaType.APPLICATION_JSON_VALUE })
 	public String getToreviewClassesInJSON(@PathVariable String ontology, @RequestParam Optional<String> user){
+		
+		if(cache && OntologySearchController.toReviewClasses!= null) return OntologySearchController.toReviewClasses;
 
 		String usrid = "";
 		String ontoName = ontology;
@@ -2316,6 +2457,10 @@ return "{'Habit':['Growth form of plant'],"+
 
 		writeJSON4ToreviewClasses(owlOntology, owlDataFactory, object, owlOntologyManager);
 
+		if(cache && ! object.isEmpty()) {
+			OntologySearchController.toReviewClasses = object.toJSONString(); 
+		}
+		
 		return object.toJSONString(); 
 	}
 
@@ -2388,6 +2533,8 @@ return "{'Habit':['Growth form of plant'],"+
 	 */
 	@GetMapping(value = "/{ontology}/getSynonymConflicts", produces = { MediaType.APPLICATION_JSON_VALUE })
 	public String getSynonymConflictsInJSON(@PathVariable String ontology, @RequestParam Optional<String> user){
+		
+		if(cache && OntologySearchController.synonymConflicts !=null) return OntologySearchController.synonymConflicts;
 
 		String usrid = "";
 		String ontoName = ontology;
@@ -2409,6 +2556,10 @@ return "{'Habit':['Growth form of plant'],"+
 
 		writeJSON4SynonymConflicts(owlOntology, owlDataFactory, object, owlOntologyManager);
 
+		if(cache && ! object.isEmpty()) {
+			OntologySearchController.synonymConflicts = object.toJSONString(); 
+		}
+		
 		return object.toJSONString(); 
 	}
 
@@ -2461,7 +2612,7 @@ return "{'Habit':['Growth form of plant'],"+
 			annos = EntitySearcher.getAnnotationObjects(clz, owlOntology, maybeEquProperty).collect(Collectors.toSet());
 			ArrayList<String> equIRIs = new ArrayList<String>();
 			for(OWLAnnotation anno: annos){
-				String equ = ((IRI)anno.getValue()).toString();
+				String equ = (anno.getValue()).toString();
 				if(!equIRIs.contains(equ))equIRIs.add(equ);
 			}
 			if(!equIRIs.isEmpty()){
@@ -2642,6 +2793,9 @@ return "{'Habit':['Growth form of plant'],"+
 
 	@GetMapping(value = "/{ontology}/getDeprecatedClasses", produces = { MediaType.APPLICATION_JSON_VALUE })
 	public String getDeprecatedClasses(@PathVariable String ontology, @RequestParam Optional<String> user) throws Exception {
+		
+		if(cache && OntologySearchController.deprecatdClasses != null) return OntologySearchController.deprecatdClasses;
+		
 		String usrid = "";
 		String ontoName = ontology;
 		if(user.isPresent()){
@@ -2658,8 +2812,10 @@ return "{'Habit':['Growth form of plant'],"+
 
 		writeJSON4DeprecatedClasses(owlOntology, owlDataFactory, object, owlOntologyManager);
 
+		if(cache && ! object.isEmpty()) {
+			OntologySearchController.deprecatdClasses =  object.toJSONString(); 
+		}
 		return object.toJSONString(); 
-
 
 	}
 
@@ -2726,6 +2882,10 @@ return "{'Habit':['Growth form of plant'],"+
 
 	@GetMapping(value = "/{ontology}/getMovedClasses", produces = { MediaType.APPLICATION_JSON_VALUE })
 	public String getMovedClasses(@PathVariable String ontology, @RequestParam Optional<String> user, @RequestParam String dateString) throws Exception {
+		
+		
+		if(cache && OntologySearchController.movedClasses != null) return OntologySearchController.movedClasses;
+		
 		String usrid = "";
 		String ontoName = ontology;
 		if(user.isPresent()){
@@ -2745,8 +2905,11 @@ return "{'Habit':['Growth form of plant'],"+
 
 		writeJSON4MovedClasses(owlOntology, owlDataFactory, object, owlOntologyManager, date);
 
-		return object.toJSONString(); 
+		if(cache && ! object.isEmpty()) {
+			OntologySearchController.movedClasses =  object.toJSONString(); 
+		}
 
+		return object.toJSONString(); 
 
 	}
 
@@ -2827,6 +2990,10 @@ return "{'Habit':['Growth form of plant'],"+
 
 	@GetMapping(value = "/{ontology}/getClassesWithNewDefinition", produces = { MediaType.APPLICATION_JSON_VALUE })
 	public String getClassesWithNewDefinition(@PathVariable String ontology, @RequestParam Optional<String> user, @RequestParam String dateString) throws Exception {
+		
+		if(cache && OntologySearchController.classesWNDefinitions != null) return OntologySearchController.classesWNDefinitions;
+		
+		
 		String usrid = "";
 		String ontoName = ontology;
 		if(user.isPresent()){
@@ -2846,6 +3013,10 @@ return "{'Habit':['Growth form of plant'],"+
 
 		writeJSON4ClassesWithNewDef(owlOntology, owlDataFactory, object, owlOntologyManager, date);
 
+		if(cache && ! object.isEmpty()) {
+			OntologySearchController.classesWNDefinitions = object.toJSONString(); 
+		}
+		
 		return object.toJSONString(); 
 
 
@@ -3083,6 +3254,8 @@ public ChangeApplied makeEquivalent(@RequestBody EquivalentClasses equClasses) t
  */
 @GetMapping(value = "/{ontology}/getTSdoubled", produces = { MediaType.APPLICATION_JSON_VALUE })
 public String getDoubledTermAndSynonym(@PathVariable String ontology, @RequestParam Optional<String> user) throws Exception {
+	
+	if(cache && OntologySearchController.tsdoubled != null) return OntologySearchController.tsdoubled;
 	String usrid = "";
 	String ontoName = ontology;
 	if(user.isPresent()){
@@ -3107,8 +3280,11 @@ public String getDoubledTermAndSynonym(@PathVariable String ontology, @RequestPa
 			dbTerms.add(obj);
 		}
 	}
-
-	return dbTerms.toJSONString(); 
+	
+	if(cache && !dbTerms.isEmpty()) {
+		OntologySearchController.tsdoubled =  dbTerms.toJSONString(); 
+	}
+	return  dbTerms.toJSONString(); 
 }
 
 
