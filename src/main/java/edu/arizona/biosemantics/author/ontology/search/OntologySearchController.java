@@ -2776,10 +2776,12 @@ return "{'Habit':['Growth form of plant'],"+
 				classes.add(aclass);
 
 			}
-
-			thisTerm.put("equivalent classes", classes);
-			terms.add(thisTerm);
-			t++;
+			
+			if(! classes.isEmpty()) {
+				thisTerm.put("equivalent classes", classes);
+				terms.add(thisTerm);
+				t++;
+			}
 
 		}
 
