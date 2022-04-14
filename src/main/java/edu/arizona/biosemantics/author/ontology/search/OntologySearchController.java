@@ -391,7 +391,17 @@ public class OntologySearchController {
 
 
 
-
+	/**
+	 * returns classes with matching labels, regardless of deprecation status
+	 * @param ontology
+	 * @param term
+	 * @param ancestorIRI
+	 * @param parent
+	 * @param relation
+	 * @param user
+	 * @return
+	 * @throws Exception
+	 */
 	@GetMapping(value = "/{ontology}/search", produces = { MediaType.APPLICATION_JSON_VALUE })
 	public OntologySearchResult search(@PathVariable String ontology, @RequestParam String term, @RequestParam Optional<String> ancestorIRI,
 			@RequestParam Optional<String> parent, @RequestParam Optional<String> relation, @RequestParam Optional<String> user) throws Exception {
@@ -886,7 +896,7 @@ public class OntologySearchController {
 	}
 
 	/**
-	 * return all classes with this property
+	 * return all classes with this property that are not deprecated
 	 * @param ontology
 	 * @param propertyIRI
 	 * @return
@@ -932,7 +942,7 @@ public class OntologySearchController {
 		OWLClassExpression queryExpression = owlDataFactory.getOWLObjectSomeValuesFrom(property, propValue); 
 		Set <OWLClass> subClzz = reasoner.getSubClasses(queryExpression, false).entities().collect(Collectors.toSet()); //false to include all subclasses
 		for(OWLClass c: subClzz){
-			if(!c.getIRI().isNothing()){
+			if(!c.getIRI().isNothing() && ! isDeprecated(c, owlOntology)){
 			//public OntologyEntry(Ontology ontology, String iri, Type type, double score, String label, String definition, String parentLabel, String matchType) {
 			StringBuffer parentLabels = new StringBuffer();
 			Set<OWLClass> parent = (reasoner.getSuperClasses(c, true).entities().collect(Collectors.toSet()));
@@ -1760,7 +1770,7 @@ return "{'Habit':['Growth form of plant'],"+
 
 
 	/**
-	 * Obtain the subclasses of the termIri as a JSON object
+	 * Obtain the subclasses of the termIri as a JSON object, regardless of deprecation status
 	 * 
 	 */
 	@GetMapping(value = "/{ontology}/getSubclasses", produces = { MediaType.APPLICATION_JSON_VALUE })
@@ -1815,7 +1825,7 @@ return "{'Habit':['Growth form of plant'],"+
 	}
 	
 	/**
-	 * Obtain the subclasses of the termIri as a JSON object
+	 * Obtain the subclasses of the termIri as a JSON object, excluding deprecated classes. 
 	 * 
 	 */
 	@GetMapping(value = "/{ontology}/getValidSubclasses", produces = { MediaType.APPLICATION_JSON_VALUE })
@@ -1910,7 +1920,7 @@ return "{'Habit':['Growth form of plant'],"+
 	 */
 
 
-	//Obtain the entire ontology as a JSON object
+	//Obtain the entire ontology as a JSON object, including deprecated terms
 	@GetMapping(value = "/{ontology}/getTree", produces = { MediaType.APPLICATION_JSON_VALUE })
 	public String getClassHierarchyInJSON(@PathVariable String ontology, @RequestParam Optional<String> user) throws Exception {
 		
@@ -2204,7 +2214,7 @@ return "{'Habit':['Growth form of plant'],"+
 	}
 
 	/**
-	 * get conflict type 1: classes with multiple superclasses, and with at least one sentence. 
+	 * get conflict type 1: valid classes with multiple superclasses, and with at least one sentence. 
 	 * Without any example sentence, the user can solve the conflict.
 	 * 
 	 */
@@ -2250,7 +2260,7 @@ return "{'Habit':['Growth form of plant'],"+
 		JSONObject terms = new JSONObject();
 		int t = 1;
 		for(OWLClass clz: set){
-			if(!isQuality(clz, owlOntology, reasoner)) continue;
+			if(!isQuality(clz, owlOntology, reasoner) || isDeprecated(clz, owlOntology)) continue;
 			//OWLClass test = owlDataFactory.getOWLClass(IRI.create("http://biosemantics.arizona.edu/ontologies/carex#black_brown"));
 			//if(!clz.equals(test)) continue;
 			Set<OWLClass> suprs = reasoner.getSuperClasses(clz, true).entities().collect(Collectors.toSet()); //direct superclass
@@ -2326,7 +2336,7 @@ return "{'Habit':['Growth form of plant'],"+
 
 
 	/**
-	 * get conflict type 2: classes with zero or multiple definitions
+	 * get conflict type 2: valid classes with zero or multiple definitions
 	 * 
 	 */
 	@GetMapping(value = "/{ontology}/getClassesWMZdefinitions", produces = { MediaType.APPLICATION_JSON_VALUE })
@@ -2371,6 +2381,7 @@ return "{'Habit':['Growth form of plant'],"+
 		JSONObject terms = new JSONObject();
 		int t = 1;
 		for(OWLClass clz: set){
+			if(isDeprecated(clz, owlOntology)) continue;
 			ArrayList<String> defs = getAnnotationValues(clz, definition, owlOntology, owlDataFactory);
 			if(defs.isEmpty() || defs.size()>1){
 				//write JSON for this class
@@ -2527,7 +2538,7 @@ return "{'Habit':['Growth form of plant'],"+
 	/**
 	 * Get conflict type 4: synonyms and equivalent classes. 
 	 * one term being exact synonyms of two class
-	 * or equivalent classes
+	 * or "maybe equivalent" classes
 	 * limited to classes with exactly one definition. 
 	 * 
 	 */
@@ -2729,10 +2740,11 @@ return "{'Habit':['Growth form of plant'],"+
 			JSONArray classes = new JSONArray();
 			ArrayList<String> iris = equs.get(equTerm);
 
-			//filter out classes with 0 or > 1 def
+			//filter out classes with 0 or > 1 def and deprecated classes
 			Hashtable<OWLClass, String> oneDefClasses = new Hashtable<OWLClass, String> ();
 			for(String iri: iris){
 				OWLClass clz = owlDataFactory.getOWLClass(iri);
+				if(isDeprecated(clz, owlOntology)) continue;
 				defs = getAnnotationValues(clz, definition, owlOntology, owlDataFactory);
 				if(defs.size()==1){ //exactly one definition
 					oneDefClasses.put(clz, defs.get(0));
@@ -2879,7 +2891,7 @@ return "{'Habit':['Growth form of plant'],"+
 	}
 
 	/*
-	 * get all primary classes that have been asserted to be a subclass of a new superclass since a date
+	 * get all primary and currently valid classes that have been asserted to be a subclass of a new superclass since a date
 	 */
 
 	@GetMapping(value = "/{ontology}/getMovedClasses", produces = { MediaType.APPLICATION_JSON_VALUE })
@@ -2924,6 +2936,7 @@ return "{'Habit':['Growth form of plant'],"+
 		//write out	
 		Set<OWLClass> set = owlOntology.classesInSignature().collect(Collectors.toSet());
 		for(OWLClass claz: set){
+			if(isDeprecated(claz, owlOntology)) continue;
 			boolean isMoved = false;
 			JSONObject movedTerm = new JSONObject();
 			Set<OWLAnnotation> annotations = EntitySearcher.getAnnotationObjects(claz, owlOntology).collect(Collectors.toSet());
@@ -2987,7 +3000,7 @@ return "{'Habit':['Growth form of plant'],"+
 	}
 
 	/*
-	 * get all primary classes that have a new definition since a date
+	 * get all primary and currently valid classes that have a new definition since a date
 	 */
 
 	@GetMapping(value = "/{ontology}/getClassesWithNewDefinition", produces = { MediaType.APPLICATION_JSON_VALUE })
@@ -3033,6 +3046,7 @@ return "{'Habit':['Growth form of plant'],"+
 		//write out	
 		Set<OWLClass> set = owlOntology.classesInSignature().collect(Collectors.toSet());
 		for(OWLClass claz: set){
+			if(isDeprecated(claz, owlOntology)) continue;
 			boolean hasNewDef = false;
 			JSONObject termWithNewDef = new JSONObject();
 			Set<OWLAnnotation> annotations = EntitySearcher.getAnnotationObjects(claz, owlOntology).collect(Collectors.toSet());
