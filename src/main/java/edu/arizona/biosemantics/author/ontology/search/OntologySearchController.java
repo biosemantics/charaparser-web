@@ -45,10 +45,12 @@ import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLEntity;
 //import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLLiteral;
+import org.semanticweb.owlapi.model.OWLObjectAllValuesFrom;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyDomainAxiom;
+import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -75,6 +77,7 @@ import org.springframework.web.bind.annotation.RestController;
 //import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.arizona.biosemantics.common.ontology.search.FileSearcher;
 import edu.arizona.biosemantics.author.ontology.search.model.AnAnnotation;
+import edu.arizona.biosemantics.author.ontology.search.model.Annotation;
 import edu.arizona.biosemantics.author.ontology.search.model.Class;
 import edu.arizona.biosemantics.author.ontology.search.model.Comment;
 import edu.arizona.biosemantics.author.ontology.search.model.Definition;
@@ -163,7 +166,7 @@ public class OntologySearchController {
 	private static String movedClasses = null;
 	private static String classesWNDefinitions = null;
 	private static String tsdoubled = null;
-	private boolean cache = true;
+	private boolean cache = false;
 	
 	
 	/*@Autowired
@@ -982,13 +985,13 @@ return "{'Habit':['Growth form of plant'],"+
 
 "'Stem':['Length of stem','Width of stem','Color of stem','Pubescence of stem','Shape of stem in transverse section','Texture of stem'],"+
 
-"'Leaf':['Number of leaves per stem','Length of leaf blade','Width of leaf blade','Color of leaf blade','Texture of margin of leaf blade','Pubescence of margin of leaf blade','Color of margin of leaf blade','Texture of abaxial leaf blade','Texture of adaxial leaf blade','Length of leaf sheath','Color of sheath','Color of inner band of sheath','Shape of apex of sheath inner band','Length of ligule','Shape of ligule','Texture of cataphyll','Color of cataphyll','Pattern of inner band of sheath'],"+
+"'Leaf':['Number of leaves per stem','Length of leaf blade','Width of leaf blade','Color of leaf blade','Texture of margin of leaf blade','Pubescence of margin of leaf blade','Color of margin of leaf blade','Texture of abaxial leaf blade','Texture of abaxial leaf blade vein','Texture of adaxial leaf blade','Length of leaf sheath','Color of sheath','Color of inner band of sheath','Shape of apex of sheath inner band','Length of ligule','Shape of ligule','Texture of cataphyll','Color of cataphyll','Pattern of inner band of sheath'],"+
 
-"'Inflorescence':['Length of inflorescence', 'Length of distal internode of inflorescence','Texture of distal internode of inflorescence'],"+
+"'Inflorescence':['Branching of inflorescence', 'Flower sexual arrangement of the inflorescence', 'Length of the inflorescence', 'Width of the inflorescence', 'Number of staminate flowers in the inflorescence', 'Number of perigynia in the inflorescence', 'Length of pistillate portion of the inflorescence', 'Length of staminate portion of the inflorescence', 'Width of pistillate portion of the inflorescence', 'Width of staminate portion of the inflorescence'],"+
+
+"'Inflorescence unit':['Branching of inflorescence units', 'Flower sexual arrangement of inflorescence units', 'Sexuality of proximalmost inflorescence unit', 'Sexuality of distalmost inflorescence unit', 'Number of inflorescence units', 'Number of pistillate inflorescence units', 'Number of staminate inflorescence units', 'Number of bisexual inflorescence units', 'Number of perigynia per proximal inflorescence unit', 'Number of staminate flowers per proximal inflorescence unit', 'Number of perigynia per distal inflorescence unit', 'Number of staminate flowers per distal inflorescence unit', 'Shape of pistillate inflorescence unit', 'Shape of staminate inflorescence unit', 'Width of proximalmost inflorescence unit', 'Length of proximalmost inflorescence unit', 'Width of distalmost inflorescence unit', 'Length of distalmost inflorescence unit', 'Length of internode of proximalmost inflorescence unit', 'Texture of internode of proximalmost inflorescence unit', 'Length of peduncle of proximalmost inflorescence unit', 'Texture of peduncle of proximalmost inflorescence unit', 'Shape of pistillate portion of bisexual inflorescence unit', 'Shape of staminate portion of bisexual inflorescence unit', 'Length of pistillate portion of proximalmost inflorescence unit', 'Width of pistillate portion of proximalmost inflorescence unit','Length of staminate portion of proximalmost inflorescence unit', 'Width of staminate portion of proximalmost inflorescence unit', 'relative size of secondary inflorescence units compared to primary inflorescence units'],"+
 
 "'Staminate flower':['Number of staminate flowers','Shape of staminate scale','Length of staminate scale','Width of staminate scale','Color of staminate scale','Texture of staminate scale','Texture of margin of staminate scale','Pubescence of margin of staminate scale','Color of margin of staminate scale','Number of distinct veins in staminate scale','Number of total veins in staminate scale'],"+
-
-"'Inflorescence unit':['Number of inflorescence units','Length of proximal internode of inflorescence unit','Length of inflorescence unit','Width of inflorescence unit','Shape of inflorescence unit','Number of perigynia per inforescence unit','Length of proximal peduncle of inflorescence unit','Texture of proximal peduncle of inflorescence unit','Length of terminal portion of inflorescence','Width of terminal portion of inflorescence','Width of pistillate portion of inflorescence unit','Width of staminate portion of inflorescence unit'],"+
 
 "'Bract':['Width of bract blade','Length of bract blade','Texture of margin of bract blade','Pubescence of margin of bract blade','Color of margin of bract blade','Color of bract blade','Texture of abaxial bract blade','Length of bract sheath','Color of bract sheath','Color of inner band of bract sheath','Shape of apex of bract sheath inner band'],"+
 
@@ -2014,9 +2017,12 @@ return "{'Habit':['Growth form of plant'],"+
 					if(!c.equals(clazz))
 						children.add(/*i++,*/ writeSimplifiedJSONObject(reasoner, owlDataFactory, c, new JSONObject(), manager, onto, definition, elucidation, isdeprecated, validOnly));
 				}
-				if(children.size()>0)
-					object.put("children", children);
+				//if(children.size()>0) //Hong May 25
+				object.put("children", children);
 			}
+			
+			
+			
 		}
 		return object;
 	}
@@ -2036,6 +2042,26 @@ return "{'Habit':['Growth form of plant'],"+
 			JSONObject o = new JSONObject();
 
 			o.put("IRI", clazz.getIRI().getIRIString());
+			//object properties
+			Set<OWLClassExpression> superclasses = EntitySearcher.getSuperClasses(clazz, onto).collect(Collectors.toSet());
+			for(OWLClassExpression superclass: superclasses){
+				if(superclass instanceof OWLObjectSomeValuesFrom){
+					OWLObjectSomeValuesFrom property = (OWLObjectSomeValuesFrom)superclass;
+					if(property.isObjectRestriction()){
+						o.put(property.getProperty().toString().replaceAll("^<|>$", ""), 
+								property.getFiller().toString().replaceAll("^<|>$", ""));
+					}
+				}
+				if(superclass instanceof OWLObjectAllValuesFrom){
+					OWLObjectAllValuesFrom property = (OWLObjectAllValuesFrom)superclass;
+					if(property.isObjectRestriction()){
+						o.put(property.getProperty().toString().replaceAll("^<|>$", ""), 
+								property.getFiller().toString().replaceAll("^<|>$", ""));
+					}
+				}
+			}
+		
+			//annotation propertes
 			ArrayList<String> result = getAnnotationValues(clazz, synonymE, onto, owlDataFactory);
 			for(String esyn: result){
 				o.put("exact synonyms", esyn);
